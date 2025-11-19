@@ -1,0 +1,65 @@
+name: Deploy Bounce Ball to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'bounce-ball/**'
+      - '.github/workflows/deploy-bounce-ball.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Copy bounce-ball files
+        run: |
+          mkdir -p _site/bounce-ball
+          cp -r bounce-ball/* _site/bounce-ball/
+
+      - name: Create index.html redirect
+        run: |
+          cat > _site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Mini Games - Bounce Ball</title>
+              <meta http-equiv="refresh" content="0; url=./bounce-ball/">
+              <link rel="canonical" href="./bounce-ball/">
+          </head>
+          <body>
+              <p>Redirecting to <a href="./bounce-ball/">Bounce Ball Game</a>...</p>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+

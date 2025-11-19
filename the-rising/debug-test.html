@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Test - The Rising</title>
+    <style>
+        body { 
+            margin: 0; 
+            padding: 20px; 
+            background: #000; 
+            color: #fff; 
+            font-family: monospace;
+        }
+        canvas { 
+            border: 2px solid #fff; 
+            background: #1a1a2e; 
+            display: block;
+            margin: 20px 0;
+        }
+        .status {
+            background: #333;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .error { background: #ff3333; }
+        .success { background: #33ff33; color: #000; }
+        .warning { background: #ffaa33; color: #000; }
+    </style>
+</head>
+<body>
+    <h1>🎮 THE RISING - DEBUG TEST</h1>
+    
+    <div id="status" class="status">
+        <h3>🔍 Testing Status:</h3>
+        <div id="tests"></div>
+    </div>
+    
+    <canvas id="gameCanvas" width="500" height="800"></canvas>
+    
+    <div id="controls" class="status">
+        <h3>🎮 Controls:</h3>
+        <button onclick="testSpawnBlock()">Spawn Block</button>
+        <button onclick="testPlaceBlock()">Place Block</button>
+        <button onclick="testNextLevel()">Next Level</button>
+        <button onclick="testSound()">Test Sound</button>
+        <button onclick="runAutoTest()">Auto Test to Level 10</button>
+    </div>
+    
+    <div id="gameState" class="status">
+        <h3>📊 Game State:</h3>
+        <div id="stateInfo"></div>
+    </div>
+    
+    <script>
+        const tests = document.getElementById('tests');
+        const stateInfo = document.getElementById('stateInfo');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `${new Date().toLocaleTimeString()}: ${message}`;
+            tests.appendChild(div);
+            console.log(message);
+        }
+        
+        function updateGameState() {
+            if (typeof game !== 'undefined') {
+                stateInfo.innerHTML = `
+                    <strong>State:</strong> ${game.state}<br>
+                    <strong>Level:</strong> ${game.level}<br>
+                    <strong>Score:</strong> ${game.score}<br>
+                    <strong>Survivors:</strong> ${game.survivors}<br>
+                    <strong>Stacked Blocks:</strong> ${game.stackedBlocks.length}<br>
+                    <strong>Current Block:</strong> ${game.currentBlock ? 'YES' : 'NO'}<br>
+                    <strong>Water Y:</strong> ${game.water.y}<br>
+                    <strong>Target Height:</strong> ${game.targetHeight}
+                `;
+            }
+        }
+        
+        // Test basic setup
+        log('🚀 Starting debug tests...', 'info');
+        
+        // Test canvas
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        if (!canvas || !ctx) {
+            log('❌ Canvas or context not found!', 'error');
+        } else {
+            log('✅ Canvas OK', 'success');
+            
+            // Draw test pattern
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(10, 10, 50, 50);
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(70, 10, 50, 50);
+            ctx.fillStyle = '#0000ff';
+            ctx.fillRect(130, 10, 50, 50);
+            
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px Arial';
+            ctx.fillText('Canvas Test Pattern', 200, 30);
+        }
+        
+        // Test audio
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            log('✅ Audio context created', 'success');
+        } catch (e) {
+            log('❌ Audio error: ' + e.message, 'error');
+        }
+        
+        function testSpawnBlock() {
+            if (typeof game !== 'undefined' && game.spawnBlock) {
+                game.spawnBlock();
+                log('🚢 Block spawned', 'success');
+                updateGameState();
+            } else {
+                log('❌ Cannot spawn block - game not ready', 'error');
+            }
+        }
+        
+        function testPlaceBlock() {
+            if (typeof game !== 'undefined' && game.currentBlock) {
+                game.placeBlock();
+                log('📦 Block placed', 'success');
+                updateGameState();
+            } else {
+                log('❌ No current block to place', 'warning');
+            }
+        }
+        
+        function testNextLevel() {
+            if (typeof game !== 'undefined' && game.nextLevel) {
+                game.nextLevel();
+                log('⬆️ Advanced to next level', 'success');
+                updateGameState();
+            } else {
+                log('❌ Cannot advance level', 'error');
+            }
+        }
+        
+        function testSound() {
+            if (typeof sounds !== 'undefined' && sounds.playStack) {
+                sounds.playStack();
+                log('🔊 Sound test played', 'success');
+            } else {
+                log('❌ Sound system not available', 'error');
+            }
+        }
+        
+        function runAutoTest() {
+            log('🤖 Starting automated test to level 10...', 'info');
+            
+            if (typeof game === 'undefined') {
+                log('❌ Game not loaded!', 'error');
+                return;
+            }
+            
+            // Start game
+            game.state = 'playing';
+            game.level = 1;
+            
+            let testLevel = 1;
+            const testInterval = setInterval(() => {
+                log(`🎯 Testing level ${testLevel}...`, 'info');
+                
+                // Spawn and place blocks to reach target
+                for (let i = 0; i < 5; i++) {
+                    if (!game.currentBlock) {
+                        game.spawnBlock();
+                    }
+                    
+                    if (game.currentBlock) {
+                        // Position block for good overlap
+                        if (game.stackedBlocks.length > 0) {
+                            const lastBlock = game.stackedBlocks[game.stackedBlocks.length - 1];
+                            game.currentBlock.x = lastBlock.x + 10; // Good overlap
+                        }
+                        game.placeBlock();
+                    }
+                    
+                    // Check if we reached target
+                    let reachedTarget = false;
+                    for (let block of game.stackedBlocks) {
+                        if (block.y <= game.targetHeight) {
+                            reachedTarget = true;
+                            break;
+                        }
+                    }
+                    
+                    if (reachedTarget) {
+                        log(`✅ Level ${testLevel} completed!`, 'success');
+                        game.nextLevel();
+                        testLevel++;
+                        break;
+                    }
+                }
+                
+                updateGameState();
+                
+                if (testLevel > 10) {
+                    clearInterval(testInterval);
+                    log('🎉 AUTO TEST COMPLETED - REACHED LEVEL 10!', 'success');
+                    
+                    if (game.state === 'ending') {
+                        log('🏆 Ending sequence triggered!', 'success');
+                    }
+                }
+                
+                if (game.state === 'gameOver') {
+                    clearInterval(testInterval);
+                    log('💀 Game over during auto test', 'error');
+                }
+                
+            }, 2000); // Test every 2 seconds
+        }
+        
+        // Update state every second
+        setInterval(updateGameState, 1000);
+        
+    </script>
+    
+    <!-- Load the main game -->
+    <script src="game-minimal.js"></script>
+    
+    <script>
+        // Post-load tests
+        setTimeout(() => {
+            if (typeof game !== 'undefined') {
+                log('✅ Game object loaded', 'success');
+                if (typeof game.init === 'function') {
+                    log('✅ Game.init() available', 'success');
+                } else {
+                    log('❌ Game.init() missing', 'error');
+                }
+                
+                if (typeof sounds !== 'undefined') {
+                    log('✅ Sounds object loaded', 'success');
+                } else {
+                    log('❌ Sounds object missing', 'error');
+                }
+                
+                updateGameState();
+            } else {
+                log('❌ Game object not loaded!', 'error');
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

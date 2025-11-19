@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Simple</title>
+    <style>
+        body { margin: 0; padding: 20px; background: #000; color: #fff; }
+        canvas { border: 2px solid #fff; background: #1a1a2e; }
+    </style>
+</head>
+<body>
+    <h1>Testing Game</h1>
+    <canvas id="gameCanvas" width="500" height="800"></canvas>
+    
+    <script>
+        console.log('=== STARTING TEST ===');
+        
+        // Test basic canvas
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        if (!canvas || !ctx) {
+            console.error('Canvas or context not found!');
+            document.body.innerHTML += '<p style="color:red;">CANVAS ERROR!</p>';
+        } else {
+            console.log('Canvas OK');
+            
+            // Draw test rectangle
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(50, 50, 100, 100);
+            
+            ctx.fillStyle = '#00ff00';
+            ctx.font = '20px Arial';
+            ctx.fillText('TEST OK', 200, 100);
+            
+            document.body.innerHTML += '<p style="color:lime;">Canvas working!</p>';
+        }
+        
+        // Test sound
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            console.log('Audio context created');
+            document.body.innerHTML += '<p style="color:lime;">Audio OK!</p>';
+        } catch (e) {
+            console.error('Audio error:', e);
+            document.body.innerHTML += '<p style="color:red;">Audio error: ' + e.message + '</p>';
+        }
+        
+        // Load and test main game
+        console.log('Loading main game...');
+    </script>
+    
+    <script src="game-minimal.js"></script>
+    
+    <script>
+        console.log('Main game loaded');
+        document.body.innerHTML += '<p>Main game script loaded</p>';
+    </script>
+</body>
+</html>

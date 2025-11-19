@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Stick Runner - Web Version</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(to bottom, #0f0f1e 0%, #1a1a2e 50%, #0f0f1e 100%);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #gameContainer {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #menuScreen, #gameOverScreen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+        }
+
+        #gameScreen {
+            display: none;
+            height: 100%;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            letter-spacing: 3px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+
+        .highScore {
+            font-size: 1.5rem;
+            color: #ffd700;
+            margin-bottom: 40px;
+            font-weight: 600;
+        }
+
+        .button {
+            background: #0f3460;
+            color: #fff;
+            border: 2px solid #16213e;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            touch-action: manipulation;
+        }
+
+        .button:active {
+            transform: scale(0.95);
+            background: #16213e;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #0f0f1e 0%, #1a1a2e 50%, #0f0f1e 100%);
+            display: block;
+            touch-action: none;
+        }
+
+        #scoreDisplay {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        #scoreText {
+            font-size: 2rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        #speedText {
+            font-size: 1rem;
+            color: #aaa;
+            margin-top: 5px;
+        }
+        
+        #boostIndicator {
+            position: absolute;
+            top: 100px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: #ffd700;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        #boostIndicator.active {
+            opacity: 1;
+        }
+
+        #instructions {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: #aaa;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            pointer-events: none;
+            line-height: 1.4;
+        }
+
+        .gameOverTitle {
+            font-size: 2.5rem;
+            color: #ff4757;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .finalScore {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Screen -->
+    <div id="menuScreen">
+        <h1>STICK RUNNER</h1>
+        <p class="subtitle">Tap to Jump!</p>
+        <p class="highScore">High Score: <span id="highScoreDisplay">0</span></p>
+        <button class="button" onclick="startGame()">START</button>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen">
+        <div id="scoreDisplay">
+            <div id="scoreText">Score: 0</div>
+            <div id="speedText">Speed: 1.0x</div>
+            <div id="boostIndicator">⚡ BOOST ⚡</div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div id="instructions">TAP TO JUMP<br>DOUBLE TAP FOR FLIP<br>← ARROW FOR BACKFLIP<br>SWIPE DOWN TO SLIDE<br>DOUBLE SWIPE FOR LONG SLIDE<br>→ ARROW TO BOOST</div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen" style="display: none;">
+        <h1 class="gameOverTitle">GAME OVER</h1>
+        <p class="finalScore">Score: <span id="finalScore">0</span></p>
+        <p class="finalScore">High Score: <span id="finalHighScore">0</span></p>
+        <button class="button" onclick="resetGame()">PLAY AGAIN</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Game constants - declare first
+        let GROUND_Y;
+        let PLAYER_X;
+        const JUMP_HEIGHT = 200; // Increased jump height
+        const OBSTACLE_SPEED_INITIAL = 3;
+        const OBSTACLE_SPAWN_RATE = 2000;
+        const PLAYER_HEIGHT = 90; // Total height of stick figure (head + body + legs)
+        
+        // Set canvas size
+        function resizeCanvas() {
+            if (!canvas) {
+                console.error('Canvas not found!');
+                return;
+            }
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            // Update positions on resize
+            GROUND_Y = canvas.height * 0.75;
+            PLAYER_X = canvas.width * 0.2;
+        }
+        
+        // Initialize canvas and positions
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Game state
+        let gameState = 'menu'; // 'menu', 'playing', 'gameover'
+        let score = 0;
+        let highScore = 0;
+        let playerY; // Will be initialized in startGame
+        let isJumping = false;
+        let isSliding = false;
+        let jumpVelocity = 0;
+        let slideTimer = 0;
+        let obstacles = [];
+        let gameSpeed = OBSTACLE_SPEED_INITIAL;
+        let lastObstacleSpawn = 0;
+        let gameLoop = null;
+        let scoreInterval = null;
+        let lastFrameTime = 0;
+        let animationFrame = 0; // For running animation
+        let touchStartY = 0; // For swipe detection
+        let isBoosting = false; // Speed boost state
+        let bloodParticles = []; // Blood splash effect
+        let headParticle = null; // Decapitated head particle
+        let lastFootstepTime = 0; // For footstep timing
+        let lastExhaleTime = 0; // For exhale timing
+        let audioContext = null; // Audio context for sound effects
+        let gameOverAnimationFrame = 0; // Frame counter for game over animation
+        let gameOverAnimationActive = false; // Whether game over animation is playing
+        let canDoubleJump = false; // Double jump available
+        let isFlipping = false; // Front flip animation state
+        let isBackFlipping = false; // Back flip animation state
+        let flipRotation = 0; // Rotation angle for flip
+        let flipDirection = 1; // 1 for front flip, -1 for backflip
+        let canDoubleSlide = false; // Double slide available
+        let cameraShake = 0; // Camera shake intensity
+        let cameraOffsetX = 0; // Camera horizontal offset for rebound
+        let cameraOffsetY = 0; // Camera vertical offset for rebound
+        let isRebounding = false; // Rebound animation state
+        let reboundVelocityX = 0; // Rebound horizontal velocity
+        let reboundVelocityY = 0; // Rebound vertical velocity
+
+        // Load high score
+        function loadHighScore() {
+            const saved = localStorage.getItem('stickRunnerHighScore');
+            if (saved) {
+                highScore = parseInt(saved);
+                document.getElementById('highScoreDisplay').textContent = highScore;
+            }
+        }
+
+        function saveHighScore() {
+            localStorage.setItem('stickRunnerHighScore', highScore.toString());
+        }
+
+        loadHighScore();
+
+        // Initialize audio context (requires user interaction)
+        function initAudio() {
+            if (audioContext) return; // Already initialized
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.log('Audio not supported');
+            }
+        }
+        
+        // Initialize audio on first user interaction
+        document.addEventListener('click', () => {
+            if (!audioContext) {
+                initAudio();
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+            }
+        }, { once: true });
+        
+        document.addEventListener('touchstart', () => {
+            if (!audioContext) {
+                initAudio();
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+            }
+        }, { once: true });
+
+        // Sound generation functions
+        function playTone(frequency, duration, type = 'sine', volume = 0.3) {
+            if (!audioContext) {
+                initAudio(); // Try to initialize if not already
+                if (!audioContext) return;
+            }
+            
+            // Resume audio context if suspended
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            
+            try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = frequency;
+                oscillator.type = type;
+                
+                gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+            } catch (e) {
+                // Silently fail if audio can't play
+            }
+        }
+
+        function playFootstep() {
+            // Quick thud sound for footsteps
+            playTone(80, 0.05, 'sawtooth', 0.15);
+            // Add a slight higher frequency for texture
+            setTimeout(() => playTone(120, 0.03, 'sawtooth', 0.1), 10);
+        }
+
+        function playMetalCling() {
+            // Metal-on-metal sound - high frequency with quick decay
+            playTone(800, 0.1, 'square', 0.4);
+            playTone(1200, 0.15, 'sine', 0.3);
+            playTone(600, 0.2, 'triangle', 0.2);
+        }
+
+        function playExhale() {
+            // Heavy/tired exhale - low frequency with noise-like quality
+            const baseFreq = 60 + Math.random() * 40;
+            playTone(baseFreq, 0.3, 'sawtooth', 0.25);
+            setTimeout(() => playTone(baseFreq * 0.7, 0.2, 'sawtooth', 0.15), 100);
+        }
+
+        function playScream() {
+            // Scream sound - high frequency, quick rise and fall
+            const startFreq = 400;
+            const peakFreq = 800;
+            const endFreq = 300;
+            
+            // Quick rise to peak
+            playTone(startFreq, 0.1, 'sawtooth', 0.5);
+            setTimeout(() => playTone(peakFreq, 0.15, 'sawtooth', 0.6), 50);
+            // Fall off
+            setTimeout(() => playTone(endFreq, 0.2, 'sawtooth', 0.3), 200);
+            // Add some texture with harmonics
+            setTimeout(() => playTone(peakFreq * 1.5, 0.1, 'square', 0.4), 100);
+        }
+
+        function playGulp() {
+            // Gulp sound - quick, low frequency, like swallowing
+            const baseFreq = 80;
+            // Quick low tone
+            playTone(baseFreq, 0.15, 'sawtooth', 0.4);
+            // Slight rise then drop
+            setTimeout(() => playTone(baseFreq * 1.2, 0.1, 'sawtooth', 0.3), 50);
+            setTimeout(() => playTone(baseFreq * 0.7, 0.1, 'sawtooth', 0.2), 150);
+            // Add a "throat" texture
+            setTimeout(() => playTone(baseFreq * 0.5, 0.08, 'triangle', 0.15), 100);
+        }
+
+        // Create blood splash effect
+        function createBloodSplash(y, x, vx = 0, vy = 0) {
+            // Create multiple blood particles
+            for (let i = 0; i < 15; i++) {
+                bloodParticles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 8 + vx, // Random horizontal velocity
+                    vy: (Math.random() - 0.5) * 8 + vy, // Random vertical velocity
+                    life: 30, // Frames to live
+                    size: Math.random() * 4 + 2, // Random size
+                });
+            }
+        }
+
+        // Create decapitation effect
+        function createDecapitation(y, x) {
+            // Create massive blood splash
+            for (let i = 0; i < 25; i++) {
+                bloodParticles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 12, // More violent spray
+                    vy: (Math.random() - 0.5) * 12,
+                    life: 40, // Longer lasting
+                    size: Math.random() * 5 + 3, // Larger particles
+                });
+            }
+            // Create flying head
+            headParticle = {
+                x: x,
+                y: y,
+                vx: 5 + Math.random() * 5, // Head flies forward
+                vy: -8 - Math.random() * 5, // Head flies up
+                rotation: 0,
+                rotationSpeed: (Math.random() - 0.5) * 0.3, // Spinning head
+                life: 60, // Head stays longer
+                size: 20, // Head size
+            };
+        }
+
+        // Update and draw blood particles
+        function updateBloodParticles() {
+            // Update particles
+            bloodParticles = bloodParticles.filter(particle => {
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.vy += 0.3; // Gravity
+                particle.life--;
+                return particle.life > 0;
+            });
+            
+            // Draw particles
+            bloodParticles.forEach(particle => {
+                const maxLife = 40; // Max life for decapitation particles
+                const alpha = particle.life / maxLife;
+                ctx.fillStyle = `rgba(200, 0, 0, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Add darker center
+                ctx.fillStyle = `rgba(150, 0, 0, ${alpha * 0.5})`;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            // Update and draw decapitated head
+            if (headParticle) {
+                headParticle.x += headParticle.vx;
+                headParticle.y += headParticle.vy;
+                headParticle.vy += 0.5; // Gravity for head
+                headParticle.rotation += headParticle.rotationSpeed;
+                headParticle.life--;
+                
+                if (headParticle.life > 0) {
+                    const alpha = headParticle.life / 60;
+                    ctx.save();
+                    ctx.translate(headParticle.x, headParticle.y);
+                    ctx.rotate(headParticle.rotation);
+                    
+                    // Draw head as circle
+                    ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, headParticle.size / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                    
+                    // Draw face (simple)
+                    ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(-5, -3, 2, 0, Math.PI * 2); // Left eye
+                    ctx.arc(5, -3, 2, 0, Math.PI * 2); // Right eye
+                    ctx.fill();
+                    
+                    ctx.restore();
+                } else {
+                    headParticle = null;
+                }
+            }
+        }
+
+        // Draw player shadow (constant shadow under player)
+        function drawPlayerShadow(x, y, isJumping, isSliding) {
+            const shadowOffsetX = 3; // Shadow offset to the right
+            const shadowOffsetY = 5; // Shadow offset down
+            const shadowWidth = 25;
+            const shadowHeight = isSliding ? 15 : (isJumping ? 20 : 25);
+            const shadowY = GROUND_Y + shadowOffsetY;
+            
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(
+                x + shadowWidth/2 + shadowOffsetX,
+                shadowY,
+                shadowWidth/2,
+                shadowHeight/2,
+                0,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+        }
+
+        // Draw stick figure with human-like running animation
+        function drawStickFigure(x, y, isJumping, isSliding) {
+            const headSize = 20;
+            const bodyHeight = 40;
+            const legLength = 30;
+            const armLength = 15;
+
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // Save context for rotation
+            ctx.save();
+            
+            // Calculate center point for rotation (mid-body)
+            const centerX = x + headSize/2;
+            const centerY = y + headSize/2 + bodyHeight/2;
+            
+            // Apply rotation if flipping or backflipping
+            if (isFlipping || isBackFlipping) {
+                ctx.translate(centerX, centerY);
+                ctx.rotate((flipRotation * Math.PI) / 180); // Convert degrees to radians
+                ctx.translate(-centerX, -centerY);
+            }
+
+            // Head position - when sliding, compress the character (head lower, body horizontal)
+            let headY, headBounce;
+            if (isSliding) {
+                // Sliding: head is lower, compressed pose
+                headY = y + 25; // Lower the head when sliding
+                headBounce = 0;
+            } else if (isFlipping || isBackFlipping) {
+                // Flipping: head position during flip
+                headY = y;
+                headBounce = 0;
+            } else {
+                // Normal: head at normal position with bounce
+                headY = y;
+                headBounce = isJumping ? 0 : Math.sin(animationFrame * 0.3) * 2;
+            }
+            
+            ctx.beginPath();
+            ctx.arc(x + headSize/2, headY + headBounce, headSize/2, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Body (slight lean when running, horizontal when sliding, tuck during flip)
+            const bodyLean = isSliding ? 0 : (isJumping && !isFlipping && !isBackFlipping ? 0 : ((isFlipping || isBackFlipping) ? 0 : Math.sin(animationFrame * 0.3) * 3));
+            const bodyX = x + headSize/2 + bodyLean;
+            let bodyStartY = isSliding ? (headY + headSize/2) : (y + headSize/2);
+            
+            if (isFlipping || isBackFlipping) {
+                // Flipping pose - body tucked in a ball
+                const tuckAmount = Math.abs(Math.sin((flipRotation * Math.PI) / 180)) * 15;
+                bodyStartY += tuckAmount;
+                ctx.beginPath();
+                ctx.moveTo(bodyX, bodyStartY);
+                ctx.lineTo(bodyX, bodyStartY + bodyHeight - tuckAmount);
+                ctx.stroke();
+            } else if (isSliding) {
+                // Sliding pose - body horizontal and compressed
+                ctx.beginPath();
+                ctx.moveTo(bodyX, bodyStartY);
+                ctx.lineTo(bodyX + bodyHeight, bodyStartY);
+                ctx.stroke();
+            } else {
+                // Normal pose - body vertical
+                ctx.beginPath();
+                ctx.moveTo(bodyX, bodyStartY);
+                ctx.lineTo(bodyX, bodyStartY + bodyHeight);
+                ctx.stroke();
+            }
+
+            // Arms - animated swinging motion
+            let leftArmAngle, rightArmAngle;
+            if (isFlipping || isBackFlipping) {
+                // Flipping pose - arms tucked in
+                const tuckPhase = (Math.abs(flipRotation) * Math.PI) / 180;
+                leftArmAngle = Math.PI / 2 + Math.sin(tuckPhase) * 0.5;
+                rightArmAngle = Math.PI / 2 - Math.sin(tuckPhase) * 0.5;
+            } else if (isSliding) {
+                // Sliding pose - arms forward
+                leftArmAngle = Math.PI / 4;
+                rightArmAngle = Math.PI / 4;
+            } else if (isJumping) {
+                // Jumping pose - arms up
+                leftArmAngle = Math.PI / 3;
+                rightArmAngle = Math.PI / 3;
+            } else {
+                // Running - arms swing opposite to legs
+                const swingPhase = animationFrame * 0.4;
+                leftArmAngle = Math.sin(swingPhase) * (Math.PI / 3) + Math.PI / 6;
+                rightArmAngle = -Math.sin(swingPhase) * (Math.PI / 3) + Math.PI / 6;
+            }
+            
+            // Left arm (swings forward/back)
+            const armY = isSliding ? bodyStartY : (y + headSize/2 + 10);
+            ctx.beginPath();
+            ctx.moveTo(bodyX, armY);
+            ctx.lineTo(
+                bodyX - Math.cos(leftArmAngle) * armLength,
+                armY + Math.sin(leftArmAngle) * armLength
+            );
+            ctx.stroke();
+            
+            // Right arm (swings opposite)
+            ctx.beginPath();
+            ctx.moveTo(bodyX, armY);
+            ctx.lineTo(
+                bodyX + Math.cos(rightArmAngle) * armLength,
+                armY + Math.sin(rightArmAngle) * armLength
+            );
+            ctx.stroke();
+
+            // Legs - animated running motion
+            let leftLegAngle, rightLegAngle;
+            let legStartY = isSliding ? bodyStartY : (y + headSize/2 + bodyHeight);
+            
+            if (isFlipping || isBackFlipping) {
+                // Flipping pose - legs tucked in
+                const tuckPhase = (Math.abs(flipRotation) * Math.PI) / 180;
+                legStartY = bodyStartY + bodyHeight;
+                leftLegAngle = Math.PI * 0.8 + Math.sin(tuckPhase) * 0.3;
+                rightLegAngle = Math.PI * 0.8 - Math.sin(tuckPhase) * 0.3;
+            } else if (isSliding) {
+                // Sliding pose - legs extended back
+                leftLegAngle = Math.PI * 0.7;
+                rightLegAngle = Math.PI * 0.7;
+            } else if (isJumping) {
+                // Jumping pose - legs spread
+                leftLegAngle = Math.PI / 6;
+                rightLegAngle = -Math.PI / 6;
+            } else {
+                // Running - legs alternate
+                const runPhase = animationFrame * 0.4;
+                leftLegAngle = Math.sin(runPhase) * (Math.PI / 4) + Math.PI / 12;
+                rightLegAngle = -Math.sin(runPhase) * (Math.PI / 4) - Math.PI / 12;
+            }
+            
+            // Left leg
+            ctx.beginPath();
+            ctx.moveTo(bodyX, legStartY);
+            ctx.lineTo(
+                bodyX - Math.cos(leftLegAngle) * legLength,
+                legStartY + Math.sin(leftLegAngle) * legLength
+            );
+            ctx.stroke();
+            
+            // Right leg
+            ctx.beginPath();
+            ctx.moveTo(bodyX, legStartY);
+            ctx.lineTo(
+                bodyX + Math.cos(rightLegAngle) * legLength,
+                legStartY + Math.sin(rightLegAngle) * legLength
+            );
+            ctx.stroke();
+            
+            // Restore context after rotation
+            ctx.restore();
+        }
+
+        // Draw obstacle with some visual variety
+        function drawObstacle(x, height, type, bottom, obs) {
+            if (type === 'ceiling' && bottom !== undefined) {
+                // Ceiling obstacle - draw as a simple upside-down mountain
+                const slideHeadY = GROUND_Y - 80 + 25; // Head Y when sliding (compressed)
+                const maxBottom = slideHeadY - 10; // Stop 10px above sliding head
+                const visualBottom = Math.min(bottom, maxBottom);
+                
+                // Simple upside-down mountain shape
+                ctx.fillStyle = 'rgba(255, 0, 255, 0.2)'; // Very transparent (20% opacity)
+                ctx.strokeStyle = 'rgba(255, 0, 255, 0.4)'; // Slightly more visible outline
+                ctx.lineWidth = 2;
+                
+                const centerX = x + 10;
+                const baseWidth = 60; // Fixed width for simplicity
+                const leftBase = centerX - baseWidth / 2;
+                const rightBase = centerX + baseWidth / 2;
+                const tipY = visualBottom; // Point at bottom
+                const baseY = 0; // Top at ceiling
+                
+                // Simple pointy mountain shape (upside-down triangle with slight curve)
+                ctx.beginPath();
+                ctx.moveTo(leftBase, baseY);
+                ctx.lineTo(centerX, tipY);
+                ctx.lineTo(rightBase, baseY);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                
+                // Very subtle shadow
+                if (obs) {
+                    const shadowProgress = Math.max(0, Math.min(1, (PLAYER_X - obs.x + 50) / 100));
+                    const shadowX = centerX;
+                    const shadowY = GROUND_Y + 5;
+                    const shadowWidth = 30 * (1 - shadowProgress * 0.5);
+                    const shadowHeight = 6 * (1 - shadowProgress * 0.5);
+                    const shadowAlpha = 0.1 * (1 - shadowProgress); // Very subtle
+                    
+                    ctx.fillStyle = `rgba(0, 0, 0, ${shadowAlpha})`;
+                    ctx.beginPath();
+                    ctx.ellipse(shadowX, shadowY, shadowWidth/2, shadowHeight/2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            } else {
+                // Ground obstacle - draw as simple pointy mountain
+                ctx.fillStyle = 'rgba(200, 200, 255, 0.2)'; // Very transparent (20% opacity)
+                ctx.strokeStyle = 'rgba(200, 200, 255, 0.4)'; // Slightly more visible outline
+                ctx.lineWidth = 2;
+                
+                const centerX = x + 10;
+                const baseWidth = 60; // Fixed width for simplicity
+                const leftBase = centerX - baseWidth / 2;
+                const rightBase = centerX + baseWidth / 2;
+                const tipY = GROUND_Y - height; // Point at top
+                const baseY = GROUND_Y; // Bottom at ground
+                
+                // Simple pointy mountain shape (triangle with slight curve)
+                ctx.beginPath();
+                ctx.moveTo(leftBase, baseY);
+                ctx.lineTo(centerX, tipY);
+                ctx.lineTo(rightBase, baseY);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                
+                // Very subtle shadow
+                if (obs) {
+                    const shadowProgress = Math.max(0, Math.min(1, (PLAYER_X - obs.x + 50) / 100));
+                    const shadowX = centerX;
+                    const shadowY = GROUND_Y + 5;
+                    const shadowWidth = 30 * (1 - shadowProgress * 0.5);
+                    const shadowHeight = 6 * (1 - shadowProgress * 0.5);
+                    const shadowAlpha = 0.1 * (1 - shadowProgress); // Very subtle
+                    
+                    ctx.fillStyle = `rgba(0, 0, 0, ${shadowAlpha})`;
+                    ctx.beginPath();
+                    ctx.ellipse(shadowX, shadowY, shadowWidth/2, shadowHeight/2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+        
+        // Draw stick figure from different angle (for game over animation)
+        function drawStickFigureFromAngle(angle, frame) {
+            // angle: 0-360 degrees (camera angle around player)
+            // frame: 0-19 (which frame of animation)
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const headSize = 20;
+            const bodyHeight = 40;
+            const legLength = 30;
+            const armLength = 15;
+            
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            
+            // Calculate perspective based on angle
+            // 0° = front, 90° = right side, 180° = back, 270° = left side
+            const rad = (angle * Math.PI) / 180;
+            const perspective = Math.cos(rad); // -1 to 1, affects width
+            const sideView = Math.abs(Math.sin(rad)); // 0 to 1, affects visibility
+            
+            // Head
+            const headX = 0;
+            const headY = -80;
+            const headScale = 0.7 + 0.3 * (1 - sideView); // Head appears smaller from side
+            ctx.beginPath();
+            ctx.arc(headX, headY, headSize/2 * headScale, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Body (affected by perspective)
+            const bodyX = 0;
+            const bodyY = headY + headSize/2;
+            const bodyWidth = Math.abs(perspective) * 5; // Body width changes with angle
+            ctx.beginPath();
+            ctx.moveTo(bodyX - bodyWidth, bodyY);
+            ctx.lineTo(bodyX + bodyWidth, bodyY + bodyHeight);
+            ctx.stroke();
+            
+            // Arms (position based on angle)
+            const armAngle = rad;
+            const leftArmX = bodyX - Math.cos(armAngle) * armLength;
+            const leftArmY = bodyY + 10 + Math.sin(armAngle) * armLength;
+            const rightArmX = bodyX + Math.cos(armAngle) * armLength;
+            const rightArmY = bodyY + 10 - Math.sin(armAngle) * armLength;
+            
+            ctx.beginPath();
+            ctx.moveTo(bodyX, bodyY + 10);
+            ctx.lineTo(leftArmX, leftArmY);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(bodyX, bodyY + 10);
+            ctx.lineTo(rightArmX, rightArmY);
+            ctx.stroke();
+            
+            // Legs (position based on angle)
+            const legBaseY = bodyY + bodyHeight;
+            const legSpread = Math.abs(perspective) * 15;
+            const leftLegX = bodyX - legSpread;
+            const rightLegX = bodyX + legSpread;
+            
+            ctx.beginPath();
+            ctx.moveTo(bodyX, legBaseY);
+            ctx.lineTo(leftLegX, legBaseY + legLength);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(bodyX, legBaseY);
+            ctx.lineTo(rightLegX, legBaseY + legLength);
+            ctx.stroke();
+            
+            // Draw shadow based on angle (shadow position changes as camera circles)
+            const shadowOffsetX = Math.sin(rad) * 8; // Shadow moves based on angle
+            const shadowOffsetY = Math.cos(rad) * 5;
+            const shadowX = shadowOffsetX;
+            const shadowY = legBaseY + legLength + 10 + shadowOffsetY;
+            const shadowWidth = 25 * (1 - sideView * 0.3); // Shadow narrower from side
+            const shadowHeight = 8;
+            
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.beginPath();
+            ctx.ellipse(shadowX, shadowY, shadowWidth/2, shadowHeight/2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+
+        // Draw ground
+        function drawGround() {
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, GROUND_Y);
+            ctx.lineTo(canvas.width, GROUND_Y);
+            ctx.stroke();
+        }
+
+        // Jump function
+        function jump() {
+            if (gameState !== 'playing' || isSliding) return;
+            
+            if (!isJumping) {
+                // First jump
+                isJumping = true;
+                jumpVelocity = -22; // Increased jump velocity for higher jumps
+                canDoubleJump = true; // Enable double jump
+                isFlipping = false;
+                flipRotation = 0;
+            } else if (canDoubleJump && isJumping) {
+                // Double jump - front flip!
+                canDoubleJump = false; // Use up double jump
+                jumpVelocity = -20; // Additional jump boost
+                isFlipping = true; // Start flip animation
+                isBackFlipping = false;
+                flipDirection = 1; // Forward rotation
+                flipRotation = 0; // Reset rotation
+            }
+        }
+        
+        // Backflip function
+        function backflip() {
+            if (gameState !== 'playing' || isSliding) return;
+            
+            if (!isJumping) {
+                // Start jump with backflip
+                isJumping = true;
+                jumpVelocity = -22;
+                isBackFlipping = true;
+                isFlipping = false;
+                flipDirection = -1; // Backward rotation
+                flipRotation = 0;
+                canDoubleJump = true; // Can still double jump after backflip
+            } else if (canDoubleJump && isJumping) {
+                // Double jump - backflip!
+                canDoubleJump = false;
+                jumpVelocity = -20;
+                isBackFlipping = true;
+                isFlipping = false;
+                flipDirection = -1; // Backward rotation
+                flipRotation = 0;
+            }
+        }
+        
+        // Slide function
+        function slide() {
+            if (gameState !== 'playing' || isJumping) return;
+            
+            if (!isSliding) {
+                // First slide
+                isSliding = true;
+                slideTimer = 0;
+                canDoubleSlide = true; // Enable double slide
+            } else if (canDoubleSlide && isSliding) {
+                // Double slide - extend slide duration
+                canDoubleSlide = false; // Use up double slide
+                slideTimer = 0; // Reset timer for extended slide
+            }
+        }
+        
+        // Stop sliding
+        function stopSlide() {
+            if (isSliding) {
+                // Allow stopping slide immediately (no minimum duration)
+                isSliding = false;
+                slideTimer = 0;
+                canDoubleSlide = false; // Reset double slide
+            }
+        }
+
+        // Start game
+        function startGame() {
+            console.log('Starting game...'); // Debug
+            
+            // Check if canvas exists
+            if (!canvas || !ctx) {
+                console.error('Canvas or context not initialized!');
+                alert('Error: Canvas not ready. Please refresh the page.');
+                return;
+            }
+            
+            // Make sure canvas is properly sized
+            resizeCanvas();
+            
+            // Recalculate positions
+            GROUND_Y = canvas.height * 0.75;
+            PLAYER_X = canvas.width * 0.2;
+            
+            // Clear any existing intervals
+            if (gameLoop) {
+                cancelAnimationFrame(gameLoop);
+            }
+            if (scoreInterval) {
+                clearInterval(scoreInterval);
+            }
+            
+            gameState = 'playing';
+            score = 0;
+            // Position so feet are exactly on ground line (head center to feet = 80px)
+            playerY = GROUND_Y - 80; // Feet will be at GROUND_Y
+            isJumping = false;
+            isSliding = false;
+            isBoosting = false;
+            jumpVelocity = 0;
+            slideTimer = 0;
+            obstacles = [];
+            bloodParticles = []; // Clear blood particles
+            headParticle = null; // Clear decapitated head
+            gameSpeed = OBSTACLE_SPEED_INITIAL;
+            lastObstacleSpawn = Date.now();
+            lastFrameTime = Date.now();
+            lastFootstepTime = Date.now();
+            lastExhaleTime = Date.now();
+            canDoubleJump = false;
+            canDoubleSlide = false;
+            isFlipping = false;
+            isBackFlipping = false;
+            flipRotation = 0;
+            flipDirection = 1;
+            cameraShake = 0;
+            cameraOffsetX = 0;
+            cameraOffsetY = 0;
+            isRebounding = false;
+            reboundVelocityX = 0;
+            reboundVelocityY = 0;
+
+            // Hide menu, show game
+            const menuScreen = document.getElementById('menuScreen');
+            const gameScreen = document.getElementById('gameScreen');
+            const gameOverScreen = document.getElementById('gameOverScreen');
+            
+            if (menuScreen) menuScreen.style.display = 'none';
+            if (gameOverScreen) gameOverScreen.style.display = 'none';
+            if (gameScreen) {
+                gameScreen.style.display = 'block';
+            } else {
+                console.error('Game screen element not found!');
+                return;
+            }
+
+            // Update initial score display
+            const scoreText = document.getElementById('scoreText');
+            const speedText = document.getElementById('speedText');
+            const boostIndicator = document.getElementById('boostIndicator');
+            if (scoreText) scoreText.textContent = 'Score: 0';
+            if (speedText) speedText.textContent = 'Speed: 1.0x';
+            if (boostIndicator) boostIndicator.classList.remove('active');
+
+            // Reset animation frame
+            animationFrame = 0;
+            
+            // Score interval
+            scoreInterval = setInterval(() => {
+                score++;
+                if (scoreText) scoreText.textContent = `Score: ${score}`;
+                // Speed increases more gradually, reaching 50x max
+                if (score % 10 === 0) {
+                    gameSpeed = Math.min(gameSpeed + 0.3, 50);
+                    if (speedText) speedText.textContent = `Speed: ${gameSpeed.toFixed(1)}x`;
+                }
+            }, 100);
+
+            // Draw initial frame immediately
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGround();
+            drawStickFigure(PLAYER_X, playerY, isJumping, isSliding);
+            
+            // Start game loop
+            gameLoop = requestAnimationFrame(updateGame);
+            console.log('Game started!'); // Debug
+        }
+
+        // Update game
+        function updateGame() {
+            if (gameState !== 'playing') {
+                return;
+            }
+
+            const currentTime = Date.now();
+            const deltaTime = currentTime - lastFrameTime;
+            lastFrameTime = currentTime;
+            
+            // Increment animation frame for running animation
+            if (!isJumping && !isSliding) {
+                animationFrame += gameSpeed * 0.5; // Animation speed scales with game speed
+                
+                // Play footstep sounds - faster when running faster
+                const footstepInterval = Math.max(200, 400 - (gameSpeed - OBSTACLE_SPEED_INITIAL) * 20);
+                if (currentTime - lastFootstepTime > footstepInterval) {
+                    playFootstep();
+                    lastFootstepTime = currentTime;
+                }
+            }
+            
+            // Random heavy/tired exhale sounds
+            if (gameState === 'playing' && score > 20) {
+                // Start playing exhales after score 20, random intervals
+                const exhaleChance = 0.001; // 0.1% chance per frame
+                if (Math.random() < exhaleChance && currentTime - lastExhaleTime > 3000) {
+                    playExhale();
+                    lastExhaleTime = currentTime;
+                }
+            }
+
+            // Update player position
+            if (isJumping) {
+                playerY += jumpVelocity;
+                jumpVelocity += 0.9; // gravity
+                
+                // Update flip rotation if flipping or backflipping
+                if (isFlipping || isBackFlipping) {
+                    flipRotation += 15 * flipDirection; // Rotate 15 degrees per frame (forward or backward)
+                    if (isFlipping && flipRotation >= 360) {
+                        flipRotation = 360;
+                        isFlipping = false; // Finish front flip
+                    } else if (isBackFlipping && flipRotation <= -360) {
+                        flipRotation = -360;
+                        isBackFlipping = false; // Finish backflip
+                    }
+                }
+
+                // Stop at ground level (feet on ground)
+                if (playerY >= GROUND_Y - 80) {
+                    playerY = GROUND_Y - 80; // Feet exactly on ground line
+                    isJumping = false;
+                    jumpVelocity = 0;
+                    isFlipping = false; // Stop flip on landing
+                    isBackFlipping = false;
+                    flipRotation = 0;
+                    flipDirection = 1;
+                    canDoubleJump = false; // Reset double jump
+                    canDoubleSlide = false; // Reset double slide
+                }
+            } else if (isSliding) {
+                // Sliding - compress the character (feet stay on ground, body lowers)
+                slideTimer++;
+                // Keep feet at ground level, but lower the head/body
+                // This makes the character compress/flatten when sliding
+                playerY = GROUND_Y - 80; // Feet stay on ground
+                // The visual compression is handled in drawStickFigure
+                
+                // Auto-stop sliding after a while (longer if double slide)
+                const maxSlideTime = canDoubleSlide ? 30 : 45; // Extended if double slide was used
+                if (slideTimer > maxSlideTime) {
+                    stopSlide();
+                }
+            } else {
+                // Return to normal position if not sliding
+                playerY = GROUND_Y - 80; // Always keep feet on ground
+            }
+
+            // Spawn obstacles - more frequent, spawn rate decreases as speed increases
+            const spawnRate = Math.max(800, OBSTACLE_SPAWN_RATE - (gameSpeed - OBSTACLE_SPEED_INITIAL) * 40); // Reduced from 1000 to 800ms
+            if (currentTime - lastObstacleSpawn > spawnRate) {
+                // Randomly choose obstacle type: ground (jump over) or ceiling (slide under)
+                const obstacleType = Math.random();
+                if (obstacleType < 0.7) { // Increased from 50% to 70% chance for ceiling obstacles
+                    // Ceiling obstacle - must slide under (70% chance, much more common)
+                    // Add variety: 40% low (require slide), 40% medium (hit if walking), 20% high (safe to walk)
+                    const headTopY = GROUND_Y - 90; // Top of player's head when standing
+                    const slideHeadY = GROUND_Y - 80 + 25; // Head Y when sliding (compressed)
+                    
+                    let obstacleBottomY;
+                    const variety = Math.random();
+                    
+                    if (variety < 0.4) {
+                        // Low obstacles - require sliding (extend to 10-20px above sliding head)
+                        obstacleBottomY = slideHeadY - 10 - Math.random() * 10;
+                    } else if (variety < 0.8) {
+                        // Medium obstacles - hit if walking but safe if sliding (extend to 20-30px above sliding head)
+                        obstacleBottomY = slideHeadY - 20 - Math.random() * 10;
+                    } else {
+                        // High obstacles - safe to walk under (extend to 30-45px above sliding head)
+                        obstacleBottomY = slideHeadY - 30 - Math.random() * 15;
+                    }
+                    
+                    const ceilingHeight = obstacleBottomY; // Distance from top of screen
+                    obstacles.push({
+                        x: canvas.width,
+                        height: ceilingHeight,
+                        type: 'ceiling', // Mark as ceiling obstacle
+                        bottom: ceilingHeight, // Distance from top of screen (extends down this far)
+                    });
+                } else {
+                    // Ground obstacle - jump over (50% chance)
+                    const obstacleHeight = Math.random() * 100 + 30;
+                    obstacles.push({
+                        x: canvas.width,
+                        height: obstacleHeight,
+                        type: 'ground', // Mark as ground obstacle
+                    });
+                }
+                lastObstacleSpawn = currentTime;
+            }
+
+            // Apply speed boost if active
+            const currentSpeed = isBoosting ? gameSpeed * 1.5 : gameSpeed;
+            
+            // Update boost indicator
+            const boostIndicator = document.getElementById('boostIndicator');
+            if (boostIndicator) {
+                if (isBoosting) {
+                    boostIndicator.classList.add('active');
+                } else {
+                    boostIndicator.classList.remove('active');
+                }
+            }
+            
+            // Move obstacles
+            obstacles = obstacles.map(obs => ({
+                ...obs,
+                x: obs.x - currentSpeed,
+            })).filter(obs => obs.x > -50);
+
+            // Check collisions (playerY is head center when standing, feet are at playerY + 80)
+            const playerWidth = 25;
+            const playerRight = PLAYER_X + playerWidth;
+            const playerLeft = PLAYER_X;
+            // When sliding, character is compressed - head is lower
+            const actualHeadY = isSliding ? (playerY + 25) : playerY; // Sliding: head is at playerY + 25
+            const playerBottom = playerY + 80; // Feet always at GROUND_Y
+            const playerTop = actualHeadY - 10; // Top of head (lower when sliding)
+            const playerCenterY = actualHeadY; // Head center
+
+            // Debug: log player position and state
+            console.log('PLAYER STATE:', {
+                x: PLAYER_X, y: playerY,
+                isSliding, isJumping,
+                playerRight, playerLeft
+            });
+
+            obstacles.forEach(obs => {
+                const obsLeft = obs.x;
+                const obsRight = obs.x + 20;
+                
+                // Debug: log obstacle positions for ceiling types
+                if (obs.type === 'ceiling') {
+                    console.log('CEILING OBSTACLE:', { 
+                        x: obs.x, left: obsLeft, right: obsRight,
+                        bottom: obs.bottom, playerX: PLAYER_X
+                    });
+                }
+                
+                if (obs.type === 'ceiling' && obs.bottom !== undefined) {
+                    // Ceiling obstacle - simplified collision check
+                    const slideHeadY = GROUND_Y - 80 + 25; // Head Y when sliding (compressed)
+                    const maxBottom = slideHeadY - 10; // Stop 10px above sliding head
+                    const obsBottomY = Math.min(obs.bottom, maxBottom); // Use the same limit as visual
+                    
+                    // Simple rectangle collision: player head vs obstacle
+                    const playerHeadTop = isSliding ? playerY + 15 : playerY - 10;
+                    const playerHeadBottom = isSliding ? playerY + 35 : playerY + 10;
+                    
+                    if (PLAYER_X + 25 > obs.x && 
+                        PLAYER_X < obs.x + 40 &&
+                        playerHeadTop < obsBottomY) {
+                        // Head hits obstacle!
+                        console.log('SIMPLE COLLISION:', { 
+                            playerX: PLAYER_X, obsX: obs.x,
+                            playerHeadTop, obsBottomY,
+                            isSliding, isJumping
+                        });
+                        
+                        if (!isSliding) {
+                            // Not sliding - die with rebound effect
+                            playMetalCling();
+                            playGulp();
+                            createDecapitation(playerHeadTop + 10, PLAYER_X + 10);
+                            
+                            // Rebound effect - camera shake and blood physics
+                            cameraShake = 20; // Strong camera shake
+                            isRebounding = true;
+                            reboundVelocityX = -gameSpeed * 2; // Push back hard
+                            reboundVelocityY = 5; // Push down
+                            
+                            // Create intense blood splash with physics
+                            for (let i = 0; i < 15; i++) {
+                                createBloodSplash(playerHeadTop + 10, PLAYER_X + 10, 
+                                    Math.random() * 10 - 5, // Random X velocity
+                                    Math.random() * 5 + 5   // Upward Y velocity
+                                );
+                            }
+                            
+                            setTimeout(() => gameOver(), 800); // Longer delay for rebound effect
+                            return;
+                        }
+                        // Sliding - safe (do nothing)
+                    }
+                } else if (obs.type === 'ground' || !obs.type) {
+                    // Ground obstacle - check if player hits it
+                    const obsTop = GROUND_Y - obs.height;
+                    const obsBottom = GROUND_Y;
+
+                    if (
+                        playerRight > obsLeft &&
+                        playerLeft < obsRight &&
+                        playerBottom > obsTop &&
+                        playerTop < obsBottom
+                    ) {
+                        // Hit ground obstacle - rebound, sound, and blood
+                        playMetalCling(); // Metal sound on impact
+                        playScream(); // Scream when cut
+                        createBloodSplash(playerY, PLAYER_X + 10); // Blood splash on hit
+                        // Rebound effect - push player back and up
+                        if (!isJumping) {
+                            playerY -= 15; // Push up more visibly
+                            jumpVelocity = -8; // Stronger bounce
+                            isJumping = true;
+                        } else {
+                            // If already jumping, reverse direction
+                            jumpVelocity = -8;
+                        }
+                        // Small delay before game over to show rebound and blood
+                        setTimeout(() => gameOver(), 250);
+                        return;
+                    }
+                }
+            });
+
+            // Update camera effects
+            if (cameraShake > 0) {
+                cameraShake *= 0.9; // Decay shake
+                if (cameraShake < 0.1) cameraShake = 0;
+            }
+            
+            if (isRebounding) {
+                // Apply rebound physics
+                cameraOffsetX += reboundVelocityX;
+                cameraOffsetY += reboundVelocityY;
+                reboundVelocityX *= 0.9; // Slow down
+                reboundVelocityY *= 0.9;
+                
+                // Return to center
+                if (Math.abs(cameraOffsetX) < 1 && Math.abs(cameraOffsetY) < 1) {
+                    cameraOffsetX = 0;
+                    cameraOffsetY = 0;
+                    isRebounding = false;
+                }
+            }
+
+            // Draw everything
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Apply camera effects
+            ctx.save();
+            if (cameraShake > 0) {
+                const shakeX = (Math.random() - 0.5) * cameraShake * 10;
+                const shakeY = (Math.random() - 0.5) * cameraShake * 10;
+                ctx.translate(shakeX, shakeY);
+            }
+            if (isRebounding) {
+                ctx.translate(cameraOffsetX, cameraOffsetY);
+            }
+            
+            drawGround();
+            obstacles.forEach(obs => drawObstacle(obs.x, obs.height, obs.type, obs.bottom, obs));
+            drawStickFigure(PLAYER_X, playerY, isJumping, isSliding);
+            
+            // Update and draw blood particles
+            updateBloodParticles();
+            
+            ctx.restore();
+
+            gameLoop = requestAnimationFrame(updateGame);
+        }
+
+        // Game over animation loop
+        function animateGameOver() {
+            if (!gameOverAnimationActive) return;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw background
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Calculate angle for this frame (0-360 degrees, camera circles around)
+            const angle = (gameOverAnimationFrame / 20) * 360;
+            
+            // Draw stick figure from this angle
+            drawStickFigureFromAngle(angle, gameOverAnimationFrame);
+            
+            // Draw game over text
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 48px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('GAME OVER', canvas.width / 2, 100);
+            ctx.font = '24px Arial';
+            ctx.fillText(`Score: ${score}`, canvas.width / 2, 140);
+            ctx.fillText(`High Score: ${highScore}`, canvas.width / 2, 170);
+            
+            // Advance frame
+            gameOverAnimationFrame++;
+            if (gameOverAnimationFrame >= 20) {
+                gameOverAnimationFrame = 0; // Loop animation
+            }
+            
+            // Continue animation
+            if (gameOverAnimationActive) {
+                setTimeout(() => {
+                    requestAnimationFrame(animateGameOver);
+                }, 100); // 100ms per frame = ~10fps (old animation style)
+            }
+        }
+
+        // Game over
+        function gameOver() {
+            gameState = 'gameover';
+            cancelAnimationFrame(gameLoop);
+            clearInterval(scoreInterval);
+
+            if (score > highScore) {
+                highScore = score;
+                saveHighScore();
+            }
+
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalHighScore').textContent = highScore;
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'flex';
+            
+            // Start game over animation
+            gameOverAnimationFrame = 0;
+            gameOverAnimationActive = true;
+            animateGameOver();
+        }
+
+        // Reset game
+        function resetGame() {
+            gameOverAnimationActive = false; // Stop animation
+            gameOverAnimationFrame = 0;
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('menuScreen').style.display = 'flex';
+            document.getElementById('highScoreDisplay').textContent = highScore;
+        }
+
+        // Event listeners
+        canvas.addEventListener('click', (e) => {
+            // Click/tap to jump
+            jump();
+        });
+        
+        // Touch events for jump and slide
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchStartY = e.touches[0].clientY;
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (touchStartY === 0) return;
+            
+            const touchEndY = e.changedTouches[0].clientY;
+            const deltaY = touchEndY - touchStartY;
+            
+            // Swipe down = slide, tap/up = jump
+            if (deltaY > 30) {
+                slide(); // Swipe down to slide
+            } else {
+                jump(); // Tap or swipe up to jump
+            }
+            touchStartY = 0;
+        });
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+                e.preventDefault();
+                jump();
+            } else if (e.code === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+                e.preventDefault();
+                slide();
+            } else if (e.code === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                e.preventDefault();
+                if (gameState === 'playing') {
+                    isBoosting = true;
+                }
+            } else if (e.code === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                e.preventDefault();
+                if (gameState === 'playing') {
+                    backflip();
+                }
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            if (e.code === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+                e.preventDefault();
+                stopSlide();
+            } else if (e.code === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                e.preventDefault();
+                isBoosting = false;
+            }
+        });
+
+        // Prevent scrolling on mobile
+        document.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+    </script>
+</body>
+</html>
+

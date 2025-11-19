@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Icon Generator - Color Clash</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #667eea;
+        }
+        canvas {
+            border: 1px solid #ddd;
+            margin: 10px 0;
+            display: block;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Color Clash - Icon Generator</h1>
+        <div class="info">
+            <p><strong>Instructions:</strong> This tool generates app icons for Color Clash.</p>
+            <p>Click the buttons below to download the icons in different sizes.</p>
+        </div>
+        
+        <h2>192x192 Icon</h2>
+        <canvas id="icon192" width="192" height="192"></canvas>
+        <button onclick="downloadIcon('icon192', 'icon-192.png')">Download 192x192</button>
+        
+        <h2>512x512 Icon</h2>
+        <canvas id="icon512" width="512" height="512"></canvas>
+        <button onclick="downloadIcon('icon512', 'icon-512.png')">Download 512x512</button>
+        
+        <h2>1024x1024 Icon (App Store)</h2>
+        <canvas id="icon1024" width="1024" height="1024"></canvas>
+        <button onclick="downloadIcon('icon1024', 'icon-1024.png')">Download 1024x1024</button>
+    </div>
+
+    <script>
+        function createIcon(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Gradient background
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Add rounded corners (mask)
+            const cornerRadius = size * 0.2;
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, cornerRadius);
+            ctx.fill();
+            ctx.globalCompositeOperation = 'source-over';
+            
+            // Draw two color bars
+            const barWidth = size * 0.15;
+            const barHeight = size * 0.35;
+            const centerY = size / 2;
+            const spacing = size * 0.05;
+            
+            // Left bar (lighter)
+            ctx.fillStyle = '#FF6B9D';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+            ctx.shadowBlur = size * 0.02;
+            ctx.shadowOffsetY = size * 0.01;
+            const leftBarX = size * 0.3;
+            ctx.roundRect(leftBarX, centerY - barHeight/2, barWidth, barHeight, barWidth * 0.2);
+            ctx.fill();
+            
+            // Right bar (similar color)
+            ctx.fillStyle = '#FF8FAB';
+            const rightBarX = size * 0.55;
+            ctx.roundRect(rightBarX, centerY - barHeight/2, barWidth, barHeight, barWidth * 0.2);
+            ctx.fill();
+            
+            // Reset shadow
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+            
+            // Add text "CC"
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.25}px -apple-system, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            ctx.shadowBlur = size * 0.02;
+            ctx.fillText('CC', size / 2, size * 0.75);
+        }
+        
+        // Helper for roundRect (older browsers)
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                if (width < 2 * radius) radius = width / 2;
+                if (height < 2 * radius) radius = height / 2;
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.arcTo(x + width, y, x + width, y + height, radius);
+                this.arcTo(x + width, y + height, x, y + height, radius);
+                this.arcTo(x, y + height, x, y, radius);
+                this.arcTo(x, y, x + width, y, radius);
+                this.closePath();
+            };
+        }
+        
+        function downloadIcon(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        // Generate icons on load
+        window.onload = function() {
+            createIcon('icon192', 192);
+            createIcon('icon512', 512);
+            createIcon('icon1024', 1024);
+        };
+    </script>
+</body>
+</html>
+

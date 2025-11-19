@@ -1,0 +1,33 @@
+{
+  "name": "color-clash",
+  "version": "1.0.0",
+  "description": "The ultimate color matching mobile game",
+  "main": "index.html",
+  "scripts": {
+    "serve": "python3 -m http.server 8000",
+    "cap:init": "npx cap init 'Color Clash' 'com.yourdomain.colorclash' --web-dir .",
+    "cap:add:ios": "npx cap add ios",
+    "cap:open:ios": "npx cap open ios",
+    "cap:sync": "npx cap sync",
+    "cap:copy": "npx cap copy"
+  },
+  "keywords": [
+    "game",
+    "mobile",
+    "color",
+    "matching",
+    "puzzle",
+    "arcade",
+    "casual"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "@capacitor/cli": "^5.5.0"
+  },
+  "dependencies": {
+    "@capacitor/core": "^5.5.0",
+    "@capacitor/ios": "^5.5.0"
+  }
+}
+

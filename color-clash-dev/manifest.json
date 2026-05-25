@@ -1,0 +1,33 @@
+{
+  "name": "Color Clash - The Ultimate Color Matching Game",
+  "short_name": "Color Clash",
+  "description": "Can you match the shades? Test your color perception in this addictive matching game!",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#667eea",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "screenshots": [
+    {
+      "src": "screenshot1.png",
+      "sizes": "1170x2532",
+      "type": "image/png"
+    }
+  ]
+}
+

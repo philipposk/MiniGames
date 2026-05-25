@@ -89,6 +89,13 @@ export default function App() {
   const gameLoopRef = useRef(null);
   const obstacleSpawnRef = useRef(null);
   const scoreIntervalRef = useRef(null);
+  const playerYRef = useRef(GROUND_Y);
+  const gameSpeedRef = useRef(OBSTACLE_SPEED_INITIAL);
+  const gameStateRef = useRef('menu');
+  const obstacleIdRef = useRef(0);
+
+  useEffect(() => { gameStateRef.current = gameState; }, [gameState]);
+  useEffect(() => { gameSpeedRef.current = gameSpeed; }, [gameSpeed]);
 
   // Load high score on mount
   useEffect(() => {

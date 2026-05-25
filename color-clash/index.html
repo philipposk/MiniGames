@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
     <title>Color Clash - The Ultimate Color Matching Game</title>
@@ -12,7 +13,6 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Splash Screen -->
     <div id="splash" class="screen active">
         <div class="splash-content">
             <h1 class="game-title">COLOR CLASH</h1>
@@ -22,10 +22,13 @@
                 <span class="label">BEST:</span>
                 <span id="splashHighScore">0</span>
             </div>
+            <div class="splash-toggles">
+                <button id="soundToggleSplash" class="toggle-btn" aria-pressed="true">SOUND: ON</button>
+                <button id="cbToggleSplash" class="toggle-btn" aria-pressed="false">COLOR-BLIND: OFF</button>
+            </div>
         </div>
     </div>
 
-    <!-- Game Screen -->
     <div id="game" class="screen">
         <div class="game-header">
             <div class="score-container">
@@ -34,6 +37,7 @@
             </div>
             <div class="level-container">
                 <span id="levelDisplay" class="level-text">LEVEL 1</span>
+                <span id="comboText" class="combo-text"></span>
             </div>
             <div class="best-container">
                 <span class="label">BEST</span>
@@ -45,6 +49,7 @@
             <div id="leftBar" class="color-bar left-bar"></div>
             <div id="rightBar" class="color-bar right-bar"></div>
             <div id="centerZone" class="center-zone"></div>
+            <canvas id="particleLayer" class="particle-layer"></canvas>
             <div id="tapArea" class="tap-area"></div>
         </div>
 
@@ -52,9 +57,16 @@
             <div id="feedback" class="feedback"></div>
             <div class="instruction">TAP WHEN COLORS OVERLAP</div>
         </div>
+
+        <div id="pauseOverlay" class="pause-overlay hidden">
+            <div class="pause-card">
+                <h2>PAUSED</h2>
+                <button id="resumeBtn" class="btn-primary">RESUME</button>
+                <button id="quitBtn" class="btn-secondary">QUIT</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Game Over Screen -->
     <div id="gameOver" class="screen">
         <div class="game-over-content">
             <h2 class="game-over-title">GAME OVER</h2>
@@ -63,7 +75,7 @@
                 <span id="finalScore" class="big-score">0</span>
             </div>
             <div id="newRecord" class="new-record hidden">
-                🏆 NEW RECORD! 🏆
+                NEW RECORD!
             </div>
             <div class="stats-grid">
                 <div class="stat">
@@ -86,28 +98,27 @@
         </div>
     </div>
 
-    <!-- Settings/Info Button -->
-    <button id="infoBtn" class="info-btn hidden">?</button>
+    <button id="pauseBtn" class="pause-btn hidden" aria-label="Pause">II</button>
+    <button id="infoBtn" class="info-btn hidden" aria-label="How to play">?</button>
 
-    <!-- Info Modal -->
     <div id="infoModal" class="modal hidden">
         <div class="modal-content">
-            <button id="closeModal" class="close-btn">×</button>
+            <button id="closeModal" class="close-btn" aria-label="Close">×</button>
             <h3>HOW TO PLAY</h3>
             <p>Two colored bars slide from opposite sides.</p>
             <p>Tap when they overlap in the center!</p>
             <h4>SCORING</h4>
             <ul>
-                <li><strong>PERFECT</strong> (Same color): +100 pts</li>
-                <li><strong>GOOD</strong> (Close match): +50 pts</li>
-                <li><strong>OKAY</strong> (Acceptable): +10 pts</li>
+                <li><strong>PERFECT</strong> (Full overlap): +100 pts</li>
+                <li><strong>GREAT</strong> (Most overlap): +70 pts</li>
+                <li><strong>GOOD</strong> (Some overlap): +40 pts</li>
+                <li><strong>OKAY</strong> (Barely): +15 pts</li>
                 <li><strong>MISS</strong>: Game Over</li>
             </ul>
-            <p class="tip">💡 The bars get faster as you improve!</p>
+            <p class="tip">Build combos for bigger multipliers. Speed ramps up every level.</p>
         </div>
     </div>
 
     <script src="game.js"></script>
 </body>
 </html>
-

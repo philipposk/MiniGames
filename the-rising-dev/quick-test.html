@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick Test</title>
+    <style>
+        body { background: #000; color: #fff; font-family: monospace; padding: 20px; }
+        canvas { border: 2px solid #fff; background: #1a1a2e; display: block; margin: 20px 0; }
+        .status { background: #333; padding: 10px; margin: 10px 0; }
+        .success { background: #33ff33; color: #000; }
+        .error { background: #ff3333; }
+    </style>
+</head>
+<body>
+    <h1>🎮 QUICK TEST</h1>
+    
+    <div id="status"></div>
+    
+    <canvas id="gameCanvas" width="500" height="800"></canvas>
+    
+    <button onclick="startGame()">START GAME</button>
+    <button onclick="spawnBlock()">SPAWN BLOCK</button>
+    <button onclick="placeBlock()">PLACE BLOCK</button>
+    
+    <script>
+        function log(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = msg;
+            document.getElementById('status').appendChild(div);
+            console.log(msg);
+        }
+        
+        function startGame() {
+            if (typeof game !== 'undefined') {
+                game.state = 'playing';
+                game.spawnBlock();
+                log('✅ Game started!', 'success');
+            } else {
+                log('❌ Game not available', 'error');
+            }
+        }
+        
+        function spawnBlock() {
+            if (typeof game !== 'undefined' && game.spawnBlock) {
+                game.spawnBlock();
+                log('✅ Block spawned', 'success');
+            } else {
+                log('❌ Cannot spawn', 'error');
+            }
+        }
+        
+        function placeBlock() {
+            if (typeof game !== 'undefined' && game.currentBlock) {
+                game.placeBlock();
+                log('✅ Block placed', 'success');
+            } else {
+                log('❌ No block to place', 'error');
+            }
+        }
+    </script>
+    
+    <script src="game-minimal.js"></script>
+    
+    <script>
+        setTimeout(() => {
+            if (typeof game !== 'undefined') {
+                log('✅ Game loaded successfully!', 'success');
+                log('Game state: ' + game.state, 'info');
+                
+                if (typeof sounds !== 'undefined') {
+                    log('✅ Sounds loaded!', 'success');
+                } else {
+                    log('❌ Sounds missing', 'error');
+                }
+                
+                // Auto-start the game
+                log('🚀 Auto-starting game...', 'info');
+                game.state = 'playing';
+                game.spawnBlock();
+                
+            } else {
+                log('❌ Game failed to load!', 'error');
+            }
+        }, 500);
+        
+        // Show game state every 2 seconds
+        setInterval(() => {
+            if (typeof game !== 'undefined') {
+                log(`📊 Level: ${game.level}, Blocks: ${game.stackedBlocks.length}, Current: ${game.currentBlock ? 'YES' : 'NO'}`, 'info');
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

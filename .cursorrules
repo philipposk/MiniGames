@@ -1,0 +1,63 @@
+# Cursor Rules for The Rising Game Project
+
+## Critical Testing & Debugging Requirements
+
+### ALWAYS Before Declaring "Done":
+1. **Test in browser** - Actually open the game in a browser and verify everything works
+2. **Check console** - Open browser DevTools (F12) and check for JavaScript errors
+3. **Verify rendering** - Make sure ALL visual elements (boats, people, UI) are actually visible
+4. **Test controls** - Verify all keyboard/mouse/touch inputs work
+5. **Visual inspection** - If user can't see something, debug by:
+   - Adding bright debug colors/boxes
+   - Checking canvas context is valid
+   - Verifying drawing functions are called
+   - Checking element positions (are they off-screen?)
+   - Checking element sizes (are they too small?)
+   - Checking colors (do they blend with background?)
+
+### When User Reports "Can't See X":
+1. **DON'T** just assume code is correct
+2. **DO** add debugging visuals (bright boxes, outlines)
+3. **DO** check console for errors
+4. **DO** verify elements are being drawn
+5. **DO** check positioning (not off-screen, not behind water)
+6. **DO** make colors brighter and more visible
+7. **DO** make elements bigger if needed
+8. **DO** test in actual browser, not just code
+
+### Code Quality Standards:
+- Always add null checks before drawing
+- Use console.log for debugging state changes
+- Make colors bright and visible (high contrast)
+- Ensure elements spawn in visible area
+- Test that update() is being called
+- Test that draw() is being called
+- Verify game state transitions work
+
+### Rendering Best Practices:
+- Use thick outlines (2-3px) for visibility
+- Use bright, contrasting colors
+- Don't spawn elements completely off-screen
+- Ensure elements are above water (not below)
+- Make people/boats at least 20% of screen size
+- Add debug boxes when debugging visibility issues
+
+### Game Flow Requirements:
+- Game should auto-start or have clear start button
+- Menu should be visible if using menu system
+- Blocks should spawn immediately when game starts
+- Visual feedback for all actions
+- Clear UI showing game state
+
+### Before Shipping:
+- ✅ Game opens and works immediately
+- ✅ All visual elements are visible
+- ✅ No console errors
+- ✅ Controls work (keyboard, mouse, touch)
+- ✅ Game progression works
+- ✅ Ending sequence works
+- ✅ Can restart/replay
+
+## Remember:
+**If user can't see it, it doesn't exist. Test in browser. Add debugging. Make it visible.**
+

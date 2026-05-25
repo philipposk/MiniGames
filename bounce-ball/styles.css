@@ -251,3 +251,94 @@ body {
     }
 }
 
+/* ===== PAUSE OVERLAY ===== */
+.pause-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 52, 96, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    cursor: pointer;
+}
+
+.pause-overlay.hidden {
+    display: none;
+}
+
+.pause-content {
+    text-align: center;
+    animation: fadeInUp 0.3s ease;
+}
+
+.pause-content h2 {
+    font-size: clamp(36px, 10vw, 64px);
+    font-weight: 900;
+    letter-spacing: 4px;
+    margin-bottom: 12px;
+    color: #fff;
+}
+
+.pause-content p {
+    font-size: 14px;
+    opacity: 0.8;
+    letter-spacing: 1px;
+}
+
+/* ===== SOUND TOGGLE ===== */
+.sound-toggle, .pause-btn {
+    position: absolute;
+    top: 18px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.4);
+    background: rgba(0,0,0,0.4);
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+}
+
+.sound-toggle {
+    right: 12px;
+}
+
+.pause-btn {
+    right: 60px;
+    letter-spacing: -3px;
+}
+
+.sound-toggle.off {
+    opacity: 0.5;
+}
+
+.sound-toggle:active, .pause-btn:active {
+    transform: scale(0.92);
+    background: rgba(0,0,0,0.6);
+}
+
+.lives-value {
+    color: #ff6b6b;
+    letter-spacing: 2px;
+}
+
+#gameCanvas {
+    cursor: crosshair;
+}
+
+@media (max-width: 480px) {
+    .game-header { padding: 12px; }
+    .score-value, .lives-value, .level-value { font-size: 20px; }
+    .label { font-size: 10px; }
+    .sound-toggle, .pause-btn { top: 12px; width: 34px; height: 34px; }
+    .pause-btn { right: 54px; }
+}
+

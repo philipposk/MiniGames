@@ -1,0 +1,25 @@
+<html><body><h1>Welcome to the Adventure Game</h1><script>
+        let gameState = "start";
+        let playerLocation = "hallway";
+        
+        function playGame() {
+            if (gameState === "start") {
+                document.getElementById("game-container").innerHTML = "You are in a hallway. There is a door to your left and a door to your right.";
+                gameState = " hallway";
+            } else if (gameState === "hallway") {
+                let choice = prompt("Which door do you choose? (left/right) ");
+                if (choice.toLowerCase() === "left") {
+                    document.getElementById("game-container").innerHTML = "You found a treasure!";
+                    gameState = "treasure";
+                } else if (choice.toLowerCase() === "right") {
+                    document.getElementById("game-container").innerHTML = "You found a dragon! You lose.";
+                    gameState = "gameover";
+                } else {
+                    document.getElementById("game-container").innerHTML = "Invalid choice. Game over.";
+                    gameState = "gameover";
+                }
+            }
+        }
+        
+        playGame();
+        </script><body><h1 id="game-container"></h1><button onclick='playGame()'>Play</button></html>

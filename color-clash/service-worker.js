@@ -1,38 +1,38 @@
-const CACHE_NAME = 'color-clash-v1';
+const CACHE_NAME = 'color-clash-v3';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/game.js',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
+  './',
+  './index.html',
+  './styles.css',
+  './game.js',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
-// Install event - cache resources
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
-      .catch(err => console.log('Cache addAll error:', err))
+      .then(cache => cache.addAll(urlsToCache).catch(err => console.log('Cache addAll error:', err)))
   );
   self.skipWaiting();
 });
 
-// Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
+    caches.match(event.request).then(cached => {
+      const networkFetch = fetch(event.request).then(response => {
+        if (response && response.status === 200 && response.type === 'basic') {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone)).catch(() => {});
         }
-        return fetch(event.request);
-      })
+        return response;
+      }).catch(() => cached);
+      return cached || networkFetch;
+    })
   );
 });
 
-// Activate event - clean up old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -43,8 +43,6 @@ self.addEventListener('activate', event => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
-

@@ -1,0 +1,26 @@
+{
+  "appId": "com.yourdomain.colorclash",
+  "appName": "Color Clash",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#000000"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0,
+      "backgroundColor": "#000000",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "iosSpinnerStyle": "small",
+      "spinnerColor": "#667eea"
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#000000"
+    }
+  }
+}
+

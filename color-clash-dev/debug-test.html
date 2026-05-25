@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Test - Color Clash</title>
+    <style>
+        body { 
+            margin: 0; 
+            padding: 20px; 
+            background: #000; 
+            color: #fff; 
+            font-family: monospace;
+        }
+        .test-container {
+            display: flex;
+            gap: 20px;
+        }
+        .left-panel {
+            flex: 1;
+        }
+        .right-panel {
+            flex: 1;
+        }
+        .status {
+            background: #333;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .error { background: #ff3333; }
+        .success { background: #33ff33; color: #000; }
+        .warning { background: #ffaa33; color: #000; }
+        .info { background: #3333ff; }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            background: #4ecca3;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #6ed4b3;
+        }
+        #gamePreview {
+            border: 2px solid #fff;
+            background: #1a1a2e;
+            display: block;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 400px;
+            height: 600px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 COLOR CLASH - DEBUG TEST</h1>
+    
+    <div class="test-container">
+        <div class="left-panel">
+            <div id="status" class="status">
+                <h3>🔍 Testing Status:</h3>
+                <div id="tests"></div>
+            </div>
+            
+            <div id="controls" class="status">
+                <h3>🎮 Test Controls:</h3>
+                <button onclick="testStartGame()">Start Game</button>
+                <button onclick="testTap()">Simulate Tap</button>
+                <button onclick="testBounce()">Test Bounce</button>
+                <button onclick="testLevelUp()">Test Level Up</button>
+                <button onclick="testScoring()">Test Scoring</button>
+                <button onclick="runAutoTest()">Auto Test (10 Rounds)</button>
+            </div>
+            
+            <div id="gameState" class="status">
+                <h3>📊 Game State:</h3>
+                <div id="stateInfo"></div>
+            </div>
+        </div>
+        
+        <div class="right-panel">
+            <div id="gamePreview"></div>
+        </div>
+    </div>
+    
+    <script>
+        const tests = document.getElementById('tests');
+        const stateInfo = document.getElementById('stateInfo');
+        const gamePreview = document.getElementById('gamePreview');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `${new Date().toLocaleTimeString()}: ${message}`;
+            tests.appendChild(div);
+            tests.scrollTop = tests.scrollHeight;
+            console.log(message);
+        }
+        
+        function updateGameState() {
+            const gameObj = window.game;
+            if (gameObj) {
+                const leftRect = gameObj.leftBar ? gameObj.leftBar.getBoundingClientRect() : null;
+                const rightRect = gameObj.rightBar ? gameObj.rightBar.getBoundingClientRect() : null;
+                
+                stateInfo.innerHTML = `
+                    <strong>State:</strong> ${gameObj.state}<br>
+                    <strong>Level:</strong> ${gameObj.level}<br>
+                    <strong>Score:</strong> ${gameObj.score}<br>
+                    <strong>Combo:</strong> ${gameObj.combo}<br>
+                    <strong>Speed:</strong> ${gameObj.currentSpeed.toFixed(1)}<br>
+                    <strong>Is Moving:</strong> ${gameObj.isMoving}<br>
+                    <strong>Has Scored:</strong> ${gameObj.hasScored}<br>
+                    <strong>Bounce Count:</strong> ${gameObj.bounceCount || 0}<br>
+                    <strong>Left Direction:</strong> ${gameObj.leftDirection || 1}<br>
+                    <strong>Right Direction:</strong> ${gameObj.rightDirection || -1}<br>
+                    ${leftRect ? `<strong>Left Bar:</strong> X=${Math.round(leftRect.left)}, W=${Math.round(leftRect.width)}<br>` : ''}
+                    ${rightRect ? `<strong>Right Bar:</strong> X=${Math.round(rightRect.left)}, W=${Math.round(rightRect.width)}<br>` : ''}
+                    <strong>Stats:</strong> Perfect=${gameObj.stats.perfect}, Good=${gameObj.stats.good}, Okay=${gameObj.stats.okay}, Misses=${gameObj.stats.misses}
+                `;
+            } else {
+                stateInfo.innerHTML = '<strong>Game not loaded yet...</strong>';
+            }
+        }
+        
+        // Test basic setup
+        log('🚀 Starting Color Clash debug tests...', 'info');
+        
+        function testStartGame() {
+            const gameObj = window.game;
+            if (gameObj && gameObj.startGame) {
+                gameObj.startGame();
+                log('✅ Game started', 'success');
+                updateGameState();
+            } else {
+                log('❌ Cannot start game - game not ready', 'error');
+            }
+        }
+        
+        function testTap() {
+            const gameObj = window.game;
+            if (gameObj && gameObj.handleTap) {
+                log('👆 Simulating tap...', 'info');
+                gameObj.handleTap();
+                updateGameState();
+            } else {
+                log('❌ Cannot tap - game not ready', 'error');
+            }
+        }
+        
+        function testBounce() {
+            const gameObj = window.game;
+            if (gameObj) {
+                log('💥 Testing bounce mechanics...', 'info');
+                // Force bars to hit walls
+                if (gameObj.leftBar && gameObj.rightBar) {
+                    gameObj.barPositionLeft = window.innerWidth + 200; // Force left bar off-screen
+                    gameObj.barPositionRight = -200; // Force right bar off-screen
+                    log('✅ Bars positioned for bounce test', 'success');
+                    updateGameState();
+                }
+            } else {
+                log('❌ Game not ready', 'error');
+            }
+        }
+        
+        function testLevelUp() {
+            const gameObj = window.game;
+            if (gameObj && gameObj.levelUp) {
+                gameObj.levelUp();
+                log(`✅ Level up! Now at level ${gameObj.level}`, 'success');
+                updateGameState();
+            } else {
+                log('❌ Cannot level up', 'error');
+            }
+        }
+        
+        function testScoring() {
+            const gameObj = window.game;
+            if (gameObj && gameObj.evaluateTap) {
+                log('🎯 Testing scoring system...', 'info');
+                
+                // Test different overlap percentages
+                const testCases = [100, 75, 50, 25, 10, 0];
+                testCases.forEach(percentage => {
+                    const oldScore = gameObj.score;
+                    gameObj.evaluateTap(percentage, 'overlapping');
+                    const points = gameObj.score - oldScore;
+                    log(`   ${percentage}% overlap = ${points} points`, points > 0 ? 'success' : 'warning');
+                });
+                
+                // Test touching (no overlap but in zone)
+                const oldScore = gameObj.score;
+                gameObj.evaluateTap(0, 'touching');
+                const points = gameObj.score - oldScore;
+                log(`   Touching (no overlap) = ${points} points`, points === 75 ? 'success' : 'warning');
+                
+                updateGameState();
+            } else {
+                log('❌ Cannot test scoring', 'error');
+            }
+        }
+        
+        function runAutoTest() {
+            log('🤖 Starting automated test (10 rounds)...', 'info');
+            
+            const gameObj = window.game;
+            if (!gameObj) {
+                log('❌ Game not loaded!', 'error');
+                return;
+            }
+            
+            // Start game
+            if (gameObj.state !== 'playing') {
+                gameObj.startGame();
+            }
+            
+            let rounds = 0;
+            const maxRounds = 10;
+            
+            const testInterval = setInterval(() => {
+                rounds++;
+                log(`🎯 Round ${rounds}/${maxRounds}...`, 'info');
+                
+                // Wait for bars to be visible, then tap
+                setTimeout(() => {
+                    if (gameObj.isMoving && !gameObj.hasScored) {
+                        gameObj.handleTap();
+                        log(`   ✅ Tapped round ${rounds}`, 'success');
+                    }
+                }, 500);
+                
+                updateGameState();
+                
+                if (rounds >= maxRounds) {
+                    clearInterval(testInterval);
+                    log(`🎉 AUTO TEST COMPLETED! Final score: ${gameObj.score}`, 'success');
+                    log(`   Perfect: ${gameObj.stats.perfect}, Good: ${gameObj.stats.good}, Okay: ${gameObj.stats.okay}`, 'info');
+                }
+                
+                if (gameObj.state === 'gameOver') {
+                    clearInterval(testInterval);
+                    log(`💀 Game over at round ${rounds}. Final score: ${gameObj.score}`, 'warning');
+                }
+                
+            }, 2000); // Test every 2 seconds
+        }
+        
+        // Update state every second
+        setInterval(updateGameState, 1000);
+        
+        // Wait for game to load
+        function checkGameLoaded() {
+            // Check both window.game and global game variable
+            const gameObj = window.game || (typeof game !== 'undefined' ? game : null);
+            
+            if (gameObj) {
+                // Make it globally accessible
+                window.game = gameObj;
+                log('✅ Game object loaded', 'success');
+                
+                if (typeof gameObj.startGame === 'function') {
+                    log('✅ Game.startGame() available', 'success');
+                } else {
+                    log('❌ Game.startGame() missing', 'error');
+                }
+                
+                if (typeof gameObj.handleTap === 'function') {
+                    log('✅ Game.handleTap() available', 'success');
+                } else {
+                    log('❌ Game.handleTap() missing', 'error');
+                }
+                
+                if (typeof gameObj.evaluateTap === 'function') {
+                    log('✅ Game.evaluateTap() available', 'success');
+                } else {
+                    log('❌ Game.evaluateTap() missing', 'error');
+                }
+                
+                updateGameState();
+                return true;
+            } else {
+                log('⏳ Waiting for game to load...', 'warning');
+                return false;
+            }
+        }
+        
+        // Check immediately and then retry
+        if (!checkGameLoaded()) {
+            const retryInterval = setInterval(() => {
+                if (checkGameLoaded()) {
+                    clearInterval(retryInterval);
+                }
+            }, 500);
+            
+            // Stop retrying after 10 seconds
+            setTimeout(() => {
+                clearInterval(retryInterval);
+                if (!window.game) {
+                    log('❌ Game failed to load after 10 seconds', 'error');
+                }
+            }, 10000);
+        }
+    </script>
+    
+    <!-- Load the main game -->
+    <script src="game.js"></script>
+    
+    <script>
+        // Embed game preview
+        setTimeout(() => {
+            // Create iframe to show actual game
+            const iframe = document.createElement('iframe');
+            iframe.src = 'index.html';
+            iframe.style.width = '100%';
+            iframe.style.height = '600px';
+            iframe.style.border = '2px solid #4ecca3';
+            iframe.style.borderRadius = '10px';
+            gamePreview.appendChild(iframe);
+            log('✅ Game preview iframe created', 'success');
+        }, 1000);
+    </script>
+</body>
+</html>
+

@@ -34,12 +34,27 @@ class SoundManager {
         }
     }
     
+    setMasterVolume(v) {
+        if (!this.initialized) return;
+        const vol = Math.max(0, Math.min(1, v));
+        this.musicGain.gain.value = vol * 0.3;
+        this.sfxGain.gain.value = vol * 0.5;
+        this.masterVolume = vol;
+    }
+
     // Play water ambient sound (loop)
     playWaterAmbient() {
-        this.playTone(100, 0.05, 'sine', 2.0, this.musicGain);
-        setTimeout(() => {
-            if (this.enabled) this.playWaterAmbient();
-        }, 2000);
+        if (this._ambientRunning) return;
+        this._ambientRunning = true;
+        const loop = () => {
+            if (!this.enabled || !this.initialized) {
+                this._ambientRunning = false;
+                return;
+            }
+            this.playTone(100, 0.05, 'sine', 2.0, this.musicGain);
+            setTimeout(loop, 2000);
+        };
+        loop();
     }
     
     // Play splash when block hits water
@@ -213,6 +228,4 @@ class SoundManager {
     }
 }
 
-// Create global sound manager
-const soundManager = new SoundManager();
 

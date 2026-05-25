@@ -695,7 +695,9 @@
             state.settings.sfxVol = v; if (state.game) state.game.setSettings(state.settings); saveAll();
         }));
         body.appendChild(sliderRow('Music volume', state.settings.musicVol, (v) => {
-            state.settings.musicVol = v; saveAll();
+            state.settings.musicVol = v;
+            if (state.game) state.game.setSettings(state.settings);
+            saveAll();
         }));
         body.appendChild(toggleRow('Haptics', state.settings.haptics, (v) => {
             state.settings.haptics = v; if (state.game) state.game.setSettings(state.settings); saveAll();

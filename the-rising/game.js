@@ -232,7 +232,16 @@ const game = {
         });
 
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden && this.state === 'playing') this.togglePause();
+            if (document.hidden) {
+                if (this.state === 'playing') this.togglePause();
+                else if (soundManager && soundManager.audioContext && soundManager.audioContext.state === 'running') {
+                    try { soundManager.audioContext.suspend(); } catch (e) {}
+                }
+            } else {
+                if (this.state !== 'paused' && soundManager && soundManager.audioContext && soundManager.audioContext.state === 'suspended') {
+                    try { soundManager.audioContext.resume(); } catch (e) {}
+                }
+            }
         });
 
         // Canvas tap (handles map navigation, gameplay placement, etc)
@@ -577,6 +586,10 @@ const game = {
         soundManager.setMasterVolume(master);
         if (soundManager.musicGain) soundManager.musicGain.gain.value = this.settings.muted ? 0 : this.settings.musicVolume * 0.3;
         if (soundManager.sfxGain)   soundManager.sfxGain.gain.value   = this.settings.muted ? 0 : this.settings.sfxVolume * 0.5;
+        // Ambient pad music: drive from musicVolume slider (silent when muted).
+        if (typeof soundManager.setMusicVolume === 'function') {
+            soundManager.setMusicVolume(this.settings.muted ? 0 : this.settings.musicVolume);
+        }
     },
     toggleMute() {
         this.settings.muted = !this.settings.muted;
@@ -1204,9 +1217,15 @@ const game = {
         if (this.state === 'playing') {
             this.state = 'paused';
             this.showMessage('PAUSED\n\nTap below or press P to resume\nQuit: tap lower zone');
+            if (soundManager && soundManager.audioContext && soundManager.audioContext.state === 'running') {
+                try { soundManager.audioContext.suspend(); } catch (e) {}
+            }
         } else if (this.state === 'paused') {
             this.state = 'playing';
             this.hideMessage();
+            if (soundManager && soundManager.audioContext && soundManager.audioContext.state === 'suspended') {
+                try { soundManager.audioContext.resume(); } catch (e) {}
+            }
         }
     },
 

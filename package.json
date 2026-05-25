@@ -1,0 +1,31 @@
+{
+  "name": "minigames-arcade",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Seven free browser games — bundled and Capacitor-wrappable for iOS/Android.",
+  "scripts": {
+    "serve": "python3 -m http.server 8080",
+    "cap:init": "echo 'Run once: npm install @capacitor/core @capacitor/cli @capacitor/ios @capacitor/android && npx cap init MiniGames com.philipposk.minigames --web-dir=.'",
+    "cap:add:ios": "npx cap add ios",
+    "cap:add:android": "npx cap add android",
+    "cap:sync": "npx cap sync",
+    "cap:open:ios": "npx cap open ios",
+    "cap:open:android": "npx cap open android",
+    "build:ios": "npm run cap:sync && npx cap open ios",
+    "build:android": "npm run cap:sync && npx cap open android"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/ios": "^6.0.0",
+    "@capacitor/android": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/philipposk/MiniGames.git"
+  }
+}

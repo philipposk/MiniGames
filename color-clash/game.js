@@ -48,6 +48,76 @@ const HASH_TO_SCREEN = {
     '#level-select': 'levelSelect'
 };
 
+/* AmbientPad - WebAudio ambient-pad music engine.
+ * Final gain capped ~0.15 so it stays unobtrusive ambience.
+ * Caller drives setVolume() from a 0..1 settings slider. */
+class AmbientPad {
+    constructor(audioCtx, masterDestination) {
+        this.ctx = audioCtx;
+        this.dest = masterDestination;
+        this.out = audioCtx.createGain();
+        this.out.gain.value = 0;
+        this.out.connect(this.dest);
+        this.nodes = [];
+        this.playing = false;
+        this._vol = 0.0;
+    }
+    setVolume(v) {
+        this._vol = Math.max(0, Math.min(1, v));
+        if (!this.ctx) return;
+        const target = this._vol * 0.15;
+        const now = this.ctx.currentTime;
+        this.out.gain.cancelScheduledValues(now);
+        this.out.gain.linearRampToValueAtTime(target, now + 0.4);
+        if (target > 0 && !this.playing) this.start();
+        if (target === 0 && this.playing) this.stop();
+    }
+    start() {
+        if (this.playing || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const freqs = this._chord || [130.81, 164.81, 196.00, 246.94];
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 500;
+        filter.Q.value = 1.2;
+        filter.connect(this.out);
+        freqs.forEach((f, i) => {
+            const o = this.ctx.createOscillator();
+            o.type = i === 0 ? 'sine' : 'sawtooth';
+            o.frequency.value = f;
+            o.detune.value = (i - freqs.length / 2) * 6;
+            const g = this.ctx.createGain();
+            g.gain.value = (i === 0 ? 0.35 : 0.18) / freqs.length;
+            o.connect(g).connect(filter);
+            o.start(now);
+            this.nodes.push(o, g);
+        });
+        const lfo = this.ctx.createOscillator();
+        lfo.type = 'sine';
+        lfo.frequency.value = 0.05 + Math.random() * 0.05;
+        const lfoGain = this.ctx.createGain();
+        lfoGain.gain.value = 280;
+        lfo.connect(lfoGain).connect(filter.frequency);
+        lfo.start(now);
+        this.nodes.push(lfo, lfoGain, filter);
+        this.playing = true;
+    }
+    stop() {
+        if (!this.playing || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        this.out.gain.cancelScheduledValues(now);
+        this.out.gain.linearRampToValueAtTime(0, now + 0.5);
+        const nodes = this.nodes;
+        this.nodes = [];
+        this.playing = false;
+        setTimeout(() => {
+            for (const n of nodes) { try { if (n.stop) n.stop(); n.disconnect(); } catch (e) {} }
+        }, 700);
+    }
+    setChord(freqs) { this._chord = freqs; }
+    resumeIfNeeded() { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); }
+}
+
 /* ---------- 30 PROGRESSIVE COLOR PACKS ---------- */
 const PACKS = (() => {
     const out = [];
@@ -193,6 +263,7 @@ class ColorClash {
                                       Store.get(KEY.PROGRESS, null) || {});
 
         this.audioCtx = null;
+        this.musicPad = null;
 
         this.particles = [];
         this.particleAnimating = false;
@@ -334,10 +405,15 @@ class ColorClash {
 
         // tap area
         if (this.tapArea) {
-            const tap = (e) => { e.preventDefault(); e.stopPropagation(); this.handleTap(); };
+            const tap = (e) => { e.preventDefault(); e.stopPropagation(); this.unlockAudio(); this.handleTap(); };
             this.tapArea.addEventListener('pointerdown', tap);
             this.tapArea.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
         }
+        // First-gesture audio unlock anywhere
+        const firstUnlock = () => { this.unlockAudio(); };
+        document.addEventListener('click', firstUnlock, { once: true });
+        document.addEventListener('touchstart', firstUnlock, { once: true, passive: true });
+        document.addEventListener('keydown', firstUnlock, { once: true });
 
         // game over
         document.getElementById('restartBtn').addEventListener('click', () => {
@@ -392,7 +468,7 @@ class ColorClash {
         toggleVis(rm, 'reducedMotion', 'ON', 'OFF');
 
         sfx.addEventListener('input', () => { this.settings.sfx = parseInt(sfx.value, 10) || 0; this.saveSettings(); });
-        music.addEventListener('input', () => { this.settings.music = parseInt(music.value, 10) || 0; this.saveSettings(); });
+        music.addEventListener('input', () => { this.settings.music = parseInt(music.value, 10) || 0; this.saveSettings(); this.applyMusicVolume(); });
         tap.addEventListener('change', () => { this.settings.tapSize = tap.value; this.saveSettings(); this.applySettings(); });
         lang.addEventListener('change', () => { this.settings.lang = lang.value; this.saveSettings(); });
 
@@ -420,7 +496,16 @@ class ColorClash {
         document.addEventListener('keydown', (e) => this.handleKey(e));
 
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden && this.state === GameState.PLAYING && !this.isPaused) this.pause();
+            if (document.hidden) {
+                if (this.state === GameState.PLAYING && !this.isPaused) this.pause();
+                else if (this.audioCtx && this.audioCtx.state === 'running') {
+                    try { this.audioCtx.suspend(); } catch (e) {}
+                }
+            } else {
+                if (!this.isPaused && this.audioCtx && this.audioCtx.state === 'suspended') {
+                    try { this.audioCtx.resume(); } catch (e) {}
+                }
+            }
         });
 
         window.addEventListener('resize', () => this.resizeParticleCanvas());
@@ -537,6 +622,7 @@ class ColorClash {
         document.body.setAttribute('data-tap', this.settings.tapSize || 'med');
         const cssMap = { small: '44px', med: '56px', large: '72px' };
         document.documentElement.style.setProperty('--tap-target', cssMap[this.settings.tapSize] || '56px');
+        this.applyMusicVolume();
     }
     applyPalette() {
         const pal = PALETTES.find(p => p.id === this.selected.palette) || PALETTES[0];
@@ -1224,11 +1310,17 @@ class ColorClash {
         this.isPaused = true;
         if (this.animationFrame) { cancelAnimationFrame(this.animationFrame); this.animationFrame = null; }
         if (this.pauseOverlay) this.pauseOverlay.classList.remove('hidden');
+        if (this.audioCtx && this.audioCtx.state === 'running') {
+            try { this.audioCtx.suspend(); } catch (e) {}
+        }
     }
     resume() {
         if (this.state !== GameState.PLAYING || !this.isPaused) return;
         this.isPaused = false;
         if (this.pauseOverlay) this.pauseOverlay.classList.add('hidden');
+        if (this.audioCtx && this.audioCtx.state === 'suspended') {
+            try { this.audioCtx.resume(); } catch (e) {}
+        }
         if (this.isMoving) {
             this.lastTimestamp = 0;
             this.animationFrame = requestAnimationFrame((ts) => this.animate(ts));
@@ -1252,6 +1344,9 @@ class ColorClash {
     /* ===== AUDIO ===== */
     ensureAudio() {
         if (!this.settings.sfx) return null;
+        return this._getAudioCtx();
+    }
+    _getAudioCtx() {
         if (!this.audioCtx) {
             try {
                 const AC = window.AudioContext || window.webkitAudioContext;
@@ -1261,8 +1356,21 @@ class ColorClash {
         if (this.audioCtx && this.audioCtx.state === 'suspended') {
             this.audioCtx.resume().catch(() => {});
         }
+        if (this.audioCtx && !this.musicPad) {
+            try {
+                this.musicPad = new AmbientPad(this.audioCtx, this.audioCtx.destination);
+                this.musicPad.setChord([130.81, 164.81, 196.00, 246.94]);
+                this.applyMusicVolume();
+            } catch (e) {}
+        }
         return this.audioCtx;
     }
+    applyMusicVolume() {
+        if (!this.musicPad) return;
+        const v = (this.settings.music || 0) / 100;
+        this.musicPad.setVolume(v);
+    }
+    unlockAudio() { this._getAudioCtx(); }
     playTone(freq, duration = 0.1, type = 'sine') {
         const ctx = this.ensureAudio();
         if (!ctx) return;

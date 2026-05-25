@@ -1,6 +1,76 @@
 // Sound Manager for The Rising
 // Uses Web Audio API for game sounds
 
+/* AmbientPad - WebAudio ambient-pad music engine.
+ * Final gain capped ~0.15 so it stays unobtrusive ambience.
+ * Caller drives setVolume() from a 0..1 settings slider. */
+class AmbientPad {
+    constructor(audioCtx, masterDestination) {
+        this.ctx = audioCtx;
+        this.dest = masterDestination;
+        this.out = audioCtx.createGain();
+        this.out.gain.value = 0;
+        this.out.connect(this.dest);
+        this.nodes = [];
+        this.playing = false;
+        this._vol = 0.0;
+    }
+    setVolume(v) {
+        this._vol = Math.max(0, Math.min(1, v));
+        if (!this.ctx) return;
+        const target = this._vol * 0.15;
+        const now = this.ctx.currentTime;
+        this.out.gain.cancelScheduledValues(now);
+        this.out.gain.linearRampToValueAtTime(target, now + 0.4);
+        if (target > 0 && !this.playing) this.start();
+        if (target === 0 && this.playing) this.stop();
+    }
+    start() {
+        if (this.playing || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const freqs = this._chord || [87.31, 103.83, 130.81, 155.56];
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 500;
+        filter.Q.value = 1.2;
+        filter.connect(this.out);
+        freqs.forEach((f, i) => {
+            const o = this.ctx.createOscillator();
+            o.type = i === 0 ? 'sine' : 'sawtooth';
+            o.frequency.value = f;
+            o.detune.value = (i - freqs.length / 2) * 6;
+            const g = this.ctx.createGain();
+            g.gain.value = (i === 0 ? 0.35 : 0.18) / freqs.length;
+            o.connect(g).connect(filter);
+            o.start(now);
+            this.nodes.push(o, g);
+        });
+        const lfo = this.ctx.createOscillator();
+        lfo.type = 'sine';
+        lfo.frequency.value = 0.05 + Math.random() * 0.05;
+        const lfoGain = this.ctx.createGain();
+        lfoGain.gain.value = 280;
+        lfo.connect(lfoGain).connect(filter.frequency);
+        lfo.start(now);
+        this.nodes.push(lfo, lfoGain, filter);
+        this.playing = true;
+    }
+    stop() {
+        if (!this.playing || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        this.out.gain.cancelScheduledValues(now);
+        this.out.gain.linearRampToValueAtTime(0, now + 0.5);
+        const nodes = this.nodes;
+        this.nodes = [];
+        this.playing = false;
+        setTimeout(() => {
+            for (const n of nodes) { try { if (n.stop) n.stop(); n.disconnect(); } catch (e) {} }
+        }, 700);
+    }
+    setChord(freqs) { this._chord = freqs; }
+    resumeIfNeeded() { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); }
+}
+
 class SoundManager {
     constructor() {
         this.audioContext = null;
@@ -9,6 +79,7 @@ class SoundManager {
         this.sfxGain = null;
         this.enabled = true;
         this.initialized = false;
+        this.musicPad = null;
     }
     
     async init() {
@@ -27,11 +98,18 @@ class SoundManager {
             
             this.musicGain.gain.value = 0.3;
             this.sfxGain.gain.value = 0.5;
-            
+
             this.initialized = true;
+            try {
+                this.musicPad = new AmbientPad(this.audioContext, this.audioContext.destination);
+                this.musicPad.setChord([87.31, 103.83, 130.81, 155.56]);
+            } catch (e) {}
         } catch (e) {
             console.log('Audio context not available:', e);
         }
+    }
+    setMusicVolume(v) {
+        if (this.musicPad) this.musicPad.setVolume(v);
     }
     
     setMasterVolume(v) {

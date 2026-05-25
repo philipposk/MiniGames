@@ -1,0 +1,17 @@
+{
+  "appId": "com.philipposk.minigames",
+  "appName": "MiniGames Arcade",
+  "webDir": ".",
+  "server": {
+    "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "scrollEnabled": false,
+    "backgroundColor": "#0b1020"
+  },
+  "android": {
+    "backgroundColor": "#0b1020",
+    "allowMixedContent": false
+  }
+}

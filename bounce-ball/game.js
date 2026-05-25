@@ -13,6 +13,76 @@ const GameState = {
     LEVEL_COMPLETE: 'levelComplete'
 };
 
+/* AmbientPad - WebAudio ambient-pad music engine.
+ * Final gain capped ~0.15 so it stays unobtrusive ambience.
+ * Caller drives setVolume() from a 0..1 settings slider. */
+class AmbientPad {
+    constructor(audioCtx, masterDestination) {
+        this.ctx = audioCtx;
+        this.dest = masterDestination;
+        this.out = audioCtx.createGain();
+        this.out.gain.value = 0;
+        this.out.connect(this.dest);
+        this.nodes = [];
+        this.playing = false;
+        this._vol = 0.0;
+    }
+    setVolume(v) {
+        this._vol = Math.max(0, Math.min(1, v));
+        if (!this.ctx) return;
+        const target = this._vol * 0.15;
+        const now = this.ctx.currentTime;
+        this.out.gain.cancelScheduledValues(now);
+        this.out.gain.linearRampToValueAtTime(target, now + 0.4);
+        if (target > 0 && !this.playing) this.start();
+        if (target === 0 && this.playing) this.stop();
+    }
+    start() {
+        if (this.playing || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const freqs = this._chord || [110, 130.81, 164.81, 196.0];
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 500;
+        filter.Q.value = 1.2;
+        filter.connect(this.out);
+        freqs.forEach((f, i) => {
+            const o = this.ctx.createOscillator();
+            o.type = i === 0 ? 'sine' : 'sawtooth';
+            o.frequency.value = f;
+            o.detune.value = (i - freqs.length / 2) * 6;
+            const g = this.ctx.createGain();
+            g.gain.value = (i === 0 ? 0.35 : 0.18) / freqs.length;
+            o.connect(g).connect(filter);
+            o.start(now);
+            this.nodes.push(o, g);
+        });
+        const lfo = this.ctx.createOscillator();
+        lfo.type = 'sine';
+        lfo.frequency.value = 0.05 + Math.random() * 0.05;
+        const lfoGain = this.ctx.createGain();
+        lfoGain.gain.value = 280;
+        lfo.connect(lfoGain).connect(filter.frequency);
+        lfo.start(now);
+        this.nodes.push(lfo, lfoGain, filter);
+        this.playing = true;
+    }
+    stop() {
+        if (!this.playing || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        this.out.gain.cancelScheduledValues(now);
+        this.out.gain.linearRampToValueAtTime(0, now + 0.5);
+        const nodes = this.nodes;
+        this.nodes = [];
+        this.playing = false;
+        setTimeout(() => {
+            for (const n of nodes) { try { if (n.stop) n.stop(); n.disconnect(); } catch (e) {} }
+        }, 700);
+    }
+    setChord(freqs) { this._chord = freqs; }
+    resumeIfNeeded() { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); }
+}
+
 const BrickType = {
     NORMAL: 'normal',
     BOMB: 'bomb',
@@ -112,6 +182,7 @@ class BounceBall {
 
         this.mouseX = null;
         this.audioCtx = null;
+        this.musicPad = null;
 
         this.keys = {};
         this.keyboardActive = false;
@@ -160,6 +231,11 @@ class BounceBall {
 
     setSettings(s) {
         this.settings = Object.assign(this.settings, s);
+        this.applyMusicVolume();
+    }
+
+    applyMusicVolume() {
+        if (this.musicPad) this.musicPad.setVolume(this.settings.musicVol || 0);
     }
 
     setupInputListeners() {
@@ -211,8 +287,16 @@ class BounceBall {
             this.keys[e.key.toLowerCase()] = false;
         });
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden && this.state === GameState.PLAYING) {
-                this.togglePause();
+            if (document.hidden) {
+                if (this.state === GameState.PLAYING) {
+                    this.togglePause();
+                } else if (this.audioCtx && this.audioCtx.state === 'running') {
+                    try { this.audioCtx.suspend(); } catch (e) {}
+                }
+            } else {
+                if (this.state !== GameState.PAUSED && this.audioCtx && this.audioCtx.state === 'suspended') {
+                    try { this.audioCtx.resume(); } catch (e) {}
+                }
             }
         });
     }
@@ -272,6 +356,13 @@ class BounceBall {
         if (this.audioCtx && this.audioCtx.state === 'suspended') {
             this.audioCtx.resume();
         }
+        if (this.audioCtx && !this.musicPad) {
+            try {
+                this.musicPad = new AmbientPad(this.audioCtx, this.audioCtx.destination);
+                this.musicPad.setChord([110.00, 138.59, 164.81, 207.65]);
+                this.applyMusicVolume();
+            } catch (e) {}
+        }
     }
 
     playSound(freq, duration = 0.1, type = 'square', volume = 0.08) {
@@ -301,10 +392,16 @@ class BounceBall {
     togglePause() {
         if (this.state === GameState.PLAYING) {
             this.state = GameState.PAUSED;
+            if (this.audioCtx && this.audioCtx.state === 'running') {
+                try { this.audioCtx.suspend(); } catch (e) {}
+            }
             this.onPaused();
         } else if (this.state === GameState.PAUSED) {
             this.state = GameState.PLAYING;
             this.lastFrameTs = performance.now();
+            if (this.audioCtx && this.audioCtx.state === 'suspended') {
+                try { this.audioCtx.resume(); } catch (e) {}
+            }
             this.onResumed();
             if (!this.animationFrame) this.gameLoop();
         }

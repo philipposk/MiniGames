@@ -1,0 +1,19 @@
+{
+  "name": "Piano Tap",
+  "short_name": "PianoTap",
+  "description": "Tile-tapping rhythm game. Vanilla JS, original procedural music.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0a14",
+  "theme_color": "#0a0a14",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

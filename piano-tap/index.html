@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#0a0a14" />
+<title>Piano Tap</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="app">
+  <canvas id="game" aria-label="Piano Tap game canvas"></canvas>
+
+  <!-- HUD (in-game) -->
+  <div id="hud" class="hud hidden" aria-hidden="true">
+    <div class="hud-top">
+      <button id="pauseBtn" class="icon-btn" aria-label="Pause">II</button>
+      <div id="comboDisplay" class="combo">0</div>
+      <div id="scoreDisplay" class="score">0</div>
+    </div>
+    <div class="hud-bottom">
+      <div id="accDisplay" class="acc">100%</div>
+      <div id="timerDisplay" class="timer hidden"></div>
+    </div>
+  </div>
+
+  <!-- Menu -->
+  <div id="menu" class="overlay">
+    <div class="menu-card">
+      <h1 class="logo">PIANO<br/>TAP</h1>
+      <p class="tag">Don't tap the white tiles.</p>
+      <nav class="menu-nav">
+        <button class="btn primary" data-route="#/play">PLAY</button>
+        <button class="btn" data-route="#/songs">SONGS</button>
+        <button class="btn" data-route="#/modes">MODES</button>
+        <button class="btn" data-route="#/leaderboard">LEADERBOARD</button>
+        <button class="btn" data-route="#/settings">SETTINGS</button>
+        <button class="btn" data-route="#/howto">HOW TO PLAY</button>
+        <button class="btn" data-route="#/credits">CREDITS</button>
+      </nav>
+      <div id="dailyBanner" class="daily hidden"></div>
+    </div>
+  </div>
+
+  <!-- Songs select -->
+  <div id="songs" class="overlay hidden">
+    <div class="menu-card">
+      <h2>SONGS</h2>
+      <div id="songList" class="song-list"></div>
+      <button class="btn ghost" data-route="#/">BACK</button>
+    </div>
+  </div>
+
+  <!-- Modes select -->
+  <div id="modes" class="overlay hidden">
+    <div class="menu-card">
+      <h2>MODES</h2>
+      <div class="mode-list">
+        <button class="btn mode-btn" data-mode="classic">
+          <strong>Classic</strong>
+          <span>Endless. Tempo ramps each 16 bars.</span>
+        </button>
+        <button class="btn mode-btn" data-mode="arcade">
+          <strong>Arcade</strong>
+          <span>30 seconds. Tap as many as you can.</span>
+        </button>
+        <button class="btn mode-btn" data-mode="rush">
+          <strong>Rush</strong>
+          <span>Tempo ramps fast. Survive.</span>
+        </button>
+        <button class="btn mode-btn" data-mode="daily">
+          <strong>Daily Challenge</strong>
+          <span>Seeded. Special mod. Bonus unlock.</span>
+        </button>
+      </div>
+      <button class="btn ghost" data-route="#/">BACK</button>
+    </div>
+  </div>
+
+  <!-- Leaderboard -->
+  <div id="leaderboard" class="overlay hidden">
+    <div class="menu-card">
+      <h2>LEADERBOARD</h2>
+      <div class="lb-tabs" id="lbTabs"></div>
+      <ol id="lbList" class="lb-list"></ol>
+      <button class="btn ghost" data-route="#/">BACK</button>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div id="settings" class="overlay hidden">
+    <div class="menu-card">
+      <h2>SETTINGS</h2>
+      <div class="settings-list">
+        <label class="setting-row">
+          <span>Music volume</span>
+          <input type="range" id="musicVol" min="0" max="100" />
+        </label>
+        <label class="setting-row">
+          <span>SFX volume</span>
+          <input type="range" id="sfxVol" min="0" max="100" />
+        </label>
+        <label class="setting-row">
+          <span>Haptics</span>
+          <input type="checkbox" id="haptics" />
+        </label>
+        <label class="setting-row">
+          <span>Colorblind palette</span>
+          <input type="checkbox" id="colorblind" />
+        </label>
+        <label class="setting-row">
+          <span>Reduced motion</span>
+          <input type="checkbox" id="reducedMotion" />
+        </label>
+        <label class="setting-row">
+          <span>Latency offset (ms): <span id="latencyVal">0</span></span>
+          <input type="range" id="latencyOffset" min="-100" max="100" />
+        </label>
+        <button id="calibrateBtn" class="btn">Calibrate latency</button>
+        <div id="calibrateStatus" class="calibrate-status"></div>
+        <button id="resetData" class="btn ghost danger">Reset all data</button>
+      </div>
+      <button class="btn ghost" data-route="#/">BACK</button>
+    </div>
+  </div>
+
+  <!-- How to -->
+  <div id="howto" class="overlay hidden">
+    <div class="menu-card">
+      <h2>HOW TO PLAY</h2>
+      <ul class="howto-list">
+        <li>Tap the dark tiles as they cross the hit line.</li>
+        <li>Don't tap an empty (white) lane.</li>
+        <li>Don't let a dark tile pass the hit line.</li>
+        <li>Keys: D F J K for lanes 1 to 4.</li>
+        <li>Multi-touch supported.</li>
+        <li>Grading: Perfect &le; 30ms, Great &le; 60ms, OK &le; 100ms.</li>
+      </ul>
+      <button class="btn ghost" data-route="#/">BACK</button>
+    </div>
+  </div>
+
+  <!-- Credits -->
+  <div id="credits" class="overlay hidden">
+    <div class="menu-card">
+      <h2>CREDITS</h2>
+      <p>Piano Tap &mdash; original code, original procedural music.</p>
+      <p class="small">All audio synthesized via WebAudio. No copyrighted melodies.</p>
+      <p class="small">Built with vanilla JS, no dependencies.</p>
+      <button class="btn ghost" data-route="#/">BACK</button>
+    </div>
+  </div>
+
+  <!-- Name entry -->
+  <div id="nameEntry" class="overlay hidden">
+    <div class="menu-card narrow">
+      <h2>NEW HIGH SCORE</h2>
+      <p id="nameEntryScore" class="score-big">0</p>
+      <input id="nameInput" maxlength="3" inputmode="text" autocomplete="off"
+             aria-label="3 letter name" />
+      <button id="nameSubmit" class="btn primary">SAVE</button>
+    </div>
+  </div>
+
+  <!-- Pause -->
+  <div id="pause" class="overlay hidden">
+    <div class="menu-card narrow">
+      <h2>PAUSED</h2>
+      <button id="resumeBtn" class="btn primary">RESUME</button>
+      <button id="restartBtn" class="btn">RESTART</button>
+      <button id="quitBtn" class="btn ghost" data-route="#/">QUIT</button>
+    </div>
+  </div>
+
+  <!-- Game over -->
+  <div id="gameover" class="overlay hidden">
+    <div class="menu-card narrow">
+      <h2 id="goTitle">GAME OVER</h2>
+      <div class="go-stats">
+        <div><span class="lbl">Score</span><span id="goScore">0</span></div>
+        <div><span class="lbl">Accuracy</span><span id="goAcc">0%</span></div>
+        <div><span class="lbl">Max Combo</span><span id="goCombo">0</span></div>
+      </div>
+      <button id="retryBtn" class="btn primary">RETRY</button>
+      <button class="btn" data-route="#/songs">SONGS</button>
+      <button class="btn ghost" data-route="#/">MENU</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden"></div>
+</div>
+<script src="game.js"></script>
+</body>
+</html>

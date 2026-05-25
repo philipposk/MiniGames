@@ -1,0 +1,19 @@
+{
+  "name": "Crossy Hop",
+  "short_name": "Crossy Hop",
+  "description": "Tap-to-hop infinite hopper. Dodge cars, ride logs, watch for trains.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1b1f2a",
+  "theme_color": "#1b1f2a",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

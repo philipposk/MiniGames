@@ -1,11 +1,121 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta http-equiv="refresh" content="0; url=web-version.html">
-    <title>Stick Runner - Redirecting...</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0f0f1e">
+  <meta name="description" content="Stick Runner — endless runner with biomes, characters, and a shop. Plays offline.">
+  <title>Stick Runner</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <p>Redirecting to game... <a href="web-version.html">Click here if not redirected</a></p>
+  <div id="toastLayer" aria-live="polite" aria-atomic="false"></div>
+
+  <div id="app">
+    <!-- Menu / front card -->
+    <section id="menuScreen" class="screen" aria-label="Main menu">
+      <div class="top-bar">
+        <div class="stats">
+          <span class="pill" id="coinsHud" aria-label="Coins">Coins: 0</span>
+          <span class="pill" id="distHud"  aria-label="Best distance">Best: 0m</span>
+        </div>
+        <div class="icon-row">
+          <button id="btnSettings"    class="icon-btn" aria-label="Settings"     title="Settings">⚙</button>
+          <button id="btnLeaderboard" class="icon-btn" aria-label="Leaderboard"  title="Leaderboard">🏆</button>
+          <button id="btnHowTo"       class="icon-btn" aria-label="How to play"  title="How to play">?</button>
+        </div>
+      </div>
+
+      <h1>STICK RUNNER</h1>
+      <p class="subtitle">Endless runner. Tap to jump.</p>
+
+      <h2>BIOME</h2>
+      <div id="biomeStrip" class="biome-strip" role="radiogroup" aria-label="Choose biome"></div>
+
+      <div class="cta-row">
+        <button id="btnPlay" class="button primary" aria-label="Play selected biome">PLAY</button>
+        <button id="btnDaily" class="button" aria-label="Daily challenge">DAILY</button>
+        <button id="btnShop" class="button ghost" aria-label="Shop">SHOP</button>
+        <button id="btnAch" class="button ghost" aria-label="Achievements">ACHIEVEMENTS</button>
+        <button id="btnCredits" class="button ghost" aria-label="Credits">CREDITS</button>
+      </div>
+
+      <h2>CHARACTERS</h2>
+      <div id="characterRoster" class="roster" role="radiogroup" aria-label="Choose character"></div>
+    </section>
+
+    <!-- Game canvas -->
+    <section id="gameScreen" class="screen" aria-label="Game">
+      <div id="hud">
+        <div id="scoreText">Score: 0</div>
+        <div id="speedText">Speed: 1.0x</div>
+        <div id="coinHud">Coins: +0</div>
+        <div id="boostIndicator">⚡ BOOST ⚡</div>
+      </div>
+      <canvas id="gameCanvas" aria-label="Game canvas"></canvas>
+      <button id="jumpBtn" aria-label="Jump">JUMP</button>
+      <div id="instructions">
+        TAP / SPACE = JUMP &nbsp;|&nbsp; DBL-TAP = FLIP &nbsp;|&nbsp; ← BACKFLIP &nbsp;|&nbsp; ↓ SLIDE &nbsp;|&nbsp; → BOOST<br>
+        P = PAUSE &nbsp;|&nbsp; R = RESTART &nbsp;|&nbsp; ESC = MENU &nbsp;|&nbsp; M = MUTE
+      </div>
+
+      <!-- Game-over overlay (lives inside gameScreen so canvas stays present) -->
+      <div id="gameOverScreen" class="screen" aria-label="Game over" style="background: rgba(15,15,30,0.85);">
+        <h1 class="gameOverTitle">GAME OVER</h1>
+        <div id="newBestBadge" style="display:none">NEW BEST!</div>
+        <p class="finalScore">Score: <span id="finalScore">0</span></p>
+        <p class="finalScore">Distance: <span id="finalDist">0</span>m</p>
+        <p class="finalScore">Coins: <span id="finalCoins">+0</span></p>
+        <p class="finalScore">High Score: <span id="finalHighScore">0</span></p>
+        <div class="cta-row">
+          <button id="btnReplay" class="button primary">PLAY AGAIN</button>
+          <button id="btnGoMenu" class="button ghost">MENU</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section id="settingsScreen" class="screen" aria-label="Settings"></section>
+
+    <!-- Leaderboard -->
+    <section id="leaderboardScreen" class="screen" aria-label="Leaderboard"></section>
+
+    <!-- Achievements -->
+    <section id="achievementsScreen" class="screen" aria-label="Achievements"></section>
+
+    <!-- Shop -->
+    <section id="shopScreen" class="screen" aria-label="Shop"></section>
+
+    <!-- How to play -->
+    <section id="howToScreen" class="screen" aria-label="How to play">
+      <h1>HOW TO PLAY</h1>
+      <ul style="text-align:left;max-width:520px;list-style:disc;padding:0 16px;">
+        <li><strong>JUMP</strong> over ground spikes. Tap, Space, or ↑.</li>
+        <li><strong>SLIDE</strong> under ceiling spikes. Swipe down or ↓.</li>
+        <li><strong>DOUBLE-JUMP</strong> for a front flip. Tap a second time in the air.</li>
+        <li><strong>BACKFLIP</strong> with ← (left arrow).</li>
+        <li><strong>BOOST</strong> with → (right arrow).</li>
+        <li><strong>PAUSE</strong> with P. <strong>MENU</strong> with Esc.</li>
+        <li>Earn <strong>coins</strong> every 10m and from close calls. Spend them in the shop.</li>
+        <li>Reach distance milestones to unlock biomes and characters.</li>
+      </ul>
+      <div class="cta-row"><button id="howToBack" class="button ghost">BACK</button></div>
+    </section>
+
+    <!-- Credits -->
+    <section id="creditsScreen" class="screen" aria-label="Credits">
+      <h1>CREDITS</h1>
+      <p>Stick Runner — built with vanilla JS.</p>
+      <p>WebAudio SFX synthesized in-browser.</p>
+      <div class="cta-row"><button id="creditsBack" class="button ghost">BACK</button></div>
+    </section>
+  </div>
+
+  <script src="game.js"></script>
 </body>
 </html>
-

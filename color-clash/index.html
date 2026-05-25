@@ -7,28 +7,73 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <title>Color Clash - The Ultimate Color Matching Game</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon-192.png">
+    <title>Color Clash</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icons/icon.svg">
+    <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="splash" class="screen active">
-        <div class="splash-content">
-            <h1 class="game-title">COLOR CLASH</h1>
-            <p class="tagline">Can You Match The Shades?</p>
-            <button id="startBtn" class="btn-primary">TAP TO START</button>
-            <div class="high-score-display">
-                <span class="label">BEST:</span>
-                <span id="splashHighScore">0</span>
-            </div>
-            <div class="splash-toggles">
-                <button id="soundToggleSplash" class="toggle-btn" aria-pressed="true">SOUND: ON</button>
-                <button id="cbToggleSplash" class="toggle-btn" aria-pressed="false">COLOR-BLIND: OFF</button>
-            </div>
+    <!-- ===== TOP BAR (visible on menu / sub-screens) ===== -->
+    <div id="topBar" class="top-bar hidden">
+        <div class="top-bar-left">
+            <button id="coinsBtn" class="coin-pill" aria-label="Coins">
+                <span class="coin-icon" aria-hidden="true">$</span>
+                <span id="coinsDisplay">0</span>
+            </button>
+        </div>
+        <div class="top-bar-right">
+            <button id="navShop" class="icon-btn" aria-label="Palette shop" title="Shop">P</button>
+            <button id="navAchievements" class="icon-btn" aria-label="Achievements" title="Achievements">A</button>
+            <button id="navLeaderboard" class="icon-btn" aria-label="Leaderboard" title="Leaderboard">T</button>
+            <button id="navHowTo" class="icon-btn" aria-label="How to play" title="How to play">?</button>
+            <button id="navSettings" class="icon-btn" aria-label="Settings" title="Settings">G</button>
         </div>
     </div>
 
+    <!-- ===== MENU (FRONTCARD) ===== -->
+    <div id="menu" class="screen active menu-screen">
+        <header class="menu-header">
+            <h1 class="game-title">COLOR CLASH</h1>
+            <p class="tagline">Pick your mode</p>
+        </header>
+        <div class="mode-grid" role="list">
+            <button class="mode-tile" data-mode="classic" role="listitem" aria-label="Classic mode">
+                <div class="mode-preview"><span class="bar bar-a"></span><span class="bar bar-b"></span></div>
+                <div class="mode-name">CLASSIC</div>
+                <div class="mode-meta">BEST <span data-best="classic">0</span></div>
+            </button>
+            <button class="mode-tile" data-mode="speed" role="listitem" aria-label="Speed mode">
+                <div class="mode-preview fast"><span class="bar bar-a"></span><span class="bar bar-b"></span></div>
+                <div class="mode-name">SPEED</div>
+                <div class="mode-meta">BEST <span data-best="speed">0</span></div>
+            </button>
+            <button class="mode-tile" data-mode="zen" role="listitem" aria-label="Zen mode">
+                <div class="mode-preview slow"><span class="bar bar-a"></span><span class="bar bar-b"></span></div>
+                <div class="mode-name">ZEN</div>
+                <div class="mode-meta">BEST <span data-best="zen">0</span></div>
+            </button>
+            <button class="mode-tile" data-mode="daily" role="listitem" aria-label="Daily challenge">
+                <div class="mode-preview"><span class="bar bar-a"></span><span class="bar bar-b"></span></div>
+                <div class="mode-name">DAILY</div>
+                <div class="mode-meta" id="dailyMeta">--</div>
+            </button>
+        </div>
+        <div class="menu-actions">
+            <button id="levelSelectBtn" class="btn-secondary">CLASSIC LEVEL SELECT</button>
+        </div>
+    </div>
+
+    <!-- ===== LEVEL SELECT ===== -->
+    <div id="levelSelect" class="screen sub-screen">
+        <header class="sub-header">
+            <button class="back-btn" data-back aria-label="Back">&larr;</button>
+            <h2>SELECT COLOR PACK</h2>
+        </header>
+        <div id="packsGrid" class="packs-grid"></div>
+    </div>
+
+    <!-- ===== GAME ===== -->
     <div id="game" class="screen">
         <div class="game-header">
             <div class="score-container">
@@ -62,11 +107,12 @@
             <div class="pause-card">
                 <h2>PAUSED</h2>
                 <button id="resumeBtn" class="btn-primary">RESUME</button>
-                <button id="quitBtn" class="btn-secondary">QUIT</button>
+                <button id="quitBtn" class="btn-secondary">QUIT TO MENU</button>
             </div>
         </div>
     </div>
 
+    <!-- ===== GAME OVER ===== -->
     <div id="gameOver" class="screen">
         <div class="game-over-content">
             <h2 class="game-over-title">GAME OVER</h2>
@@ -74,22 +120,16 @@
                 <span class="label">FINAL SCORE</span>
                 <span id="finalScore" class="big-score">0</span>
             </div>
-            <div id="newRecord" class="new-record hidden">
-                NEW RECORD!
+            <div id="newRecord" class="new-record hidden">NEW RECORD!</div>
+            <div id="nameEntry" class="name-entry hidden">
+                <p class="label">3-LETTER NAME</p>
+                <input id="nameInput" maxlength="3" autocomplete="off" inputmode="text" />
+                <button id="nameSaveBtn" class="btn-primary">SAVE</button>
             </div>
             <div class="stats-grid">
-                <div class="stat">
-                    <span class="stat-value" id="perfectCount">0</span>
-                    <span class="stat-label">PERFECT</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-value" id="goodCount">0</span>
-                    <span class="stat-label">GOOD</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-value" id="okayCount">0</span>
-                    <span class="stat-label">OKAY</span>
-                </div>
+                <div class="stat"><span class="stat-value" id="perfectCount">0</span><span class="stat-label">PERFECT</span></div>
+                <div class="stat"><span class="stat-value" id="goodCount">0</span><span class="stat-label">GOOD</span></div>
+                <div class="stat"><span class="stat-value" id="okayCount">0</span><span class="stat-label">OKAY</span></div>
             </div>
             <div class="button-group">
                 <button id="restartBtn" class="btn-primary">PLAY AGAIN</button>
@@ -98,26 +138,125 @@
         </div>
     </div>
 
-    <button id="pauseBtn" class="pause-btn hidden" aria-label="Pause">II</button>
-    <button id="infoBtn" class="info-btn hidden" aria-label="How to play">?</button>
+    <!-- ===== SETTINGS ===== -->
+    <div id="settings" class="screen sub-screen">
+        <header class="sub-header">
+            <button class="back-btn" data-back aria-label="Back">&larr;</button>
+            <h2>SETTINGS</h2>
+        </header>
+        <div class="settings-list">
+            <label class="setting-row">
+                <span>SFX volume</span>
+                <input id="setSfx" type="range" min="0" max="100" value="100">
+            </label>
+            <label class="setting-row">
+                <span>Music volume</span>
+                <input id="setMusic" type="range" min="0" max="100" value="50">
+            </label>
+            <label class="setting-row">
+                <span>Haptics</span>
+                <button id="setHaptics" class="toggle-btn" aria-pressed="true">ON</button>
+            </label>
+            <label class="setting-row">
+                <span>Color-blind mode</span>
+                <button id="setCb" class="toggle-btn" aria-pressed="false">OFF</button>
+            </label>
+            <label class="setting-row">
+                <span>Reduced motion</span>
+                <button id="setRm" class="toggle-btn" aria-pressed="false">OFF</button>
+            </label>
+            <label class="setting-row">
+                <span>Tap target size</span>
+                <select id="setTap">
+                    <option value="small">Small</option>
+                    <option value="med" selected>Medium</option>
+                    <option value="large">Large</option>
+                </select>
+            </label>
+            <label class="setting-row">
+                <span>Language</span>
+                <select id="setLang"><option value="en">English</option></select>
+            </label>
+            <div class="setting-row">
+                <button id="resetProgress" class="btn-secondary danger">RESET PROGRESS</button>
+            </div>
+        </div>
+    </div>
 
-    <div id="infoModal" class="modal hidden">
-        <div class="modal-content">
-            <button id="closeModal" class="close-btn" aria-label="Close">×</button>
-            <h3>HOW TO PLAY</h3>
+    <!-- ===== LEADERBOARD ===== -->
+    <div id="leaderboard" class="screen sub-screen">
+        <header class="sub-header">
+            <button class="back-btn" data-back aria-label="Back">&larr;</button>
+            <h2>LEADERBOARD</h2>
+        </header>
+        <div class="tabs" role="tablist">
+            <button class="tab active" data-tab="classic">CLASSIC</button>
+            <button class="tab" data-tab="speed">SPEED</button>
+            <button class="tab" data-tab="zen">ZEN</button>
+            <button class="tab" data-tab="daily">DAILY</button>
+        </div>
+        <ol id="lbList" class="lb-list"></ol>
+    </div>
+
+    <!-- ===== ACHIEVEMENTS ===== -->
+    <div id="achievements" class="screen sub-screen">
+        <header class="sub-header">
+            <button class="back-btn" data-back aria-label="Back">&larr;</button>
+            <h2>ACHIEVEMENTS</h2>
+        </header>
+        <ul id="achList" class="ach-list"></ul>
+    </div>
+
+    <!-- ===== SHOP ===== -->
+    <div id="shop" class="screen sub-screen">
+        <header class="sub-header">
+            <button class="back-btn" data-back aria-label="Back">&larr;</button>
+            <h2>SHOP</h2>
+        </header>
+        <h3 class="shop-sec">PALETTES</h3>
+        <div id="palettesGrid" class="shop-grid"></div>
+        <h3 class="shop-sec">BAR SHAPES</h3>
+        <div id="shapesGrid" class="shop-grid"></div>
+    </div>
+
+    <!-- ===== HOW TO ===== -->
+    <div id="howTo" class="screen sub-screen">
+        <header class="sub-header">
+            <button class="back-btn" data-back aria-label="Back">&larr;</button>
+            <h2>HOW TO PLAY</h2>
+        </header>
+        <div class="howto-body">
             <p>Two colored bars slide from opposite sides.</p>
             <p>Tap when they overlap in the center!</p>
             <h4>SCORING</h4>
             <ul>
-                <li><strong>PERFECT</strong> (Full overlap): +100 pts</li>
-                <li><strong>GREAT</strong> (Most overlap): +70 pts</li>
-                <li><strong>GOOD</strong> (Some overlap): +40 pts</li>
-                <li><strong>OKAY</strong> (Barely): +15 pts</li>
-                <li><strong>MISS</strong>: Game Over</li>
+                <li><strong>PERFECT</strong> (full overlap): +100</li>
+                <li><strong>GREAT</strong> (most overlap): +70</li>
+                <li><strong>GOOD</strong> (some overlap): +40</li>
+                <li><strong>OKAY</strong> (barely): +15</li>
+                <li><strong>MISS</strong>: Game Over (except in ZEN)</li>
             </ul>
-            <p class="tip">Build combos for bigger multipliers. Speed ramps up every level.</p>
+            <p class="tip">Build combos for bigger multipliers. Earn coins to unlock palettes &amp; shapes.</p>
         </div>
     </div>
+
+    <!-- ===== CREDITS ===== -->
+    <div id="credits" class="screen sub-screen">
+        <header class="sub-header">
+            <button class="back-btn" data-back aria-label="Back">&larr;</button>
+            <h2>CREDITS</h2>
+        </header>
+        <div class="howto-body">
+            <p>Color Clash &mdash; a mini-game built with vanilla JS.</p>
+        </div>
+    </div>
+
+    <!-- ===== IN-GAME PAUSE/INFO BUTTONS ===== -->
+    <button id="pauseBtn" class="pause-btn hidden" aria-label="Pause">II</button>
+    <button id="infoBtn" class="info-btn hidden" aria-label="How to play">?</button>
+
+    <!-- ===== TOAST CONTAINER ===== -->
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
     <script src="game.js"></script>
 </body>

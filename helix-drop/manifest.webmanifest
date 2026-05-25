@@ -1,0 +1,19 @@
+{
+  "name": "Helix Drop",
+  "short_name": "HelixDrop",
+  "description": "Rotate the tower, find the gap, survive the drop.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07081c",
+  "theme_color": "#0b0d2a",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "192x192 512x512 any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

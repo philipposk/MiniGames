@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <rect width="256" height="256" rx="40" fill="#1b1f2a"/>
+  <!-- shadow -->
+  <ellipse cx="128" cy="210" rx="60" ry="10" fill="rgba(0,0,0,0.35)"/>
+  <!-- cube body (chicken) -->
+  <!-- front face -->
+  <rect x="74" y="100" width="108" height="100" fill="#cf9d2a"/>
+  <!-- right face -->
+  <polygon points="182,100 210,82 210,182 182,200" fill="#a87a16"/>
+  <!-- top face -->
+  <polygon points="74,100 102,82 210,82 182,100" fill="#ffe066"/>
+  <!-- crown stripe -->
+  <rect x="86" y="110" width="84" height="10" fill="#ff9b3d"/>
+  <!-- eyes -->
+  <rect x="98" y="138" width="14" height="14" fill="#1b1f2a"/>
+  <rect x="144" y="138" width="14" height="14" fill="#1b1f2a"/>
+  <!-- beak -->
+  <polygon points="128,160 116,176 140,176" fill="#ff9b3d"/>
+</svg>

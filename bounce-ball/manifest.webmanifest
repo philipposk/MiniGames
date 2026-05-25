@@ -1,0 +1,19 @@
+{
+    "name": "Bounce Ball",
+    "short_name": "Bounce Ball",
+    "description": "A vanilla-JS arcade brick-breaker with 30 levels, daily challenges, and unlockable skins.",
+    "start_url": "./index.html",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#0f3460",
+    "theme_color": "#0f3460",
+    "icons": [
+        {
+            "src": "icons/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ]
+}

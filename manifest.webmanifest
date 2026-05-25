@@ -1,0 +1,14 @@
+{
+  "name": "MiniGames Arcade",
+  "short_name": "MiniGames",
+  "description": "Seven free browser games — Bounce Ball, Color Clash, Stick Runner, The Rising, Helix Drop, Crossy Hop, Piano Tap.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

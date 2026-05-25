@@ -1,12 +1,11 @@
-const CACHE_NAME = 'color-clash-v3';
+const CACHE_NAME = 'color-clash-v4';
 const urlsToCache = [
   './',
   './index.html',
   './styles.css',
   './game.js',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
+  './manifest.webmanifest',
+  './icons/icon.svg'
 ];
 
 self.addEventListener('install', event => {
@@ -35,14 +34,8 @@ self.addEventListener('fetch', event => {
 
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+    caches.keys().then(cacheNames => Promise.all(
+      cacheNames.map(cn => (cn !== CACHE_NAME ? caches.delete(cn) : null))
+    )).then(() => self.clients.claim())
   );
 });

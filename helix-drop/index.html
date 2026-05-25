@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#0b0d2a" />
+<meta name="description" content="Helix Drop — rotate the tower, find the gap, drop to victory." />
+<title>Helix Drop</title>
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
+<link rel="apple-touch-icon" href="./icons/icon.svg" />
+<link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- The canvas always exists. Screens float over it. -->
+  <canvas id="game-canvas" aria-label="Helix Drop game canvas"></canvas>
+
+  <!-- ============================ MENU SCREEN ============================ -->
+  <section id="screen-menu" class="screen" data-screen="menu" aria-label="Main menu">
+    <div class="menu-card">
+      <h1 class="title">Helix<span class="title-accent">Drop</span></h1>
+      <p class="subtitle">Rotate the tower. Find the gap. Survive the drop.</p>
+      <nav class="menu-nav">
+        <button class="btn btn-primary" data-action="quick-play">PLAY</button>
+        <button class="btn" data-action="go-levels">LEVELS</button>
+        <button class="btn" data-action="go-endless">ENDLESS</button>
+        <button class="btn" data-action="go-daily">DAILY</button>
+        <button class="btn" data-action="go-leaderboard">LEADERBOARD</button>
+        <button class="btn" data-action="go-shop">SHOP</button>
+        <button class="btn" data-action="go-settings">SETTINGS</button>
+        <button class="btn" data-action="go-howto">HOW TO PLAY</button>
+        <button class="btn btn-ghost" data-action="go-credits">CREDITS</button>
+      </nav>
+      <div class="coin-display" aria-live="polite">
+        <span class="coin-icon" aria-hidden="true">★</span>
+        <span id="coin-count-menu">0</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ LEVELS SCREEN ============================ -->
+  <section id="screen-levels" class="screen" data-screen="levels" hidden aria-label="Level select">
+    <div class="screen-header">
+      <button class="btn btn-back" data-action="back-menu" aria-label="Back to menu">‹ MENU</button>
+      <h2>LEVELS</h2>
+    </div>
+    <div id="level-grid" class="level-grid" role="list"></div>
+  </section>
+
+  <!-- ============================ LEADERBOARD SCREEN ============================ -->
+  <section id="screen-leaderboard" class="screen" data-screen="leaderboard" hidden aria-label="Leaderboards">
+    <div class="screen-header">
+      <button class="btn btn-back" data-action="back-menu" aria-label="Back to menu">‹ MENU</button>
+      <h2>LEADERBOARD</h2>
+    </div>
+    <div class="tab-row" role="tablist">
+      <button class="tab is-active" data-tab="endless" role="tab">ENDLESS</button>
+      <button class="tab" data-tab="daily" role="tab">DAILY</button>
+    </div>
+    <div id="leaderboard-content" class="leaderboard-content"></div>
+  </section>
+
+  <!-- ============================ SHOP SCREEN ============================ -->
+  <section id="screen-shop" class="screen" data-screen="shop" hidden aria-label="Shop">
+    <div class="screen-header">
+      <button class="btn btn-back" data-action="back-menu" aria-label="Back to menu">‹ MENU</button>
+      <h2>SHOP</h2>
+      <div class="coin-display">
+        <span class="coin-icon" aria-hidden="true">★</span>
+        <span id="coin-count-shop">0</span>
+      </div>
+    </div>
+    <h3 class="shop-sub">Ball Skins</h3>
+    <div id="skin-grid" class="skin-grid"></div>
+    <h3 class="shop-sub">Powers</h3>
+    <div id="power-grid" class="skin-grid"></div>
+  </section>
+
+  <!-- ============================ SETTINGS SCREEN ============================ -->
+  <section id="screen-settings" class="screen" data-screen="settings" hidden aria-label="Settings">
+    <div class="screen-header">
+      <button class="btn btn-back" data-action="back-menu" aria-label="Back to menu">‹ MENU</button>
+      <h2>SETTINGS</h2>
+    </div>
+    <div class="settings-list">
+      <label class="setting-row">
+        <span>SFX Volume</span>
+        <input type="range" id="set-sfx" min="0" max="100" value="80" />
+      </label>
+      <label class="setting-row">
+        <span>Music Volume</span>
+        <input type="range" id="set-music" min="0" max="100" value="40" />
+      </label>
+      <label class="setting-row toggle">
+        <span>Haptics</span>
+        <input type="checkbox" id="set-haptics" />
+      </label>
+      <label class="setting-row toggle">
+        <span>Colorblind Mode</span>
+        <input type="checkbox" id="set-colorblind" />
+      </label>
+      <label class="setting-row toggle">
+        <span>Reduced Motion</span>
+        <input type="checkbox" id="set-reducedmotion" />
+      </label>
+      <label class="setting-row">
+        <span>Player Name</span>
+        <div class="name-entry" id="name-entry-settings"></div>
+      </label>
+      <button class="btn btn-danger" data-action="wipe-save">WIPE SAVE DATA</button>
+    </div>
+  </section>
+
+  <!-- ============================ HOW TO PLAY ============================ -->
+  <section id="screen-howto" class="screen" data-screen="howto" hidden aria-label="How to play">
+    <div class="screen-header">
+      <button class="btn btn-back" data-action="back-menu" aria-label="Back to menu">‹ MENU</button>
+      <h2>HOW TO PLAY</h2>
+    </div>
+    <div class="howto-body">
+      <p><strong>Drag</strong> the screen left or right to spin the tower.</p>
+      <p>Find the <span class="kw-safe">gap</span> between segments and let the ball drop through.</p>
+      <p>Land on <span class="kw-safe">green</span> = safe bounce. Hit <span class="kw-kill">red</span> = game over.</p>
+      <p>Chain drops without bouncing for a <strong>combo multiplier</strong>.</p>
+      <p>Keyboard: <kbd>A</kbd>/<kbd>D</kbd> or <kbd>←</kbd>/<kbd>→</kbd> to rotate, <kbd>P</kbd> or <kbd>Esc</kbd> to pause.</p>
+    </div>
+  </section>
+
+  <!-- ============================ CREDITS ============================ -->
+  <section id="screen-credits" class="screen" data-screen="credits" hidden aria-label="Credits">
+    <div class="screen-header">
+      <button class="btn btn-back" data-action="back-menu" aria-label="Back to menu">‹ MENU</button>
+      <h2>CREDITS</h2>
+    </div>
+    <div class="howto-body">
+      <p><strong>Helix Drop</strong></p>
+      <p>Code, art, and sound: built procedurally in pure JS + Canvas + WebAudio.</p>
+      <p>No external libraries. No tracking. No ads.</p>
+      <p>v1.0</p>
+    </div>
+  </section>
+
+  <!-- ============================ PLAY HUD ============================ -->
+  <div id="hud" class="hud" hidden aria-live="polite">
+    <div class="hud-top">
+      <button class="hud-btn" id="btn-pause" aria-label="Pause">II</button>
+      <div class="hud-stats">
+        <div class="hud-stat"><span class="hud-label">SCORE</span><span id="hud-score">0</span></div>
+        <div class="hud-stat"><span class="hud-label">DEPTH</span><span id="hud-depth">0</span></div>
+        <div class="hud-stat" id="hud-combo-wrap" hidden><span class="hud-label">COMBO</span><span id="hud-combo">x1</span></div>
+      </div>
+      <div class="hud-stat" id="hud-mode-wrap"><span class="hud-label" id="hud-mode-label">LV</span><span id="hud-mode">1</span></div>
+    </div>
+    <div class="hud-touch-buttons">
+      <button class="hud-rot" id="btn-rot-left" aria-label="Rotate left">◀</button>
+      <button class="hud-rot" id="btn-rot-right" aria-label="Rotate right">▶</button>
+    </div>
+  </div>
+
+  <!-- ============================ OVERLAYS ============================ -->
+  <div id="overlay-pause" class="overlay" hidden>
+    <div class="overlay-card">
+      <h2>PAUSED</h2>
+      <button class="btn btn-primary" data-action="resume">RESUME</button>
+      <button class="btn" data-action="restart">RESTART</button>
+      <button class="btn" data-action="quit">QUIT</button>
+    </div>
+  </div>
+
+  <div id="overlay-gameover" class="overlay" hidden>
+    <div class="overlay-card">
+      <h2>GAME OVER</h2>
+      <div class="result-stats">
+        <div class="result-row"><span>SCORE</span><span id="result-score">0</span></div>
+        <div class="result-row"><span>DEPTH</span><span id="result-depth">0</span></div>
+        <div class="result-row"><span>COINS</span><span id="result-coins">+0</span></div>
+      </div>
+      <div id="result-newbest" class="newbest" hidden>NEW BEST!</div>
+      <div id="result-name-entry" hidden>
+        <p class="enter-name">ENTER YOUR NAME</p>
+        <div class="name-entry" id="name-entry-gameover"></div>
+        <button class="btn btn-primary" data-action="submit-score">SUBMIT</button>
+      </div>
+      <button class="btn btn-primary" data-action="restart">RETRY</button>
+      <button class="btn" data-action="quit">QUIT</button>
+    </div>
+  </div>
+
+  <div id="overlay-levelclear" class="overlay" hidden>
+    <div class="overlay-card">
+      <h2>LEVEL CLEAR!</h2>
+      <div class="stars" id="result-stars" aria-label="Stars">★★★</div>
+      <div class="result-stats">
+        <div class="result-row"><span>SCORE</span><span id="result-clear-score">0</span></div>
+        <div class="result-row"><span>TIME</span><span id="result-clear-time">0s</span></div>
+        <div class="result-row"><span>COINS</span><span id="result-clear-coins">+0</span></div>
+      </div>
+      <button class="btn btn-primary" data-action="next-level">NEXT LEVEL</button>
+      <button class="btn" data-action="restart">REPLAY</button>
+      <button class="btn" data-action="quit">QUIT</button>
+    </div>
+  </div>
+
+  <div id="overlay-achievement" class="achievement-pop" hidden>
+    <div class="ach-icon" aria-hidden="true">★</div>
+    <div class="ach-text">
+      <div class="ach-title">Achievement</div>
+      <div class="ach-name" id="ach-name"></div>
+    </div>
+  </div>
+
+  <div id="overlay-toast" class="toast" hidden></div>
+
+</div>
+
+<script src="./game.js" defer></script>
+</body>
+</html>

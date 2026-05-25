@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#1b1f2a" />
+<title>Crossy Hop</title>
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
+<link rel="apple-touch-icon" href="./icons/icon.svg" />
+<link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+<div id="app">
+  <canvas id="game" aria-label="Game canvas"></canvas>
+
+  <!-- HUD shown during play -->
+  <div id="hud" class="hud hidden" aria-hidden="true">
+    <div class="hud-row">
+      <div class="hud-pill" id="hud-score" title="Score">0</div>
+      <div class="hud-pill" id="hud-coins" title="Coins">0c</div>
+      <div class="hud-pill" id="hud-best" title="Best">B0</div>
+      <button id="btn-pause" class="hud-btn" aria-label="Pause">II</button>
+    </div>
+    <div class="hud-row hud-bottom">
+      <button class="hud-dpad" id="dp-left" aria-label="Move left">&larr;</button>
+      <button class="hud-dpad" id="dp-back" aria-label="Move back">&darr;</button>
+      <button class="hud-dpad" id="dp-fwd" aria-label="Hop forward">&uarr;</button>
+      <button class="hud-dpad" id="dp-right" aria-label="Move right">&rarr;</button>
+    </div>
+  </div>
+
+  <!-- MENU -->
+  <div id="overlay-menu" class="overlay">
+    <div class="card menu-card">
+      <h1 class="logo">Crossy <span>Hop</span></h1>
+      <p class="tag">tap. hop. survive.</p>
+      <div class="menu-grid">
+        <button class="big-btn primary" data-route="#/play">PLAY</button>
+        <button class="big-btn" data-route="#/characters">CHARACTERS</button>
+        <button class="big-btn" data-route="#/daily">DAILY</button>
+        <button class="big-btn" data-route="#/zen">ZEN</button>
+        <button class="big-btn" data-route="#/leaderboard">LEADERBOARD</button>
+        <button class="big-btn" data-route="#/settings">SETTINGS</button>
+        <button class="big-btn small" data-route="#/howto">HOW TO PLAY</button>
+        <button class="big-btn small" data-route="#/credits">CREDITS</button>
+      </div>
+      <div class="coin-strip">
+        <span aria-hidden="true">[coin]</span>
+        <span id="menu-coins">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARACTERS -->
+  <div id="overlay-characters" class="overlay hidden">
+    <div class="card">
+      <header class="card-head">
+        <button class="back-btn" data-route="#/" aria-label="Back">&larr;</button>
+        <h2>Characters</h2>
+        <span class="coin-strip"><span id="char-coins">0</span>c</span>
+      </header>
+      <div id="char-grid" class="char-grid"></div>
+    </div>
+  </div>
+
+  <!-- DAILY -->
+  <div id="overlay-daily" class="overlay hidden">
+    <div class="card">
+      <header class="card-head">
+        <button class="back-btn" data-route="#/" aria-label="Back">&larr;</button>
+        <h2>Daily Challenge</h2>
+      </header>
+      <p class="muted">Same map for every player today. Cross 50 tiles. Fastest time wins.</p>
+      <p class="muted" id="daily-date">--</p>
+      <button class="big-btn primary" id="daily-start">START DAILY</button>
+    </div>
+  </div>
+
+  <!-- ZEN -->
+  <div id="overlay-zen" class="overlay hidden">
+    <div class="card">
+      <header class="card-head">
+        <button class="back-btn" data-route="#/" aria-label="Back">&larr;</button>
+        <h2>Zen Mode</h2>
+      </header>
+      <p class="muted">No cars. No trains. Just rivers and grass. Hop around as long as you want.</p>
+      <button class="big-btn primary" id="zen-start">START ZEN</button>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div id="overlay-leaderboard" class="overlay hidden">
+    <div class="card">
+      <header class="card-head">
+        <button class="back-btn" data-route="#/" aria-label="Back">&larr;</button>
+        <h2>Leaderboard</h2>
+      </header>
+      <div class="tabs">
+        <button class="tab active" data-tab="classic">CLASSIC</button>
+        <button class="tab" data-tab="daily">DAILY</button>
+        <button class="tab" data-tab="zen">ZEN</button>
+      </div>
+      <ol id="lb-list" class="lb-list"></ol>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="overlay-settings" class="overlay hidden">
+    <div class="card">
+      <header class="card-head">
+        <button class="back-btn" data-route="#/" aria-label="Back">&larr;</button>
+        <h2>Settings</h2>
+      </header>
+      <label class="row">
+        <span>SFX volume</span>
+        <input type="range" min="0" max="100" id="sfx-vol" />
+      </label>
+      <label class="row">
+        <span>Music volume</span>
+        <input type="range" min="0" max="100" id="music-vol" />
+      </label>
+      <label class="row">
+        <span>Music on</span>
+        <input type="checkbox" id="music-on" />
+      </label>
+      <label class="row">
+        <span>Haptics</span>
+        <input type="checkbox" id="haptics" />
+      </label>
+      <label class="row">
+        <span>Colorblind aids</span>
+        <input type="checkbox" id="colorblind" />
+      </label>
+      <label class="row">
+        <span>Reduced motion</span>
+        <input type="checkbox" id="reduced-motion" />
+      </label>
+      <label class="row">
+        <span>Name (3 letters)</span>
+        <input type="text" id="player-name" maxlength="3" />
+      </label>
+    </div>
+  </div>
+
+  <!-- HOW TO -->
+  <div id="overlay-howto" class="overlay hidden">
+    <div class="card">
+      <header class="card-head">
+        <button class="back-btn" data-route="#/" aria-label="Back">&larr;</button>
+        <h2>How to Play</h2>
+      </header>
+      <ul class="howto">
+        <li><b>Tap</b> the top of the screen to hop forward.</li>
+        <li><b>Swipe</b> in any direction to move.</li>
+        <li>Keyboard: <b>arrow keys</b>, <b>WASD</b>, <b>space</b> to hop, <b>P</b> to pause.</li>
+        <li>Dodge <b>cars</b>, ride <b>logs</b>, watch for <b>trains</b>.</li>
+        <li>Stay on screen. Don't fall behind for more than 2 seconds.</li>
+        <li>Collect <b>coins</b> to unlock new characters.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- CREDITS -->
+  <div id="overlay-credits" class="overlay hidden">
+    <div class="card">
+      <header class="card-head">
+        <button class="back-btn" data-route="#/" aria-label="Back">&larr;</button>
+        <h2>Credits</h2>
+      </header>
+      <p>Crossy Hop is a tribute to the classic tap-to-hop genre.</p>
+      <p>Built with vanilla JavaScript, HTML, and CSS. Art drawn on a canvas. Sound synthesised live in your browser.</p>
+      <p class="muted">Not affiliated with any other game.</p>
+    </div>
+  </div>
+
+  <!-- PAUSE -->
+  <div id="overlay-pause" class="overlay hidden">
+    <div class="card small-card">
+      <h2>Paused</h2>
+      <button class="big-btn primary" id="btn-resume">RESUME</button>
+      <button class="big-btn" id="btn-restart">RESTART</button>
+      <button class="big-btn" id="btn-quit">QUIT</button>
+    </div>
+  </div>
+
+  <!-- DEATH -->
+  <div id="overlay-death" class="overlay hidden">
+    <div class="card small-card">
+      <h2 id="death-title">Splat!</h2>
+      <p class="big-num" id="death-score">0</p>
+      <p class="muted" id="death-sub">tiles crossed</p>
+      <div id="name-entry" class="hidden">
+        <p class="muted">New high score! Enter name:</p>
+        <input type="text" id="hs-name" maxlength="3" />
+        <button class="big-btn primary" id="hs-save">SAVE</button>
+      </div>
+      <button class="big-btn primary" id="btn-again">PLAY AGAIN</button>
+      <button class="big-btn" id="btn-menu">MAIN MENU</button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast hidden"></div>
+</div>
+<script src="./game.js" defer></script>
+</body>
+</html>

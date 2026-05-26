@@ -179,6 +179,7 @@ class Synth {
     env.connect(this.bus.musicGain);
     osc.start(when);
     osc.stop(when + dur + release + 0.05);
+    osc.onended = () => { try { osc.disconnect(); env.disconnect(); } catch(_) {} };
   }
   playBass(midi, when, dur) {
     if (!this.bus.ready) return;
@@ -194,6 +195,7 @@ class Synth {
     env.connect(this.bus.musicGain);
     osc.start(when);
     osc.stop(when + dur + 0.05);
+    osc.onended = () => { try { osc.disconnect(); env.disconnect(); } catch(_) {} };
   }
   // SFX
   playMiss() {
@@ -212,6 +214,7 @@ class Synth {
     env.gain.value = 0.5;
     src.connect(filter).connect(env).connect(this.bus.sfxGain);
     src.start();
+    src.onended = () => { try { src.disconnect(); filter.disconnect(); env.disconnect(); } catch(_) {} };
   }
   playMetronome(when, accent = false) {
     if (!this.bus.ready) return;
@@ -227,6 +230,7 @@ class Synth {
     env.connect(this.bus.sfxGain);
     osc.start(when);
     osc.stop(when + 0.06);
+    osc.onended = () => { try { osc.disconnect(); env.disconnect(); } catch(_) {} };
   }
 }
 

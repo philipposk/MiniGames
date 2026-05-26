@@ -1694,7 +1694,7 @@ const game = {
                 const speedMul = (this.activeLevel && this.activeLevel.hazards.indexOf('fast') !== -1) ? 1.6 : 1.0;
                 const windOffset = (this.activeLevel && this.activeLevel.hazards.indexOf('wind') !== -1)
                     ? Math.sin(performance.now() * 0.003) * 0.6 : 0;
-                this.currentBlock.x += (config.block.speed * speedMul + windOffset) * this.direction;
+                this.currentBlock.x += (config.block.speed * speedMul + windOffset) * this.direction * dt * 60;
                 if (this.currentBlock.x <= 0) { this.currentBlock.x = 0; this.direction = 1; }
                 else if (this.currentBlock.x + this.currentBlock.width >= config.canvas.width) {
                     this.currentBlock.x = config.canvas.width - this.currentBlock.width;
@@ -1703,15 +1703,16 @@ const game = {
                 if (this.currentBlock.y >= this.water.y - 10) this.currentBlock.scared = true;
             }
 
+            const dt60 = dt * 60;
             const riseRate = this.activeLevel ? this.activeLevel.waterRiseRate : config.water.riseSpeed;
             if (this.water.rising && this.water.y > this.targetHeight - 40) {
-                this.water.y -= riseRate;
+                this.water.y -= riseRate * dt60;
             }
 
             this.deadBlocks.forEach(block => {
                 if (block.falling) {
-                    block.velocity = (block.velocity || 0) + 0.5;
-                    block.y += block.velocity;
+                    block.velocity = (block.velocity || 0) + 0.5 * dt60;
+                    block.y += block.velocity * dt60;
                     if (block.y >= this.water.y) { block.y = this.water.y; block.falling = false; }
                 }
             });

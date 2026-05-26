@@ -1604,6 +1604,7 @@ class ColorClash {
         }
         this.particleCtx.globalAlpha = 1;
 
+        if (this.particles.length > 800) this.particles = this.particles.slice(-400);
         if (this.particles.length > 0) {
             requestAnimationFrame((ts) => this.animateParticles(ts));
         } else {

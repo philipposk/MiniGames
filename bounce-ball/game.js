@@ -569,37 +569,40 @@ class BounceBall {
             this.elapsedSec++;
             this.frameTimerMs -= 1000;
         }
-        this.update();
+        const dt60 = Math.min(dt * 60 / 1000, 3);
+        this.update(dt60);
         this.draw();
         this.animationFrame = requestAnimationFrame(() => this.gameLoop());
     }
 
-    update() {
+    update(dt60 = 1) {
         if (this.paddle.widthTimer > 0) {
-            this.paddle.widthTimer--;
-            if (this.paddle.widthTimer === 0) {
+            this.paddle.widthTimer -= dt60;
+            if (this.paddle.widthTimer <= 0) {
+                this.paddle.widthTimer = 0;
                 this.paddle.widthMultiplier = 1;
                 this.paddle.width = (this.levelConfig.paddleWidth || config.paddle.width);
             }
         }
         if (this.speedTimer > 0) {
-            this.speedTimer--;
-            if (this.speedTimer === 0) this.speedMultiplier = 1;
+            this.speedTimer -= dt60;
+            if (this.speedTimer <= 0) { this.speedTimer = 0; this.speedMultiplier = 1; }
         }
         if (this.comboTimer > 0) {
-            this.comboTimer--;
-            if (this.comboTimer === 0) {
+            this.comboTimer -= dt60;
+            if (this.comboTimer <= 0) {
+                this.comboTimer = 0;
                 this.combo = 0;
                 this.onComboChange(0);
             }
         }
-        if (this.shakeTime > 0) this.shakeTime--;
+        if (this.shakeTime > 0) this.shakeTime -= dt60;
 
         if (this.mouseX !== null && !this.keyboardActive) {
             this.paddle.targetX = this.mouseX - this.paddle.width / 2;
-            this.paddle.x += (this.paddle.targetX - this.paddle.x) * 0.3;
+            this.paddle.x += (this.paddle.targetX - this.paddle.x) * Math.min(0.3 * dt60, 1);
         }
-        const keySpeed = 9 * this.settings.sensitivity;
+        const keySpeed = 9 * this.settings.sensitivity * dt60;
         if (this.keys['arrowleft'] || this.keys['a']) {
             this.paddle.x -= keySpeed;
             this.keyboardActive = true;
@@ -610,32 +613,32 @@ class BounceBall {
         }
         this.paddle.x = Math.max(0, Math.min(this.viewW - this.paddle.width, this.paddle.x));
 
-        this.explosions = this.explosions.filter(e => { e.life--; return e.life > 0; });
+        this.explosions = this.explosions.filter(e => { e.life -= dt60; return e.life > 0; });
 
         for (const p of this.particles) {
-            p.x += p.vx;
-            p.y += p.vy;
-            p.vy += 0.15;
-            p.life--;
+            p.x += p.vx * dt60;
+            p.y += p.vy * dt60;
+            p.vy += 0.15 * dt60;
+            p.life -= dt60;
         }
         this.particles = this.particles.filter(p => p.life > 0);
 
         for (const t of this.floatingTexts) {
-            t.y -= 1;
-            t.life--;
+            t.y -= 1 * dt60;
+            t.life -= dt60;
         }
         this.floatingTexts = this.floatingTexts.filter(t => t.life > 0);
 
         // Random power-up spawner kept mild; brick-dropped ones are primary.
-        this.collectibleSpawnTimer++;
+        this.collectibleSpawnTimer += dt60;
         if (this.collectibleSpawnTimer > 480) {
             if (Math.random() < 0.5) this.spawnCollectible();
             this.collectibleSpawnTimer = 0;
         }
 
         for (const c of this.collectibles) {
-            c.y += c.vy;
-            c.rotation += 0.1;
+            c.y += c.vy * dt60;
+            c.rotation += 0.1 * dt60;
             if (this.aabbCircleHit(c, this.paddle)) {
                 this.applyPowerUp(c);
                 c.collected = true;
@@ -644,9 +647,9 @@ class BounceBall {
         this.collectibles = this.collectibles.filter(c => !c.collected && c.y - c.radius < this.viewH + 50);
 
         for (const c of this.fallingCollectibles) {
-            c.y += c.vy;
-            c.vy = Math.min(c.vy + 0.3, 12);
-            c.rotation += 0.15;
+            c.y += c.vy * dt60;
+            c.vy = Math.min(c.vy + 0.3 * dt60, 12);
+            c.rotation += 0.15 * dt60;
             if (this.aabbCircleHit(c, this.paddle)) {
                 this.addScore(c.points);
                 this.spawnFloatingText('+' + c.points, c.x, c.y, c.color);
@@ -655,7 +658,7 @@ class BounceBall {
         }
         this.fallingCollectibles = this.fallingCollectibles.filter(c => !c.collected && c.y - c.radius < this.viewH + 50);
 
-        for (const ball of this.balls) this.updateBall(ball);
+        for (const ball of this.balls) this.updateBall(ball, dt60);
 
         const remaining = this.bricks.filter(b => !b.hit && b.type !== BrickType.UNBREAKABLE);
         if (remaining.length === 0) this.completeLevel();
@@ -773,15 +776,15 @@ class BounceBall {
         }
     }
 
-    updateBall(ball) {
+    updateBall(ball, dt60 = 1) {
         ball.trail.push({ x: ball.x, y: ball.y });
         if (ball.trail.length > 6) ball.trail.shift();
 
         const speed = Math.hypot(ball.vx, ball.vy);
         const maxStep = ball.radius;
-        const steps = Math.max(1, Math.ceil(speed / maxStep));
-        const stepVx = ball.vx / steps;
-        const stepVy = ball.vy / steps;
+        const steps = Math.max(1, Math.ceil(speed * dt60 / maxStep));
+        const stepVx = ball.vx * dt60 / steps;
+        const stepVy = ball.vy * dt60 / steps;
 
         for (let s = 0; s < steps; s++) {
             ball.x += stepVx;

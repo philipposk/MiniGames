@@ -1,0 +1,21 @@
+/* TEAM */
+
+Developer: Philippos Ktistakis
+Contact:   phktistakis [at] gmail.com
+Site:      https://github.com/philipposk
+
+/* THANKS */
+
+Built with vanilla JS, vanilla CSS, vanilla HTML.
+No frameworks. No analytics. No ads. No tracking.
+
+/* TECH STACK */
+
+HTML5, CSS3, JavaScript (ES2017+)
+WebAudio, Canvas, Service Workers, localStorage
+PWA (Progressive Web App)
+Capacitor (iOS, Android wrap)
+
+Hosted on GitHub Pages.
+Source: https://github.com/philipposk/MiniGames
+License: MIT

@@ -54,9 +54,25 @@ It does not phone home.
 
 ## Third-party services
 
-None. The Games include no third-party scripts, no SDKs, no ad networks,
-no analytics, no CDN-loaded code, and no remote fonts. Everything ships
-self-contained from the same origin as the page.
+The Games include no third-party scripts, no SDKs, no ad networks, no
+analytics, and no CDN-loaded code.
+
+There is **one** third-party request: the **arcade hub landing page**
+(`/index.html`) loads three Google Fonts families (Bricolage Grotesque,
+Space Grotesk, JetBrains Mono) from `fonts.googleapis.com` and
+`fonts.gstatic.com` — Google's stylesheet returns the matched font files.
+Google logs these requests at the network level (IP, User-Agent,
+timestamp) per [their docs](https://developers.google.com/fonts/faq#what_does_using_the_google_fonts_api_mean_for_the_privacy_of_my_users).
+No cookies are set. The actual game folders (`bounce-ball/`, etc.) do not
+load any external font and stay fully self-contained.
+
+If you want zero third-party requests, you can either:
+
+- Visit a game directly (e.g. `/bounce-ball/`) — the hub fonts are never loaded.
+- Self-host the fonts by downloading the WOFF2 files and replacing the
+  Google Fonts `<link>` in the hub. PRs welcome.
+
+We use no other CDN, no analytics, no telemetry, and no ad networks.
 
 ## Future native apps (iOS, Android)
 

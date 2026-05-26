@@ -1409,20 +1409,28 @@ class Game {
     // Ball physics: vertical gravity, falls between discs.
     const g = 1800;
     this.ball.vy += g * dt;
+    // Cap fall speed so ball never skips a full disc spacing in one frame.
+    // discSpacing=110, dt_max=0.05 → max safe vy = 110/0.05 = 2200
+    if (this.ball.vy > 2000) this.ball.vy = 2000;
     this.ball.y += this.ball.vy * dt;
 
-    // Find target disc (the next un-passed one)
-    let target = null;
-    for (const d of this.helix.discs) {
-      if (!d.passed) { target = d; break; }
-    }
-    if (!target) {
-      // reached the end => level/daily clear
-      this._levelClear();
-      return;
-    }
-    // If ball reaches disc plane
-    if (this.ball.y + this.ball.radius >= target.y) {
+    // Process disc collisions — loop handles the (rare) case where the ball
+    // overpasses more than one disc in a single frame.
+    let collisionIter = 0;
+    while (collisionIter++ < 4) {
+      // Find target disc (the next un-passed one)
+      let target = null;
+      for (const d of this.helix.discs) {
+        if (!d.passed) { target = d; break; }
+      }
+      if (!target) {
+        // reached the end => level/daily clear
+        this._levelClear();
+        return;
+      }
+      // If ball has not yet reached this disc, stop checking
+      if (this.ball.y + this.ball.radius < target.y) break;
+
       const seg = target.segmentAt(this.helix.rotation, this.ball.angle);
       if (!seg) {
         // No segment found means we ended up in a gap (between defined sectors).
@@ -1440,8 +1448,9 @@ class Game {
           return;
         }
       } else {
-        // safe: bounce
+        // safe: bounce — stop checking further discs this frame
         this._bounce(target);
+        break;
       }
     }
 
@@ -1669,8 +1678,8 @@ class Game {
     ctx.translate(shakeX, shakeY);
 
     // Background pulse on play; just leave CSS gradient otherwise.
-    // Camera: ball sits centered vertically. World-y -> screen-y.
-    const ballScreenY = H * 0.32;
+    // Camera: ball sits at ~35% from top. World-y -> screen-y.
+    const ballScreenY = H * 0.35;
     const ballScreenX = W * 0.5;
     const camY = this.ball.y - ballScreenY;
 

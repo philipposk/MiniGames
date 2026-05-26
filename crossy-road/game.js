@@ -411,13 +411,15 @@ World.prototype.configureLane = function (type, row, diff) {
   return new Lane(LANE_GRASS, row, {});
 };
 
-World.prototype.ensureLanesAhead = function (frontRow) {
+World.prototype.ensureLanesAhead = function (frontRow, hopperRow) {
   while (this.spawnCursor <= frontRow + 14) {
     this.lanes.push(this.makeLane(this.spawnCursor, false));
     this.spawnCursor++;
   }
-  // trim far behind
-  while (this.lanes.length && this.lanes[0].row < frontRow - 14) {
+  // trim far behind — never trim hopper's vicinity (±8 rows)
+  const safeKeep = (hopperRow != null) ? hopperRow - 8 : frontRow - 14;
+  const trimBefore = Math.min(frontRow - 14, safeKeep);
+  while (this.lanes.length && this.lanes[0].row < trimBefore) {
     this.lanes.shift();
   }
 };
@@ -927,8 +929,8 @@ const Game = {
     const pressure = 8 + Math.min(40, this.score * 0.4);
     this.cameraY += pressure * dt;
 
-    // ensure lanes ahead
-    this.world.ensureLanesAhead(Math.floor(this.cameraY / TILE_H) + 12);
+    // ensure lanes ahead — pass hopper.row so we never trim it
+    this.world.ensureLanesAhead(Math.floor(this.cameraY / TILE_H) + 12, this.hopper.row);
 
     // landing / hazard checks after hop completes
     if (!this.hopper.hopping) {
@@ -941,13 +943,17 @@ const Game = {
             const e = lane.entities[i];
             if (e.kind === 'log') {
               const lx = e.x, lr = e.x + e.len * TILE_W;
-              if (this.hopper.x + TILE_W * 0.4 > lx && this.hopper.x + TILE_W * 0.6 < lr) {
+              // center-point check: hopper tile center must be within log
+              const hopCx = this.hopper.x + TILE_W * 0.5;
+              if (hopCx > lx && hopCx < lr) {
                 onLog = e; break;
               }
             }
           }
           if (onLog) {
             this.hopper.x += lane.dir * lane.speed * dt;
+            // keep col in sync so next hop starts from correct column
+            this.hopper.col = Math.max(0, Math.min(TILES_X - 1, Math.round(this.hopper.x / TILE_W)));
             // if drifts off screen, die
             if (this.hopper.x < -TILE_W * 0.5 || this.hopper.x > TILES_X * TILE_W - TILE_W * 0.5) {
               return this.die('drowned');

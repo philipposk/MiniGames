@@ -360,6 +360,15 @@ class Leaderboard {
       best[songId] = { score: entry.score, accuracy: entry.accuracy };
       this.save.set('bestPerSong', best);
     }
+    try {
+      if (window.MGRemote && MGRemote.enabled()) {
+        MGRemote.submit('piano-tap', songId, {
+          name: entry.name, score: entry.score | 0,
+          detail: (entry.accuracy != null ? entry.accuracy + '%' : ''),
+          payload: { accuracy: entry.accuracy }
+        }).catch(function(){});
+      }
+    } catch (e) {}
   }
   isHighScore(songId, score) {
     const lb = this.save.get('leaderboard')[songId] || [];
@@ -761,6 +770,47 @@ class Game {
   _renderLeaderboard() {
     const list = document.getElementById('lbList');
     list.innerHTML = '';
+    // Inject scope toggle once
+    const remoteOn = !!(window.MGRemote && MGRemote.enabled());
+    const parent = list.parentNode;
+    if (remoteOn && parent && !parent.querySelector('.lb-scope')) {
+      const wrap = document.createElement('div');
+      wrap.className = 'lb-scope';
+      wrap.style.cssText = 'display:flex;gap:6px;justify-content:center;margin:6px 0;';
+      wrap.innerHTML = '<button class="lb-tab active" data-scope="local">LOCAL</button><button class="lb-tab" data-scope="global">GLOBAL</button>';
+      parent.insertBefore(wrap, list);
+      const self = this;
+      wrap.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => {
+          wrap.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+          self._lbScope = b.getAttribute('data-scope');
+          self._renderLeaderboard();
+        });
+      });
+    }
+    const scope = this._lbScope || 'local';
+    const _esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+
+    if (scope === 'global' && remoteOn) {
+      list.innerHTML = '<div class="lb-empty">Loading…</div>';
+      MGRemote.top('piano-tap', this.currentLB, { limit: 10 }).then(rows => {
+        list.innerHTML = '';
+        if (!rows || !rows.length) { list.innerHTML = '<div class="lb-empty">No global scores yet.</div>'; return; }
+        rows.forEach((e, i) => {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <span class="rank">#${i + 1}</span>
+            <span class="name">${_esc(e.display_name || '???')}</span>
+            <span>${e.score}</span>
+            <span class="acc">${_esc(e.detail || '')}</span>
+          `;
+          list.appendChild(li);
+        });
+      });
+      return;
+    }
+
     const entries = this.lb.list(this.currentLB);
     if (!entries.length) {
       list.innerHTML = '<div class="lb-empty">No scores yet. Be the first.</div>';
@@ -768,7 +818,6 @@ class Game {
     }
     entries.forEach((e, i) => {
       const li = document.createElement('li');
-      const _esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
       const display = _esc(e.displayName || e.name || '???');
       li.innerHTML = `
         <span class="rank">#${i + 1}</span>
@@ -1010,10 +1059,10 @@ class Game {
     const delta = Math.abs(tile.hitTime - now) * 1000;
     let pts = 0;
     let label = '';
-    if (delta <= 30) { pts = 3; label = 'PERFECT'; this.accSum += 100; }
+    if (delta <= 30) { pts = 3; label = 'PERFECT'; this.accSum += 100; if (window.MGNative) MGNative.Haptics.light(); }
     else if (delta <= 60) { pts = 2; label = 'GREAT'; this.accSum += 80; }
     else if (delta <= 100) { pts = 1; label = 'OK'; this.accSum += 60; }
-    else { pts = 0; label = 'LATE'; this.accSum += 30; }
+    else { pts = 0; label = 'LATE'; this.accSum += 30; if (window.MGNative) MGNative.Haptics.heavy(); }
     this.attempts++;
     if (pts > 0) {
       this.combo++;
@@ -1057,6 +1106,7 @@ class Game {
           tile.status = 'missed';
           this.synth.playMiss();
           if (s.haptics && navigator.vibrate) navigator.vibrate(80);
+          if (window.MGNative) MGNative.Haptics.heavy();
           this.endGame('MISSED');
           break;
         }

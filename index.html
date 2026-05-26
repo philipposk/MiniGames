@@ -3,271 +3,782 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#0b1020" />
-  <meta name="description" content="MiniGames Arcade — 7 free browser games. Bounce Ball, Color Clash, Stick Runner, The Rising, Helix Drop, Crossy Hop, Piano Tap." />
-  <title>MiniGames Arcade — 7 free browser games</title>
-  <script>(function(){try{var k='minigames:v1:theme';var v=localStorage.getItem(k);if(v==='light'||v==='dark')document.documentElement.setAttribute('data-theme',v);}catch(e){}})();</script>
+  <meta name="theme-color" content="#f4efe4" />
+  <meta name="description" content="MiniGames Arcade — 7 free browser games. No install, no ads, no sign-up." />
+  <meta name="color-scheme" content="light dark" />
+  <title>MiniGames Arcade — Seven small games.</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icon.svg" />
-  <link rel="stylesheet" href="shared/theme.css" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="MiniGames Arcade — Seven small games." />
+  <meta property="og:description" content="An arcade of seven offline-ready browser games. No accounts, no ads, no telemetry." />
+  <meta property="og:url" content="https://philipposk.github.io/MiniGames/" />
+  <meta property="og:site_name" content="MiniGames Arcade" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://philipposk.github.io/MiniGames/icon.svg" />
+  <meta property="og:image:alt" content="MiniGames Arcade logo" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="MiniGames Arcade" />
+  <meta name="twitter:description" content="Seven offline-ready browser games. No accounts, no ads, no telemetry." />
+  <meta name="twitter:image" content="https://philipposk.github.io/MiniGames/icon.svg" />
+
+  <!-- Structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "MiniGames Arcade",
+    "description": "Seven free, offline-ready browser games — Bounce Ball, Color Clash, Stick Runner, The Rising, Helix Drop, Crossy Hop, Piano Tap.",
+    "url": "https://philipposk.github.io/MiniGames/",
+    "image": "https://philipposk.github.io/MiniGames/icon.svg",
+    "isAccessibleForFree": true,
+    "license": "https://opensource.org/licenses/MIT"
+  }
+  </script>
+
   <script src="./shared/identity.js" defer></script>
   <script src="./shared/share.js" defer></script>
+  <script src="./shared/leaderboard-remote.js" defer></script>
+  <script src="./shared/native.js" defer></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+
   <style>
     :root {
-      --bg: #0b1020;
-      --bg-2: #131a36;
-      --fg: #f5f7ff;
-      --muted: #9aa3c7;
-      --accent: #5cf2c4;
-      --accent-2: #ff5c8a;
-      --card: rgba(255,255,255,0.05);
-      --card-hover: rgba(255,255,255,0.09);
-      --ring: rgba(92,242,196,0.45);
-      --shadow: 0 12px 40px rgba(0,0,0,0.45);
-      --radius: 18px;
-      --bg-edge: #060912;
-      --card-border: rgba(255,255,255,0.07);
-      --card-border-hover: rgba(255,255,255,0.18);
-      --tag-bg: rgba(255,255,255,0.06);
-      --footer-border: rgba(255,255,255,0.06);
-      --native-border: rgba(255,255,255,0.12);
-      --halo-1: rgba(255,92,138,0.18);
-      --halo-2: rgba(92,242,196,0.18);
+      --paper: #f4efe4;
+      --paper-2: #ece6d7;
+      --ink: #15151a;
+      --ink-soft: #3a3a44;
+      --muted: #7a7768;
+      --line: #1a1a20;
+      --hairline: rgba(20,20,26,0.10);
+      --hairline-2: rgba(20,20,26,0.18);
+      --accent: #ff3b1a;       /* arcade coral */
+      --accent-ink: #15151a;
+      --chip: rgba(20,20,26,0.06);
+      --card: #fbf8f0;
+      --radius: 22px;
     }
-    @media (prefers-color-scheme: light) {
-      :root:not([data-theme="dark"]) {
-        --bg: #f6f6fb;
-        --bg-2: #e9ebf5;
-        --fg: #15192e;
-        --muted: #5b6280;
-        --card: rgba(15,18,40,0.04);
-        --card-hover: rgba(15,18,40,0.07);
-        --shadow: 0 10px 32px rgba(15,18,40,0.12);
-        --bg-edge: #e3e6f1;
-        --card-border: rgba(15,18,40,0.08);
-        --card-border-hover: rgba(15,18,40,0.18);
-        --tag-bg: rgba(15,18,40,0.06);
-        --footer-border: rgba(15,18,40,0.08);
-        --native-border: rgba(15,18,40,0.18);
-        --halo-1: rgba(255,92,138,0.12);
-        --halo-2: rgba(92,242,196,0.14);
-      }
-    }
-    :root[data-theme="light"] {
-      --bg: #f6f6fb;
-      --bg-2: #e9ebf5;
-      --fg: #15192e;
-      --muted: #5b6280;
-      --card: rgba(15,18,40,0.04);
-      --card-hover: rgba(15,18,40,0.07);
-      --shadow: 0 10px 32px rgba(15,18,40,0.12);
-      --bg-edge: #e3e6f1;
-      --card-border: rgba(15,18,40,0.08);
-      --card-border-hover: rgba(15,18,40,0.18);
-      --tag-bg: rgba(15,18,40,0.06);
-      --footer-border: rgba(15,18,40,0.08);
-      --native-border: rgba(15,18,40,0.18);
-      --halo-1: rgba(255,92,138,0.12);
-      --halo-2: rgba(92,242,196,0.14);
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      min-height: 100vh; min-height: 100dvh;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      line-height: 1.45;
     }
     @media (prefers-reduced-motion: reduce) {
       * { animation: none !important; transition: none !important; }
     }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; }
-    body {
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      color: var(--fg);
-      background:
-        radial-gradient(1200px 600px at 10% -10%, var(--halo-1), transparent 60%),
-        radial-gradient(900px 500px at 110% 10%, var(--halo-2), transparent 55%),
-        linear-gradient(180deg, var(--bg) 0%, var(--bg-edge) 100%);
-      min-height: 100vh;
-      min-height: 100dvh;
-      -webkit-font-smoothing: antialiased;
-      text-rendering: optimizeLegibility;
+
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; color: inherit; }
+
+    .wrap {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: clamp(20px, 3.5vw, 40px) clamp(20px, 4vw, 56px) 0;
     }
-    a { color: inherit; }
-    .container { max-width: 1200px; margin: 0 auto; padding: clamp(20px, 4vw, 48px); }
-    header.hero { display: flex; flex-direction: column; gap: 14px; padding-bottom: 32px; }
-    .brand { display: inline-flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: 0.4px; font-size: clamp(20px, 2.4vw, 26px); }
-    .brand-mark { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%); display: grid; place-items: center; box-shadow: 0 6px 18px rgba(92,242,196,0.25); color: #0b1020; font-weight: 900; font-size: 18px; }
-    h1 { margin: 0; font-size: clamp(34px, 6vw, 64px); line-height: 1.04; letter-spacing: -0.02em; }
-    h1 .gradient { background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-    .tagline { color: var(--muted); font-size: clamp(15px, 1.6vw, 18px); max-width: 640px; }
-    .meta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
-    .chip { background: var(--card); border: 1px solid var(--card-border); color: var(--muted); padding: 6px 12px; border-radius: 999px; font-size: 13px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
-    .card { position: relative; background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 18px; text-decoration: none; color: var(--fg); display: flex; flex-direction: column; min-height: 240px; overflow: hidden; transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease; isolation: isolate; }
-    .card:hover, .card:focus-visible { background: var(--card-hover); transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--card-border-hover); }
-    .card:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
-    .card .thumb { height: 110px; border-radius: 12px; margin-bottom: 14px; display: grid; place-items: center; overflow: hidden; position: relative; }
-    .card .title { font-size: 18px; font-weight: 700; letter-spacing: 0.2px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-    .card .desc { color: var(--muted); font-size: 14px; margin-top: 6px; line-height: 1.4; flex: 1; }
-    .card .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
-    .tag { background: var(--tag-bg); color: var(--muted); font-size: 11px; padding: 3px 8px; border-radius: 999px; letter-spacing: 0.3px; text-transform: uppercase; }
-    .badge-new { background: linear-gradient(135deg, var(--accent), #2ec3a5); color: #062019; font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 999px; letter-spacing: 0.5px; text-transform: uppercase; }
-    footer.foot { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--footer-border); color: var(--muted); font-size: 13px; display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; }
-    footer.foot a { color: var(--accent); text-decoration: none; }
-    footer.foot a:hover { text-decoration: underline; }
-    .thumb-bounce { background: linear-gradient(135deg, #1a2455, #3b1d6e); }
-    .thumb-bounce::before { content: ""; position: absolute; inset: 14px; background: repeating-linear-gradient(90deg, #ff5c8a 0 18px, transparent 18px 22px), repeating-linear-gradient(90deg, #5cf2c4 0 18px, transparent 18px 22px); background-size: 100% 14px, 100% 14px; background-position: 0 0, 0 18px; background-repeat: no-repeat; border-radius: 8px; opacity: 0.85; }
-    .thumb-bounce::after { content: ""; position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); width: 28px; height: 28px; background: radial-gradient(circle at 30% 30%, #fff, #ffd0e2 50%, #ff5c8a 100%); border-radius: 50%; box-shadow: 0 0 16px rgba(255,92,138,0.55); }
-    .thumb-color { background: linear-gradient(135deg, #2d1a55, #6e1d2e); }
-    .thumb-color::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 49%, rgba(255,255,255,0.4) 50%, transparent 51%), linear-gradient(90deg, #5cf2c4 0 50%, #ff5c8a 50% 100%); }
-    .thumb-stick { background: linear-gradient(180deg, #1b2c48 0%, #324e7b 100%); }
-    .thumb-stick::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 40%; background: linear-gradient(180deg, #2e7d4f, #1a4a30); }
-    .thumb-stick::after { content: "★"; position: absolute; bottom: 28px; left: 24px; color: #fff; font-size: 36px; text-shadow: 0 2px 6px rgba(0,0,0,0.5); }
-    .thumb-rising { background: linear-gradient(180deg, #06173b 0%, #1c3a7a 60%, #294a8e 100%); }
-    .thumb-rising::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 50%; background: linear-gradient(180deg, rgba(92,242,196,0.25), rgba(92,242,196,0.6)); }
-    .thumb-rising::after { content: ""; position: absolute; left: 50%; top: 18px; transform: translateX(-50%); width: 22px; height: 22px; background: #5cf2c4; box-shadow: 0 6px 0 -2px #ff5c8a, 0 14px 0 -3px #f5d35c; }
-    .thumb-helix { background: radial-gradient(circle at 50% 50%, #2a1a55 0%, #0b0a25 100%); }
-    .thumb-helix::before { content: ""; position: absolute; inset: 16px; border-radius: 50%; background: conic-gradient(from 0deg, #5cf2c4 0 90deg, transparent 90deg 110deg, #ff5c8a 110deg 200deg, transparent 200deg 220deg, #5cf2c4 220deg 360deg); filter: blur(0.3px); animation: spin 12s linear infinite; transform-origin: center; }
-    .thumb-helix::after { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 22px; height: 22px; background: radial-gradient(circle at 30% 30%, #fff, #cce8ff); border-radius: 50%; box-shadow: 0 0 16px rgba(255,255,255,0.65); }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .thumb-crossy { background: linear-gradient(180deg, #6cbe5a, #4a9f3a); }
-    .thumb-crossy::before { content: ""; position: absolute; left: 0; right: 0; top: 30%; height: 26%; background: linear-gradient(180deg, #444, #222); }
-    .thumb-crossy::after { content: "🐤"; position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); font-size: 30px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.35)); }
-    .thumb-piano { background: #0c0f1f; display: flex; }
-    .thumb-piano::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0 25%, rgba(255,255,255,0.95) 25% 25.5%, transparent 25.5% 50%, rgba(255,255,255,0.95) 50% 50.5%, transparent 50.5% 75%, rgba(255,255,255,0.95) 75% 75.5%, transparent 75.5% 100%); }
-    .thumb-piano::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0 4%, #111 4% 21%, transparent 21% 29%, #111 29% 46%, transparent 46% 54%, #111 54% 71%, transparent 71% 79%, #111 79% 96%, transparent 96% 100%); background-size: 100% 28px; background-repeat: no-repeat; background-position: 0 22px; }
-    .native-note { margin-top: 36px; background: var(--card); border: 1px dashed var(--native-border); border-radius: var(--radius); padding: 18px 20px; color: var(--muted); font-size: 14px; line-height: 1.5; }
-    header.hero .hero-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-    header.hero .hero-row .spacer { flex: 1; }
-    .player-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--card); border: 1px solid var(--card-border); color: var(--muted); padding: 6px 12px; border-radius: 999px; font-size: 13px; cursor: pointer; }
-    .player-chip:hover { background: var(--card-hover); color: var(--fg); }
-    .player-chip .edit-icon { opacity: 0.7; font-size: 12px; }
-    .player-chip[hidden] { display: none; }
-    .native-note strong { color: var(--fg); }
-    @media (max-width: 520px) { .card .thumb { height: 92px; } .card { min-height: 220px; padding: 14px; } }
+
+    /* ─── Top bar ─── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: clamp(28px, 5vw, 56px);
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-family: "Bricolage Grotesque", "Space Grotesk", sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: -0.01em;
+    }
+    .brand .dot {
+      width: 12px; height: 12px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px rgba(255,59,26,0.16);
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13.5px;
+      color: var(--ink-soft);
+    }
+    .nav a {
+      padding: 8px 12px;
+      border-radius: 999px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .nav a:hover, .nav a:focus-visible {
+      background: var(--chip);
+      color: var(--ink);
+      outline: none;
+    }
+    .nav .pill-cta {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav .pill-cta:hover { background: #000; }
+    .nav .pill-cta svg { width: 14px; height: 14px; }
+
+    /* ─── Hero ─── */
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+      gap: clamp(24px, 5vw, 72px);
+      align-items: end;
+      padding-bottom: clamp(36px, 6vw, 72px);
+      border-bottom: 1px solid var(--hairline);
+    }
+    .hero h1 {
+      font-family: "Bricolage Grotesque", sans-serif;
+      font-weight: 800;
+      font-size: clamp(46px, 8.4vw, 116px);
+      line-height: 0.92;
+      letter-spacing: -0.035em;
+      margin: 0 0 18px;
+      color: var(--ink);
+    }
+    .hero h1 em {
+      font-style: italic;
+      font-weight: 700;
+      font-variation-settings: "opsz" 96;
+      color: var(--accent);
+    }
+    .hero .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12.5px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      margin-bottom: 28px;
+    }
+    .hero .eyebrow .bar {
+      width: 28px; height: 1px;
+      background: var(--ink-soft);
+      display: inline-block;
+    }
+
+    .hero-right {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      padding-bottom: 8px;
+    }
+    .hero-right p {
+      margin: 0;
+      font-size: clamp(15px, 1.45vw, 18px);
+      color: var(--ink-soft);
+      max-width: 38ch;
+      line-height: 1.5;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 6px;
+    }
+    .stat {
+      padding: 14px 14px 12px;
+      background: var(--card);
+      border: 1px solid var(--hairline);
+      border-radius: 14px;
+    }
+    .stat .n {
+      font-family: "Bricolage Grotesque", sans-serif;
+      font-weight: 800;
+      font-size: 28px;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      display: block;
+    }
+    .stat .l {
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-top: 6px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ─── Section header ─── */
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      padding: clamp(28px, 4vw, 48px) 0 22px;
+    }
+    .section-head h2 {
+      font-family: "Bricolage Grotesque", sans-serif;
+      font-size: clamp(22px, 2.4vw, 32px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 13px;
+    }
+    .filters button {
+      background: transparent;
+      border: 1px solid var(--hairline-2);
+      color: var(--ink-soft);
+      padding: 7px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-weight: 500;
+    }
+    .filters button:hover { color: var(--ink); border-color: var(--ink); }
+    .filters button[aria-pressed="true"] {
+      background: var(--ink);
+      color: var(--paper);
+      border-color: var(--ink);
+    }
+
+    /* ─── Grid ─── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 18px;
+    }
+    .card {
+      grid-column: span 4;
+      background: var(--card);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+      transition: transform 0.22s cubic-bezier(.2,.7,.2,1), border-color 0.2s ease, box-shadow 0.22s ease;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .card.is-featured { grid-column: span 6; }
+    .card:hover, .card:focus-visible {
+      transform: translateY(-3px);
+      border-color: var(--ink);
+      box-shadow: 0 18px 38px -22px rgba(20,20,26,0.32);
+      outline: none;
+    }
+    .card .thumb {
+      aspect-ratio: 16 / 10;
+      border-radius: 14px;
+      overflow: hidden;
+      position: relative;
+      background: #0f0f15;
+    }
+    .card.is-featured .thumb { aspect-ratio: 16 / 8.5; }
+    .thumb img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      transition: transform 0.5s cubic-bezier(.2,.7,.2,1);
+    }
+    .card:hover .thumb img { transform: scale(1.04); }
+
+    .thumb .corner {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px 5px 8px;
+      background: rgba(255,255,255,0.92);
+      color: var(--ink);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      backdrop-filter: blur(6px);
+    }
+    .thumb .corner .pulse {
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 0 0 rgba(255,59,26,0.7);
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(255,59,26,0.7); }
+      70%  { box-shadow: 0 0 0 6px rgba(255,59,26,0); }
+      100% { box-shadow: 0 0 0 0 rgba(255,59,26,0); }
+    }
+    .thumb .num {
+      position: absolute;
+      bottom: 10px;
+      right: 12px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      color: rgba(255,255,255,0.85);
+      letter-spacing: 0.08em;
+      background: rgba(0,0,0,0.35);
+      padding: 4px 8px;
+      border-radius: 6px;
+      backdrop-filter: blur(4px);
+    }
+
+    .card .meta {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .card .title {
+      font-family: "Bricolage Grotesque", sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0;
+      color: var(--ink);
+    }
+    .card.is-featured .title { font-size: 28px; }
+    .card .kind {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .card .desc {
+      font-size: 14px;
+      color: var(--ink-soft);
+      margin: 0;
+      line-height: 1.5;
+      flex: 1;
+    }
+    .card .footer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--hairline);
+    }
+    .tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .tag {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      color: var(--ink-soft);
+      background: var(--chip);
+      padding: 4px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.04em;
+    }
+    .play {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+      transition: gap 0.18s ease;
+    }
+    .card:hover .play { gap: 10px; }
+    .play svg { width: 14px; height: 14px; }
+
+    /* ─── Info strip ─── */
+    .strip {
+      margin-top: clamp(48px, 6vw, 72px);
+      padding: clamp(24px, 3vw, 32px) clamp(24px, 3vw, 36px);
+      background: var(--ink);
+      color: var(--paper);
+      border-radius: 28px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 36px;
+      align-items: center;
+    }
+    .strip h3 {
+      font-family: "Bricolage Grotesque", sans-serif;
+      font-weight: 700;
+      font-size: clamp(22px, 2.4vw, 30px);
+      letter-spacing: -0.02em;
+      margin: 0 0 8px;
+      line-height: 1.1;
+    }
+    .strip p { margin: 0; color: rgba(244,239,228,0.7); font-size: 14.5px; max-width: 50ch; line-height: 1.55; }
+    .strip h3 .accent { color: var(--accent); }
+    .strip-tiles {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .tile {
+      padding: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .tile .k {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      color: rgba(244,239,228,0.55);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .tile .v { font-weight: 600; font-size: 14.5px; }
+
+    /* ─── Footer ─── */
+    footer {
+      padding: clamp(40px, 5vw, 56px) 0 clamp(20px, 3vw, 32px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: var(--muted);
+      border-top: 1px solid var(--hairline);
+      margin-top: clamp(40px, 5vw, 64px);
+    }
+    footer a:hover { color: var(--ink); }
+    footer .keys {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11.5px;
+    }
+    .kbd {
+      padding: 3px 7px;
+      border: 1px solid var(--hairline-2);
+      border-radius: 5px;
+      background: var(--card);
+      color: var(--ink-soft);
+      font-size: 11px;
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 960px) {
+      .hero { grid-template-columns: 1fr; align-items: start; }
+      .hero-right { padding-bottom: 0; }
+      .card { grid-column: span 6; }
+      .card.is-featured { grid-column: span 6; }
+      .strip { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 620px) {
+      .nav .nav-link { display: none; }
+      .card, .card.is-featured { grid-column: span 12; }
+      .stats { grid-template-columns: repeat(3, 1fr); }
+      .stat .n { font-size: 22px; }
+      .topbar { padding-bottom: 24px; }
+    }
+
+    /* fade-in on filter */
+    .card { animation: in 0.4s cubic-bezier(.2,.7,.2,1) both; }
+    .card[hidden] { display: none !important; }
+    @keyframes in {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header class="hero">
-      <div class="hero-row">
-        <span class="brand"><span class="brand-mark" aria-hidden="true">M</span> MiniGames Arcade</span>
-        <span class="spacer"></span>
-        <button id="playerChip" class="player-chip" type="button" aria-label="Edit player name" hidden>
-          <span id="playerChipText">Hi, player</span>
-          <span class="edit-icon" aria-hidden="true">✎</span>
-        </button>
-        <button id="themeCycle" class="theme-cycle-btn" type="button" aria-label="Theme: system" title="Theme: system">🌓</button>
-      </div>
-      <h1>Seven <span class="gradient">tiny worlds</span> to tap, dodge, and beat.</h1>
-      <p class="tagline">Free, no install, no ads, no sign-up. Each game runs in your browser, saves locally, and works offline once loaded. Coming to iOS &amp; Android too.</p>
-      <div class="meta-row" role="list">
-        <span class="chip" role="listitem">Mobile-first</span>
-        <span class="chip" role="listitem">Offline (PWA)</span>
-        <span class="chip" role="listitem">Local leaderboards</span>
-        <span class="chip" role="listitem">No tracking</span>
-      </div>
+  <div class="wrap">
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <a href="#" class="brand" aria-label="MiniGames Arcade home">
+        <span class="dot" aria-hidden="true"></span>
+        MINIGAMES&nbsp;<span style="color:var(--muted); font-weight:600;">ARCADE</span>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a class="nav-link" href="#games">Games</a>
+        <a class="nav-link" href="#about">About</a>
+        <a class="nav-link" href="https://github.com/philipposk/MiniGames">Source</a>
+        <a class="pill-cta" href="#games" aria-label="Install as PWA">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          Install
+        </a>
+      </nav>
     </header>
-    <main>
-      <section class="grid" aria-label="Games">
-        <a class="card" href="bounce-ball/" aria-label="Play Bounce Ball">
-          <div class="thumb thumb-bounce" aria-hidden="true"></div>
-          <div class="title">Bounce Ball <span class="tag">Brick Breaker</span></div>
-          <div class="desc">30 hand-tuned levels, power-ups, combos, paddle &amp; ball skins.</div>
-          <div class="tags"><span class="tag">Levels</span><span class="tag">Shop</span><span class="tag">Daily</span></div>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div>
+        <span class="eyebrow"><span class="bar"></span> Seven games · One tab · Zero install</span>
+        <h1>Small games,<br/>played in a <em>browser</em> tab.</h1>
+      </div>
+      <div class="hero-right">
+        <p>An arcade of seven offline-ready browser games. No accounts, no ads, no telemetry. Each one fits in your pocket and saves to your device.</p>
+        <div class="stats">
+          <div class="stat"><span class="n">7</span><span class="l">Games</span></div>
+          <div class="stat"><span class="n">100%</span><span class="l">Offline</span></div>
+          <div class="stat"><span class="n">0</span><span class="l">Trackers</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: All games -->
+    <section id="games">
+      <div class="section-head">
+        <h2>The arcade<span style="color:var(--muted)">.</span></h2>
+        <div class="filters" role="tablist" aria-label="Filter games">
+          <button type="button" aria-pressed="true" data-filter="all">All</button>
+          <button type="button" aria-pressed="false" data-filter="arcade">Arcade</button>
+          <button type="button" aria-pressed="false" data-filter="puzzle">Puzzle</button>
+          <button type="button" aria-pressed="false" data-filter="rhythm">Rhythm</button>
+          <button type="button" aria-pressed="false" data-filter="new">New</button>
+        </div>
+      </div>
+
+      <div class="grid" id="grid">
+        <!-- Featured: Helix Drop -->
+        <a class="card is-featured" href="helix-drop/" data-cats="arcade new" aria-label="Play Helix Drop">
+          <div class="thumb">
+            <img src="icons/helix-drop.svg" alt="" />
+            <span class="corner"><span class="pulse" aria-hidden="true"></span> New</span>
+            <span class="num">G/05</span>
+          </div>
+          <div class="meta">
+            <h3 class="title">Helix Drop</h3>
+            <span class="kind">1-thumb arcade</span>
+          </div>
+          <p class="desc">Drop the ball through the spinning helix. 30 levels, endless, and a daily seed. Five ball skins and a ghost power-up.</p>
+          <div class="footer-row">
+            <div class="tags"><span class="tag">endless</span><span class="tag">skins</span><span class="tag">daily</span></div>
+            <span class="play">Play <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+          </div>
         </a>
-        <a class="card" href="color-clash/" aria-label="Play Color Clash">
-          <div class="thumb thumb-color" aria-hidden="true"></div>
-          <div class="title">Color Clash <span class="tag">Reflex</span></div>
-          <div class="desc">Match the moving colors. Classic, Speed, Zen, Daily. 30 color packs.</div>
-          <div class="tags"><span class="tag">Endless</span><span class="tag">Palettes</span><span class="tag">Daily</span></div>
+
+        <!-- Featured: Crossy Hop -->
+        <a class="card is-featured" href="crossy-road/" data-cats="arcade new" aria-label="Play Crossy Hop">
+          <div class="thumb">
+            <img src="icons/crossy-road.svg" alt="" />
+            <span class="corner"><span class="pulse" aria-hidden="true"></span> New</span>
+            <span class="num">G/06</span>
+          </div>
+          <div class="meta">
+            <h3 class="title">Crossy Hop</h3>
+            <span class="kind">Tap-to-hop</span>
+          </div>
+          <p class="desc">Cross roads, rails, and rivers. Tap to hop forward, swipe to sidestep. Unlock eight characters across kid-safe biomes.</p>
+          <div class="footer-row">
+            <div class="tags"><span class="tag">kid-safe</span><span class="tag">characters</span><span class="tag">daily</span></div>
+            <span class="play">Play <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+          </div>
         </a>
-        <a class="card" href="stick-runner/" aria-label="Play Stick Runner">
-          <div class="thumb thumb-stick" aria-hidden="true"></div>
-          <div class="title">Stick Runner <span class="tag">Endless Runner</span></div>
-          <div class="desc">Four biomes, eight characters, jumps, slides, double-jumps.</div>
-          <div class="tags"><span class="tag">Biomes</span><span class="tag">Characters</span><span class="tag">Daily</span></div>
+
+        <!-- Bounce Ball -->
+        <a class="card" href="bounce-ball/" data-cats="arcade" aria-label="Play Bounce Ball">
+          <div class="thumb">
+            <img src="icons/bounce-ball.svg" alt="" />
+            <span class="num">G/01</span>
+          </div>
+          <div class="meta">
+            <h3 class="title">Bounce Ball</h3>
+            <span class="kind">Brick breaker</span>
+          </div>
+          <p class="desc">30 hand-tuned levels, power-ups, combos, paddle &amp; ball skins.</p>
+          <div class="footer-row">
+            <div class="tags"><span class="tag">levels</span><span class="tag">shop</span><span class="tag">daily</span></div>
+            <span class="play">Play <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+          </div>
         </a>
-        <a class="card" href="the-rising/" aria-label="Play The Rising">
-          <div class="thumb thumb-rising" aria-hidden="true"></div>
-          <div class="title">The Rising <span class="tag">Puzzle Platformer</span></div>
-          <div class="desc">Climb above the rising ice. World-map progression with 20 levels.</div>
-          <div class="tags"><span class="tag">World map</span><span class="tag">Skins</span><span class="tag">Stars</span></div>
+
+        <!-- Color Clash -->
+        <a class="card" href="color-clash/" data-cats="arcade" aria-label="Play Color Clash">
+          <div class="thumb">
+            <img src="icons/color-clash.svg" alt="" />
+            <span class="num">G/02</span>
+          </div>
+          <div class="meta">
+            <h3 class="title">Color Clash</h3>
+            <span class="kind">Reflex / timing</span>
+          </div>
+          <p class="desc">Match the moving colors. Classic, Speed, Zen, Daily. 30 unlockable palettes.</p>
+          <div class="footer-row">
+            <div class="tags"><span class="tag">endless</span><span class="tag">palettes</span><span class="tag">daily</span></div>
+            <span class="play">Play <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+          </div>
         </a>
-        <a class="card" href="helix-drop/" aria-label="Play Helix Drop">
-          <div class="thumb thumb-helix" aria-hidden="true"></div>
-          <div class="title">Helix Drop <span class="badge-new">New</span></div>
-          <div class="desc">Drop the ball through the spinning helix. 30 levels + endless + daily.</div>
-          <div class="tags"><span class="tag">1-thumb</span><span class="tag">Endless</span><span class="tag">Skins</span></div>
+
+        <!-- Stick Runner -->
+        <a class="card" href="stick-runner/" data-cats="arcade" aria-label="Play Stick Runner">
+          <div class="thumb">
+            <img src="icons/stick-runner.svg" alt="" />
+            <span class="num">G/03</span>
+          </div>
+          <div class="meta">
+            <h3 class="title">Stick Runner</h3>
+            <span class="kind">Endless runner</span>
+          </div>
+          <p class="desc">Four biomes — forest, desert, city, space. Eight unlockable characters.</p>
+          <div class="footer-row">
+            <div class="tags"><span class="tag">biomes</span><span class="tag">characters</span><span class="tag">daily</span></div>
+            <span class="play">Play <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+          </div>
         </a>
-        <a class="card" href="crossy-road/" aria-label="Play Crossy Hop">
-          <div class="thumb thumb-crossy" aria-hidden="true"></div>
-          <div class="title">Crossy Hop <span class="badge-new">New</span></div>
-          <div class="desc">Tap to hop. Avoid cars, trains, rivers. Unlock 8 characters.</div>
-          <div class="tags"><span class="tag">Kid-safe</span><span class="tag">Characters</span><span class="tag">Daily</span></div>
+
+        <!-- The Rising -->
+        <a class="card" href="the-rising/" data-cats="puzzle" aria-label="Play The Rising">
+          <div class="thumb">
+            <img src="icons/the-rising.svg" alt="" />
+            <span class="num">G/04</span>
+          </div>
+          <div class="meta">
+            <h3 class="title">The Rising</h3>
+            <span class="kind">Puzzle platformer</span>
+          </div>
+          <p class="desc">Climb above the rising ice. A vertical world-map with 20 hand-tuned levels.</p>
+          <div class="footer-row">
+            <div class="tags"><span class="tag">world-map</span><span class="tag">skins</span><span class="tag">stars</span></div>
+            <span class="play">Play <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+          </div>
         </a>
-        <a class="card" href="piano-tap/" aria-label="Play Piano Tap">
-          <div class="thumb thumb-piano" aria-hidden="true"></div>
-          <div class="title">Piano Tap <span class="badge-new">New</span></div>
-          <div class="desc">Hit the black tiles in time. 6 original tunes. Classic, Arcade, Rush, Daily.</div>
-          <div class="tags"><span class="tag">Rhythm</span><span class="tag">4-lane</span><span class="tag">Calibrate</span></div>
+
+        <!-- Piano Tap -->
+        <a class="card" href="piano-tap/" data-cats="rhythm new" aria-label="Play Piano Tap">
+          <div class="thumb">
+            <img src="icons/piano-tap.svg" alt="" />
+            <span class="corner"><span class="pulse" aria-hidden="true"></span> New</span>
+            <span class="num">G/07</span>
+          </div>
+          <div class="meta">
+            <h3 class="title">Piano Tap</h3>
+            <span class="kind">4-lane rhythm</span>
+          </div>
+          <p class="desc">Hit the black tiles in time. Six procedural tunes, latency calibration.</p>
+          <div class="footer-row">
+            <div class="tags"><span class="tag">rhythm</span><span class="tag">4-lane</span><span class="tag">calibrate</span></div>
+            <span class="play">Play <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+          </div>
         </a>
-      </section>
-      <aside class="native-note">
-        <strong>Coming to your phone.</strong> Every game is a Progressive Web App — tap “Add to Home Screen” on iOS Safari or Chrome on Android and it installs like a native app, works offline, has its own icon. Native iOS &amp; Android wrappers (Capacitor) ship later.
-      </aside>
-    </main>
-    <footer class="foot">
-      <span>© <span id="year">2026</span> MiniGames Arcade. No tracking, no ads.</span>
-      <span><a href="https://github.com/philipposk/MiniGames">View source on GitHub</a></span>
+      </div>
+    </section>
+
+    <!-- Info strip -->
+    <section id="about" class="strip">
+      <div>
+        <h3>Save it once.<br/>Play it <span class="accent">forever, offline.</span></h3>
+        <p>Every game is a Progressive Web App — tap "Add to Home Screen" on iOS Safari or Chrome on Android and it installs like a real app. No app stores, no updates to chase. Native iOS &amp; Android builds ship later.</p>
+      </div>
+      <div class="strip-tiles">
+        <div class="tile"><span class="k">Storage</span><span class="v">Local only</span></div>
+        <div class="tile"><span class="k">Trackers</span><span class="v">None</span></div>
+        <div class="tile"><span class="k">Network</span><span class="v">Offline-first</span></div>
+        <div class="tile"><span class="k">License</span><span class="v">MIT, open-source</span></div>
+      </div>
+    </section>
+
+    <footer>
+      <span>© <span id="year">2026</span> · MiniGames Arcade · No tracking, no ads, no sign-up.</span>
+      <span class="keys">Quick-launch <span class="kbd">1</span><span class="kbd">2</span><span class="kbd">3</span> … <span class="kbd">7</span></span>
+      <span><a href="https://github.com/philipposk/MiniGames">View source ↗</a></span>
     </footer>
   </div>
-  <script src="shared/theme.js"></script>
+
   <script>
+    // Year
     document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Filters
+    const buttons = document.querySelectorAll('.filters button');
+    const cards = document.querySelectorAll('.grid .card');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.setAttribute('aria-pressed', 'false'));
+        btn.setAttribute('aria-pressed', 'true');
+        const f = btn.dataset.filter;
+        cards.forEach(c => {
+          const cats = (c.dataset.cats || '').split(/\s+/);
+          const show = f === 'all' || cats.includes(f);
+          c.hidden = !show;
+          // Re-trigger animation
+          if (show) { c.style.animation = 'none'; void c.offsetHeight; c.style.animation = ''; }
+        });
+      });
+    });
+
+    // Number-key quick launch (1..7) — in DOM order of the grid
+    const orderedCards = Array.from(document.querySelectorAll('.grid .card'));
+    document.addEventListener('keydown', (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const n = parseInt(e.key, 10);
+      if (n >= 1 && n <= orderedCards.length) {
+        const target = orderedCards[n - 1];
+        if (target && !target.hidden) { window.location.href = target.getAttribute('href'); }
+      }
+    });
+
+    // Hi, <name> greeting if a display name is set across the arcade.
+    function refreshGreeting() {
+      if (!window.MGIdentity) return;
+      MGIdentity.uuid();
+      const name = MGIdentity.name();
+      const nav = document.querySelector('.nav');
+      if (!nav) return;
+      let chip = document.getElementById('hi-chip');
+      if (name) {
+        if (!chip) {
+          chip = document.createElement('button');
+          chip.id = 'hi-chip';
+          chip.type = 'button';
+          chip.className = 'nav-link';
+          chip.style.cssText = 'padding:8px 12px;border-radius:999px;border:1px solid var(--hairline-2);background:transparent;cursor:pointer;font-size:13px;color:var(--ink-soft);';
+          chip.title = 'Click to change your name';
+          chip.setAttribute('aria-label', 'Change your display name');
+          chip.addEventListener('click', () => {
+            const next = prompt('Your name (max 24 chars):', MGIdentity.name() || MGIdentity.suggest());
+            if (next != null) { MGIdentity.setName(next); refreshGreeting(); }
+          });
+          nav.insertBefore(chip, nav.firstChild);
+        }
+        chip.textContent = 'Hi, ' + name;
+      } else if (chip) { chip.remove(); }
+    }
+    window.addEventListener('load', refreshGreeting);
+
+    // SW registration (carry over)
     if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./service-worker.js').catch(() => {});
       });
     }
-    (function () {
-      var KEY = 'minigames:v1:theme';
-      MGTheme.init(KEY);
-      var btn = document.getElementById('themeCycle');
-      var ORDER = ['light', 'dark', 'system'];
-      var ICON = { light: '☀️', dark: '🌙', system: '🌓' };
-      var LABEL = { light: 'Theme: light', dark: 'Theme: dark', system: 'Theme: system' };
-      function paint() {
-        var cur = MGTheme.get(KEY);
-        btn.textContent = ICON[cur] || '🌓';
-        btn.setAttribute('aria-label', LABEL[cur]);
-        btn.setAttribute('title', LABEL[cur]);
-      }
-      btn.addEventListener('click', function () {
-        var cur = MGTheme.get(KEY);
-        var next = ORDER[(ORDER.indexOf(cur) + 1) % ORDER.length];
-        MGTheme.set(next, KEY);
-        paint();
-      });
-      paint();
-    })();
-    // Player chip: shows "Hi, <name>" if a name has been set; click to edit via prompt().
-    (function () {
-      if (!window.MGIdentity) return;
-      try { MGIdentity.uuid(); } catch (e) {}
-      var chip = document.getElementById('playerChip');
-      var txt  = document.getElementById('playerChipText');
-      if (!chip || !txt) return;
-      function paintChip() {
-        var n = (MGIdentity.name() || '').trim();
-        if (n) { txt.textContent = 'Hi, ' + n; chip.hidden = false; }
-        else { chip.hidden = true; }
-      }
-      chip.addEventListener('click', function () {
-        var cur = MGIdentity.name() || '';
-        var next = prompt('Your display name (max 24 chars). Leave blank to clear.', cur);
-        if (next === null) return;
-        MGIdentity.setName(next);
-        paintChip();
-      });
-      paintChip();
-    })();
   </script>
 </body>
 </html>

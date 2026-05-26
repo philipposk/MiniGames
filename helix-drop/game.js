@@ -569,6 +569,15 @@ class Leaderboard {
     this.data.endless = (this.data.endless || []).concat(entry)
       .sort((a, b) => b.score - a.score).slice(0, 10);
     this.save();
+    try {
+      if (window.MGRemote && MGRemote.enabled()) {
+        MGRemote.submit('helix-drop', 'endless', {
+          name: entry.name, score: entry.score | 0,
+          detail: 'endless',
+          payload: {}
+        }).catch(function(){});
+      }
+    } catch (e) {}
   }
   addDaily(dateStr, entry) {
     this._mergeIdentity(entry);
@@ -577,6 +586,15 @@ class Leaderboard {
       .sort((a, b) => b.score - a.score).slice(0, 10);
     this.data.daily[dateStr] = arr;
     this.save();
+    try {
+      if (window.MGRemote && MGRemote.enabled()) {
+        MGRemote.submit('helix-drop', 'daily-' + dateStr, {
+          name: entry.name, score: entry.score | 0,
+          detail: 'daily ' + dateStr,
+          payload: { date: dateStr }
+        }).catch(function(){});
+      }
+    } catch (e) {}
   }
   endlessTop() { return (this.data.endless || []).slice(); }
   dailyTop(dateStr) { return ((this.data.daily || {})[dateStr] || []).slice(); }
@@ -1191,6 +1209,49 @@ class Game {
   _refreshLeaderboardUI(tab) {
     const root = document.getElementById('leaderboard-content');
     root.innerHTML = '';
+    // Inject scope toggle once
+    const remoteOn = !!(window.MGRemote && MGRemote.enabled());
+    const parent = root.parentNode;
+    if (remoteOn && parent && !parent.querySelector('.lb-scope')) {
+      const wrap = document.createElement('div');
+      wrap.className = 'lb-scope';
+      wrap.style.cssText = 'display:flex;gap:6px;justify-content:center;margin:6px 0;';
+      wrap.innerHTML = '<button class="tab is-active" data-scope="local">LOCAL</button><button class="tab" data-scope="global">GLOBAL</button>';
+      parent.insertBefore(wrap, root);
+      const self = this;
+      wrap.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => {
+          wrap.querySelectorAll('button').forEach(x => x.classList.remove('is-active'));
+          b.classList.add('is-active');
+          self._lbScope = b.getAttribute('data-scope');
+          self._refreshLeaderboardUI(self._lbTab || tab);
+        });
+      });
+    }
+    this._lbTab = tab;
+    const scope = this._lbScope || 'local';
+
+    if (scope === 'global' && remoteOn) {
+      const mode = (tab === 'endless') ? 'endless' : ('daily-' + todayString());
+      root.innerHTML = `<div class="lb-empty">Loading…</div>`;
+      MGRemote.top('helix-drop', mode, { limit: 10 }).then(rows => {
+        root.innerHTML = '';
+        if (!rows || !rows.length) { root.innerHTML = `<div class="lb-empty">No global scores yet.</div>`; return; }
+        rows.forEach((e, i) => {
+          const row = document.createElement('div');
+          row.className = 'lb-row';
+          row.innerHTML = `
+            <span class="lb-rank">${i+1}</span>
+            <span class="lb-name">${escapeHtml(e.display_name || '???')}</span>
+            <span class="lb-score">${e.score}</span>
+            <span class="lb-depth">${escapeHtml((e.detail || '').slice(0, 12))}</span>
+          `;
+          root.appendChild(row);
+        });
+      });
+      return;
+    }
+
     let entries;
     let showDepth = true;
     if (tab === 'endless') {
@@ -1428,6 +1489,7 @@ class Game {
     if (this.settings.haptics && navigator.vibrate) {
       try { navigator.vibrate(15); } catch (e) {}
     }
+    if (window.MGNative) MGNative.Haptics.light();
     this._updateHud();
   }
 
@@ -1436,6 +1498,7 @@ class Game {
     if (this.settings.haptics && navigator.vibrate) {
       try { navigator.vibrate([20, 40, 20]); } catch (e) {}
     }
+    if (window.MGNative) MGNative.Haptics.heavy();
     if (!this.settings.reducedMotion) {
       this.shakeAmp = 18;
       this.particles.burst(this.W * 0.5, this.H * 0.5, '#ff3b5e', 30, 320);

@@ -775,6 +775,7 @@ const Game = {
     SaveManager.addCoins(this.coinsRun);
     AudioBus.death();
     haptic(80);
+    if (window.MGNative) MGNative.Haptics.heavy();
     this.particles.spawn(this.hopper.x - this.cameraOffsetX(), this.worldToScreenY(this.hopper.y), 28, {
       color: '#bbb', speed: 140, gravity: 240, life: 0.7, size: 4,
     });
@@ -814,6 +815,17 @@ const Game = {
     SaveManager.leaderboard.daily[today].sort((a, b) => a.time - b.time);
     SaveManager.leaderboard.daily[today] = SaveManager.leaderboard.daily[today].slice(0, 10);
     SaveManager.saveLeaderboard();
+    try {
+      if (window.MGRemote && MGRemote.enabled()) {
+        // Lower time = better. Use 1e9 - ms to make higher = better for sort.
+        const ms = Math.max(0, Math.floor(t * 1000));
+        MGRemote.submit('crossy-hop', 'daily-' + today, {
+          name: dailyEntry.name, score: 1000000 - ms,
+          detail: t.toFixed(2) + 's',
+          payload: { time_ms: ms, date: today }
+        }).catch(function(){});
+      }
+    } catch (e) {}
     SaveManager.addCoins(this.coinsRun);
     AudioBus.unlock();
     this.state = 'dead';
@@ -885,6 +897,7 @@ const Game = {
     this.hopper.startHop(dCol, dRow, facing);
     AudioBus.hop();
     haptic(5);
+    if (window.MGNative) MGNative.Haptics.select();
   },
 
   cameraOffsetX() {
@@ -1297,6 +1310,15 @@ function addToLeaderboard(category, entry) {
   SaveManager.leaderboard[category].sort((a, b) => b.score - a.score);
   SaveManager.leaderboard[category] = SaveManager.leaderboard[category].slice(0, 10);
   SaveManager.saveLeaderboard();
+  try {
+    if (window.MGRemote && MGRemote.enabled()) {
+      MGRemote.submit('crossy-hop', category, {
+        name: entry.name, score: entry.score | 0,
+        detail: (entry.char || '') + ' • ' + (entry.score | 0),
+        payload: { char: entry.char || '' }
+      }).catch(function(){});
+    }
+  } catch (e) {}
 }
 
 function dateStr() {
@@ -1416,6 +1438,57 @@ const UI = {
   refreshLeaderboard(tab) {
     const list = document.getElementById('lb-list');
     list.innerHTML = '';
+    // Inject scope toggle once
+    const remoteOn = !!(window.MGRemote && MGRemote.enabled());
+    const parent = list.parentNode;
+    if (remoteOn && parent && !parent.querySelector('.lb-scope')) {
+      const wrap = document.createElement('div');
+      wrap.className = 'lb-scope';
+      wrap.style.cssText = 'display:flex;gap:6px;justify-content:center;margin:6px 0;';
+      wrap.innerHTML = '<button class="tab active" data-scope="local">LOCAL</button><button class="tab" data-scope="global">GLOBAL</button>';
+      parent.insertBefore(wrap, list);
+      const self = this;
+      wrap.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => {
+          wrap.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+          self._lbScope = b.getAttribute('data-scope');
+          self.refreshLeaderboard(self._lbTab || tab);
+        });
+      });
+    }
+    this._lbTab = tab;
+    const scope = this._lbScope || 'local';
+
+    if (scope === 'global' && remoteOn) {
+      const mode = (tab === 'daily') ? ('daily-' + dateStr()) : tab;
+      const li0 = document.createElement('li');
+      li0.innerHTML = '<span class="muted" style="margin:auto">Loading…</span>';
+      list.appendChild(li0);
+      MGRemote.top('crossy-hop', mode, { limit: 10 }).then(rows => {
+        list.innerHTML = '';
+        if (!rows || !rows.length) {
+          const li = document.createElement('li');
+          li.innerHTML = '<span class="muted" style="margin:auto">No global scores</span>';
+          list.appendChild(li);
+          return;
+        }
+        rows.forEach((e, i) => {
+          const li = document.createElement('li');
+          const rank = document.createElement('span'); rank.className = 'rank'; rank.textContent = (i+1) + '.';
+          const name = document.createElement('span'); name.className = 'name'; name.textContent = e.display_name || '???';
+          const score = document.createElement('span'); score.className = 'score';
+          if (tab === 'daily') {
+            const ms = 1000000 - (e.score | 0);
+            score.textContent = (ms / 1000).toFixed(2) + 's';
+          } else score.textContent = (e.score | 0);
+          li.appendChild(rank); li.appendChild(name); li.appendChild(score);
+          list.appendChild(li);
+        });
+      });
+      return;
+    }
+
     let entries = [];
     if (tab === 'classic') entries = SaveManager.leaderboard.classic || [];
     else if (tab === 'zen') entries = SaveManager.leaderboard.zen || [];

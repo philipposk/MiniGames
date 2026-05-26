@@ -843,24 +843,47 @@
   }
 
   let lbTab = 'overall';
+  let lbScope = 'local';
   function renderLeaderboard() {
     const root = document.getElementById('leaderboardScreen');
     if (!root) return;
     const tabs = ['overall', 'forest', 'desert', 'city', 'space', 'daily'];
+    const remoteOn = !!(window.MGRemote && MGRemote.enabled());
     root.innerHTML = `
       <h1>LEADERBOARD</h1>
+      ${remoteOn ? `<div class="tabs" role="tablist" style="margin-bottom:6px;">
+        <button class="tab ${lbScope==='local'?'active':''}" data-scope="local">LOCAL</button>
+        <button class="tab ${lbScope==='global'?'active':''}" data-scope="global">GLOBAL</button>
+      </div>` : ''}
       <div class="tabs" role="tablist">
         ${tabs.map(t => `<button class="tab ${t===lbTab?'active':''}" data-tab="${t}" role="tab" aria-selected="${t===lbTab}">${t.toUpperCase()}</button>`).join('')}
       </div>
       <div class="list" id="lbList" role="region" aria-label="Leaderboard entries"></div>
       <div class="cta-row"><button class="button ghost" id="lbBack">BACK</button></div>
     `;
-    root.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', () => {
+    root.querySelectorAll('.tab[data-scope]').forEach(btn => btn.addEventListener('click', () => {
+      lbScope = btn.dataset.scope;
+      renderLeaderboard();
+    }));
+    root.querySelectorAll('.tab[data-tab]').forEach(btn => btn.addEventListener('click', () => {
       lbTab = btn.dataset.tab;
       renderLeaderboard();
     }));
     root.querySelector('#lbBack').addEventListener('click', () => navigate('#menu'));
     const list = root.querySelector('#lbList');
+    if (lbScope === 'global' && remoteOn) {
+      list.innerHTML = '<div class="row"><span>Loading…</span></div>';
+      MGRemote.top('stick-runner', lbTab, { limit: 10 }).then(rows => {
+        if (!rows || !rows.length) {
+          list.innerHTML = '<div class="row"><span>(no global entries)</span></div>';
+          return;
+        }
+        list.innerHTML = rows.map((e, i) =>
+          `<div class="row"><span>${(i+1).toString().padStart(2,'0')}. ${escapeHtml(e.display_name || '???')}</span><span>${e.score|0}m</span></div>`
+        ).join('');
+      });
+      return;
+    }
     const entries = (state.leaderboard[lbTab] || []).slice(0, 10);
     if (!entries.length) {
       list.innerHTML = '<div class="row"><span>(no entries yet)</span></div>';
@@ -893,6 +916,15 @@
       board.sort((a, b) => b.dist - a.dist);
       state.leaderboard[boardKey] = board.slice(0, 10);
       lsSet(K.leaderboard, state.leaderboard);
+      try {
+        if (window.MGRemote && MGRemote.enabled()) {
+          MGRemote.submit('stick-runner', boardKey, {
+            name: name, score: Math.floor(dist),
+            detail: Math.floor(dist) + 'm',
+            payload: { dist: dist }
+          }).catch(function(){});
+        }
+      } catch (e) {}
     }
   }
 
@@ -1165,6 +1197,7 @@
         isFlipping = false; flipRotation = 0;
         playTone(440, 0.08, 'square', 0.18);
         haptic(15);
+        if (window.MGNative) MGNative.Haptics.light();
       } else if (canDoubleJump && isJumping) {
         canDoubleJump = false;
         jumpVelocity = -20;
@@ -1663,6 +1696,7 @@
     function gameOver() {
       if (gameState === 'gameover') return;
       gameState = 'gameover';
+      if (window.MGNative) MGNative.Haptics.heavy();
       if (gameLoop) cancelAnimationFrame(gameLoop);
       gameLoop = null;
       if (scoreInterval) clearInterval(scoreInterval);

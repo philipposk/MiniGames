@@ -857,7 +857,54 @@ class ColorClash {
     renderLeaderboard(tab) {
         const ol = document.getElementById('lbList');
         if (!ol) return;
+        const remoteOn = !!(window.MGRemote && MGRemote.enabled());
+        // Inject scope toggle once
+        const lbScreen = document.getElementById('leaderboard');
+        if (remoteOn && lbScreen && !lbScreen.querySelector('.lb-scope')) {
+            const wrap = document.createElement('div');
+            wrap.className = 'lb-scope';
+            wrap.style.cssText = 'display:flex;gap:6px;justify-content:center;margin:6px 0;';
+            wrap.innerHTML = '<button class="tab active" data-scope="local">LOCAL</button><button class="tab" data-scope="global">GLOBAL</button>';
+            ol.parentNode.insertBefore(wrap, ol);
+            wrap.querySelectorAll('button').forEach(b => {
+                b.addEventListener('click', () => {
+                    wrap.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+                    b.classList.add('active');
+                    this._lbScope = b.getAttribute('data-scope');
+                    this.renderLeaderboard(this._lbTab || tab);
+                });
+            });
+        }
+        this._lbTab = tab;
+        const scope = this._lbScope || 'local';
         ol.innerHTML = '';
+        const _esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+
+        if (scope === 'global' && remoteOn) {
+            const mode = (tab === 'daily') ? ('daily-' + todayStr()) : tab;
+            const placeholder = document.createElement('li');
+            placeholder.innerHTML = `<span class="lb-name" style="opacity:0.6">Loading…</span>`;
+            ol.appendChild(placeholder);
+            MGRemote.top('color-clash', mode, { limit: 10 }).then(rows => {
+                ol.innerHTML = '';
+                if (!rows || !rows.length) {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span class="lb-name" style="opacity:0.6">NO GLOBAL SCORES</span>`;
+                    ol.appendChild(li);
+                    return;
+                }
+                rows.forEach((e, i) => {
+                    const li = document.createElement('li');
+                    const display = _esc(e.display_name || '???');
+                    li.innerHTML = `<span class="lb-rank">#${i + 1}</span>
+                        <span class="lb-name">${display}</span>
+                        <span class="lb-score">${e.score}</span>`;
+                    ol.appendChild(li);
+                });
+            });
+            return;
+        }
+
         const lb = Store.get(KEY.LEADERBOARD, {}) || {};
         let list = [];
         if (tab === 'daily') {
@@ -874,7 +921,6 @@ class ColorClash {
         }
         list.slice(0, 10).forEach((e, i) => {
             const li = document.createElement('li');
-            const _esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
             const display = e.displayName ? _esc(e.displayName) : _esc((e.name || '---').toUpperCase());
             li.innerHTML = `<span class="lb-rank">#${i + 1}</span>
                 <span class="lb-name">${display}</span>
@@ -1097,6 +1143,7 @@ class ColorClash {
             if (overlapPercentage >= 90) {
                 points = 100; feedback = 'PERFECT!'; cls = 'perfect';
                 this.stats.perfect++; this.combo++; isPerfect = true; this.perfectStreak++;
+                if (window.MGNative) MGNative.Haptics.light();
             } else if (overlapPercentage >= 70) {
                 points = 70; feedback = 'GREAT!'; cls = 'perfect';
                 this.stats.good++; this.combo++; this.perfectStreak = 0;
@@ -1239,6 +1286,7 @@ class ColorClash {
     handleMiss() {
         this.cleanupRound();
         this.stats.misses++;
+        if (window.MGNative) MGNative.Haptics.heavy();
 
         // ZEN — no fail state
         if (this.mode === 'zen') {
@@ -1371,6 +1419,17 @@ class ColorClash {
             lb[this.pendingLb.listRef] = list.slice(0, 10);
         }
         Store.set(KEY.LEADERBOARD, lb);
+        try {
+            if (window.MGRemote && MGRemote.enabled()) {
+                const mode = (this.pendingLb && this.pendingLb.dateKey) ? ('daily-' + this.pendingLb.dateKey) : (this.pendingLb ? this.pendingLb.listRef : 'classic');
+                MGRemote.submit('color-clash', mode, {
+                    name: raw,
+                    score: entry.score,
+                    detail: mode,
+                    payload: { date: entry.date }
+                }).catch(function(){});
+            }
+        } catch (e) {}
         this.nameEntry.classList.add('hidden');
         this.toast(`SAVED AS ${raw}`);
         this.renderMenu();

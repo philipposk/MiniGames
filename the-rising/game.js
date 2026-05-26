@@ -338,6 +338,7 @@ const game = {
         this.state = 'menu';
         this.hideMessage();
         this.scrollMapToHero();
+        this._setGameOverActionsVisible(false);
     },
 
     setHash(h) {
@@ -443,6 +444,49 @@ const game = {
                 if (e.key === 'Enter') this._submitName();
             });
         }
+
+        // Player identity (shared module)
+        if (window.MGIdentity) {
+            try { MGIdentity.uuid(); } catch (e) {}
+            const playerNameInput = document.getElementById('player-name-input');
+            if (playerNameInput) {
+                playerNameInput.addEventListener('input', () => {
+                    try { MGIdentity.setName(playerNameInput.value); } catch (e) {}
+                });
+            }
+            const suggestBtn = document.getElementById('player-name-suggest');
+            if (suggestBtn) {
+                suggestBtn.addEventListener('click', () => {
+                    try {
+                        const s = MGIdentity.suggest();
+                        if (playerNameInput) playerNameInput.value = s;
+                        MGIdentity.setName(s);
+                    } catch (e) {}
+                });
+            }
+            const copyBtn = document.getElementById('player-id-copy');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', () => {
+                    try {
+                        const u = MGIdentity.uuid();
+                        if (navigator.clipboard) {
+                            navigator.clipboard.writeText(u).then(
+                                () => this.toast('Player ID copied'),
+                                () => this.toast(u)
+                            );
+                        } else {
+                            this.toast(u);
+                        }
+                    } catch (e) {}
+                });
+            }
+        }
+
+        // Game-over SHARE button
+        const shareBtn = document.getElementById('gameOverShare');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', () => this._shareScore());
+        }
     },
 
     refreshSettingsUI() {
@@ -460,6 +504,20 @@ const game = {
         if (cb) cb.checked = !!this.settings.colorblind;
         if (rm) rm.checked = !!this.settings.reducedMotion;
         if (lang) lang.value = this.settings.language || 'en';
+
+        // Player section (shared identity)
+        if (window.MGIdentity) {
+            const nameInput = document.getElementById('player-name-input');
+            const idDisplay = document.getElementById('player-id-display');
+            try {
+                const fullId = MGIdentity.uuid();
+                if (nameInput) nameInput.value = MGIdentity.name() || '';
+                if (idDisplay) {
+                    idDisplay.textContent = fullId.slice(0, 8) + '…';
+                    idDisplay.title = fullId;
+                }
+            } catch (e) {}
+        }
     },
 
     refreshLeaderboardUI() {
@@ -467,6 +525,38 @@ const game = {
         const scopeEl = document.getElementById('lbScope');
         if (!list) return;
         const scope = scopeEl ? scopeEl.value : 'overall';
+        // Inject GLOBAL toggle once
+        const remoteOn = !!(window.MGRemote && MGRemote.enabled());
+        const parent = list.parentNode;
+        if (remoteOn && parent && !parent.querySelector('.lb-scope-toggle')) {
+            const wrap = document.createElement('div');
+            wrap.className = 'lb-scope-toggle';
+            wrap.style.cssText = 'display:flex;gap:6px;justify-content:center;margin:6px 0;';
+            wrap.innerHTML = '<button class="btn small" data-scope="local">LOCAL</button><button class="btn small" data-scope="global">GLOBAL</button>';
+            parent.insertBefore(wrap, list);
+            const self = this;
+            wrap.querySelectorAll('button').forEach(b => {
+                b.addEventListener('click', () => { self._lbRemoteScope = b.getAttribute('data-scope'); self.refreshLeaderboardUI(); });
+            });
+        }
+        const remoteScope = this._lbRemoteScope || 'local';
+
+        if (remoteScope === 'global' && remoteOn) {
+            const mode = (scope === 'daily') ? ('daily-' + this._todayKey()) : 'overall';
+            list.innerHTML = '<div class="item"><span>Loading…</span><span></span></div>';
+            MGRemote.top('the-rising', mode, { limit: 10 }).then(rows => {
+                list.innerHTML = '';
+                if (!rows || !rows.length) { list.innerHTML = '<div class="item"><span>No global scores</span><span></span></div>'; return; }
+                rows.forEach((e, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'item';
+                    div.innerHTML = `<span>${i + 1}. ${this._esc(e.display_name || '???')}</span><span>${e.score|0}</span>`;
+                    list.appendChild(div);
+                });
+            });
+            return;
+        }
+
         let entries = [];
         if (scope === 'daily') {
             const key = this._todayKey();
@@ -483,7 +573,8 @@ const game = {
             const div = document.createElement('div');
             div.className = 'item';
             const stars = typeof e.stars === 'number' ? ` (${e.stars}★)` : '';
-            div.innerHTML = `<span>${i + 1}. ${this._esc(e.name)}${stars}</span><span>${e.score}</span>`;
+            const displayName = e.displayName || e.name;
+            div.innerHTML = `<span>${i + 1}. ${this._esc(displayName)}${stars}</span><span>${e.score}</span>`;
             list.appendChild(div);
         });
     },
@@ -1191,6 +1282,7 @@ const game = {
         this.levelId = levelId;
         this.level = levelId;
         this.state = 'playing';
+        this._setGameOverActionsVisible(false);
         this.score = 0;
         this.survivors = lvl.startBlocks;
         this.totalPeople = lvl.startBlocks;
@@ -1343,6 +1435,7 @@ const game = {
                 if (overlapRatio > 0.9) soundManager.playPerfect();
             }
             this.haptic(overlapRatio > 0.9 ? 18 : 8);
+            if (window.MGNative) MGNative.Haptics.light();
 
             if (peopleLost > 0) {
                 const fallingPart = {
@@ -1379,6 +1472,7 @@ const game = {
             this.state = 'gameOver';
             this.showMessage('YOU HAVE DIED\n\nTap to retry · long-tap bottom to quit');
             if (soundManager) soundManager.playDrown();
+            this._setGameOverActionsVisible(true);
             return;
         }
 
@@ -1399,6 +1493,7 @@ const game = {
             this.state = 'gameOver';
             this.showMessage('GAME OVER\n\nTap to retry · long-tap bottom to quit');
             if (soundManager) soundManager.playWarning();
+            this._setGameOverActionsVisible(true);
         }
     },
 
@@ -1482,6 +1577,13 @@ const game = {
         const showPrompt = !Store.read(KEYS.name, null) || score > (this.progress.bestScore || 0);
         const finalize = (name) => {
             const entry = { name: (name || this.playerName || 'YOU').toUpperCase().slice(0, 3), score, stars, date: this._todayKey() };
+            try {
+                if (window.MGIdentity) {
+                    entry.playerId = MGIdentity.uuid();
+                    const dn = MGIdentity.name();
+                    if (dn) entry.displayName = dn;
+                }
+            } catch (e) {}
             // Overall
             overall.push(entry);
             overall.sort((a, b) => b.score - a.score);
@@ -1492,6 +1594,20 @@ const game = {
             levels[levelId] = levels[levelId].slice(0, 10);
             this.leaderboard.levels = levels;
             this.saveLeaderboard();
+            try {
+                if (window.MGRemote && MGRemote.enabled()) {
+                    MGRemote.submit('the-rising', 'level-' + levelId, {
+                        name: entry.name, score: entry.score | 0,
+                        detail: stars + '★',
+                        payload: { stars: stars, level: levelId }
+                    }).catch(function(){});
+                    MGRemote.submit('the-rising', 'overall', {
+                        name: entry.name, score: entry.score | 0,
+                        detail: 'L' + levelId + ' ' + stars + '★',
+                        payload: { stars: stars, level: levelId }
+                    }).catch(function(){});
+                }
+            } catch (e) {}
             done();
         };
 
@@ -1507,6 +1623,27 @@ const game = {
         const input = document.getElementById('nameInput');
         if (input) input.value = (this.playerName || 'YOU').toUpperCase().slice(0, 3);
         this._openModal('nameModal');
+    },
+
+    _shareScore() {
+        if (!window.MGShare) return;
+        const name = (window.MGIdentity && MGIdentity.name())
+            || (this.playerName || 'Anonymous');
+        const stars = this.stars[this.levelId] || 0;
+        MGShare.share({
+            gameTitle: 'The Rising',
+            subtitle: 'Game over',
+            score: this.score || 0,
+            name,
+            detail: 'Level ' + this.levelId + ' • ' + stars + '★',
+            url: 'https://philipposk.github.io/MiniGames/the-rising/',
+            accent: '#5cf2c4', bg1: '#06173b', bg2: '#294a8e'
+        });
+    },
+
+    _setGameOverActionsVisible(show) {
+        const el = document.getElementById('gameOverActions');
+        if (el) el.style.display = show ? 'flex' : 'none';
     },
     _submitName() {
         const input = document.getElementById('nameInput');
@@ -1583,6 +1720,7 @@ const game = {
                 if (block.y >= this.water.y && !block.drowned) {
                     block.drowned = true;
                     this.deadBlocks.push({ ...block, falling: false });
+                    if (window.MGNative) MGNative.Haptics.heavy();
                     if (block.isHero) this.endLevel(true);
                 }
             });

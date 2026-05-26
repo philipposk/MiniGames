@@ -678,17 +678,37 @@
     function addLeaderboardEntry(level, name, r) {
         const key = String(level);
         const board = state.leaderboard.byLevel[key] || [];
-        board.push(Object.assign({ name, score: r.score, time: r.timeSec }, _identityFields()));
+        const entry = Object.assign({ name, score: r.score, time: r.timeSec }, _identityFields());
+        board.push(entry);
         board.sort((a, b) => b.score - a.score || a.time - b.time);
         state.leaderboard.byLevel[key] = board.slice(0, 10);
+        try {
+            if (window.MGRemote && MGRemote.enabled()) {
+                MGRemote.submit('bounce-ball', 'level-' + key, {
+                    name: name, score: r.score,
+                    detail: 'L' + key + ' • ' + r.timeSec + 's',
+                    payload: { time: r.timeSec, level: key }
+                }).catch(function(){});
+            }
+        } catch (e) {}
     }
     function updateLeaderboard(level, r) { /* added on user save */ }
 
     function addDailyLeaderboardEntry(dateStr, name, r) {
         const board = state.lbDaily.byDate[dateStr] || [];
-        board.push(Object.assign({ name, score: r.score, time: r.timeSec }, _identityFields()));
+        const entry = Object.assign({ name, score: r.score, time: r.timeSec }, _identityFields());
+        board.push(entry);
         board.sort((a, b) => b.score - a.score || a.time - b.time);
         state.lbDaily.byDate[dateStr] = board.slice(0, 10);
+        try {
+            if (window.MGRemote && MGRemote.enabled()) {
+                MGRemote.submit('bounce-ball', 'daily-' + dateStr, {
+                    name: name, score: r.score,
+                    detail: 'Daily ' + dateStr + ' • ' + r.timeSec + 's',
+                    payload: { time: r.timeSec, date: dateStr }
+                }).catch(function(){});
+            }
+        } catch (e) {}
     }
     function updateDailyLeaderboard(dateStr, r) { /* added on user save */ }
 
@@ -910,19 +930,65 @@
         screen.appendChild(backHeader('LEADERBOARD'));
         const body = el('div', { class: 'sub-body' });
 
-        body.appendChild(el('h3', null, 'Overall (sum of stars)'));
-        body.appendChild(el('div', { class: 'lb-row' }, [
+        // LOCAL/GLOBAL toggle (only when remote enabled)
+        let scope = 'local';
+        const tabsRow = el('div', { class: 'lb-tabs' });
+        const globalSection = el('div', { class: 'lb-global' });
+        const remoteOn = !!(window.MGRemote && MGRemote.enabled());
+        if (remoteOn) {
+            const localTab = el('button', { class: 'btn-secondary small active', onclick: () => switchScope('local') }, 'LOCAL');
+            const globalTab = el('button', { class: 'btn-secondary small', onclick: () => switchScope('global') }, 'GLOBAL');
+            tabsRow.appendChild(localTab);
+            tabsRow.appendChild(globalTab);
+            body.appendChild(tabsRow);
+            function switchScope(s) {
+                scope = s;
+                localTab.classList.toggle('active', s === 'local');
+                globalTab.classList.toggle('active', s === 'global');
+                localSection.style.display = s === 'local' ? '' : 'none';
+                globalSection.style.display = s === 'global' ? '' : 'none';
+                if (s === 'global') loadGlobal();
+            }
+        }
+        const localSection = el('div', { class: 'lb-local' });
+
+        function loadGlobal() {
+            globalSection.innerHTML = '';
+            globalSection.appendChild(el('div', { class: 'lb-row' }, [el('span', null, 'Loading…'), el('span', null, '')]));
+            // overall global = sum across levels: fetch per-level top10 best is heavy; show top scores per level
+            globalSection.innerHTML = '';
+            for (let i = 1; i <= window.BB_LEVELS.length; i++) {
+                const header = el('h4', { class: 'lb-h4' }, 'Level ' + i);
+                globalSection.appendChild(header);
+                const slot = el('div');
+                globalSection.appendChild(slot);
+                MGRemote.top('bounce-ball', 'level-' + i, { limit: 5 }).then(rows => {
+                    if (!rows || !rows.length) { slot.appendChild(el('div', { class: 'lb-row' }, [el('span', null, '—'), el('span', null, '')])); return; }
+                    for (const e of rows) {
+                        slot.appendChild(el('div', { class: 'lb-row' }, [
+                            el('span', null, e.display_name || '???'),
+                            el('span', null, e.score + ' pts')
+                        ]));
+                    }
+                });
+            }
+        }
+        body.appendChild(localSection);
+        if (remoteOn) { globalSection.style.display = 'none'; body.appendChild(globalSection); }
+
+        localSection.appendChild(el('h3', null, 'Overall (sum of stars)'));
+        localSection.appendChild(el('div', { class: 'lb-row' }, [
             el('span', null, 'YOU'),
             el('span', null, totalStars() + ' ★')
         ]));
 
-        body.appendChild(el('h3', null, 'Best per level'));
+        localSection.appendChild(el('h3', null, 'Best per level'));
         for (let i = 1; i <= window.BB_LEVELS.length; i++) {
             const board = (state.leaderboard.byLevel[String(i)] || []).slice(0, 3);
             if (board.length === 0) continue;
-            body.appendChild(el('h4', { class: 'lb-h4' }, 'Level ' + i));
+            localSection.appendChild(el('h4', { class: 'lb-h4' }, 'Level ' + i));
             for (const e of board) {
-                body.appendChild(el('div', { class: 'lb-row' }, [
+                localSection.appendChild(el('div', { class: 'lb-row' }, [
                     el('span', null, e.displayName || e.name),
                     el('span', null, e.score + ' pts · ' + e.time + 's')
                 ]));
@@ -931,11 +997,11 @@
 
         const dailyKeys = Object.keys(state.lbDaily.byDate).sort().reverse().slice(0, 5);
         if (dailyKeys.length) {
-            body.appendChild(el('h3', null, 'Daily Challenge'));
+            localSection.appendChild(el('h3', null, 'Daily Challenge'));
             for (const d of dailyKeys) {
-                body.appendChild(el('h4', { class: 'lb-h4' }, d));
+                localSection.appendChild(el('h4', { class: 'lb-h4' }, d));
                 for (const e of (state.lbDaily.byDate[d] || []).slice(0, 3)) {
-                    body.appendChild(el('div', { class: 'lb-row' }, [
+                    localSection.appendChild(el('div', { class: 'lb-row' }, [
                         el('span', null, e.displayName || e.name),
                         el('span', null, e.score + ' pts · ' + e.time + 's')
                     ]));

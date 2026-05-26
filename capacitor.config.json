@@ -13,5 +13,18 @@
   "android": {
     "backgroundColor": "#0b1020",
     "allowMixedContent": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": true,
+      "launchShowDuration": 800,
+      "backgroundColor": "#0b1020",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#0b1020",
+      "overlaysWebView": false
+    }
   }
 }

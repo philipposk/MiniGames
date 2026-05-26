@@ -940,6 +940,7 @@ class BounceBall {
             this.spawnParticles(brick.x + brick.width / 2, brick.y + brick.height / 2, 10, brick.color);
             this.bricksDestroyedTotal++;
             this.onBrickDestroyed(brick);
+            if (window.MGNative) MGNative.Haptics.light();
         } else {
             brick.hit = true;
             this.addScore(10);
@@ -947,6 +948,7 @@ class BounceBall {
             this.playSound(540, 0.05, 'square', 0.06);
             this.bricksDestroyedTotal++;
             this.onBrickDestroyed(brick);
+            if (window.MGNative) MGNative.Haptics.light();
         }
 
         this.combo++;
@@ -1085,6 +1087,7 @@ class BounceBall {
             this.animationFrame = null;
         }
         this.state = GameState.GAME_OVER;
+        if (window.MGNative) MGNative.Haptics.heavy();
         this.onGameOver({
             score: this.score,
             timeSec: this.elapsedSec,

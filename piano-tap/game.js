@@ -1106,7 +1106,7 @@ class Game {
       const s = this.save.get('settings');
       const offset = (s.latencyOffsetMs || 0) / 1000;
       for (const tile of this.engine.tiles) {
-        if (tile.status === 'pending' && now - offset > tile.hitTime + 0.12) {
+        if (tile.status === 'pending' && now - offset > tile.hitTime + 0.26) {
           tile.status = 'missed';
           this.synth.playMiss();
           if (s.haptics && navigator.vibrate) navigator.vibrate(80);

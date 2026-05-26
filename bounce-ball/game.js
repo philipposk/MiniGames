@@ -860,7 +860,10 @@ class BounceBall {
         const angle = clamped * (Math.PI / 3);
 
         const baseSpeed = this.getLevelSpeed() * this.speedMultiplier;
-        const speed = Math.max(baseSpeed, Math.hypot(ball.vx, ball.vy));
+        const speed = Math.min(
+            Math.max(baseSpeed, Math.hypot(ball.vx, ball.vy)),
+            config.ball.maxSpeed
+        );
 
         ball.vx = Math.sin(angle) * speed;
         ball.vy = -Math.cos(angle) * speed;

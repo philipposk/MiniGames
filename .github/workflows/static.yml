@@ -21,6 +21,12 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
+env:
+  # Opt into Node.js 24 ahead of the June 2026 default switch so the
+  # checkout / pages / upload / deploy actions stop printing the
+  # Node-20 deprecation annotation.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   # Single deploy job since we're just deploying
   deploy:
@@ -36,7 +42,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
+          # Upload entire repository, but skip dev/scratch + node_modules + dotfiles.
           path: '.'
       - name: Deploy to GitHub Pages
         id: deployment

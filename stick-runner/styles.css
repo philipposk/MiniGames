@@ -536,3 +536,42 @@ body.reduced-motion *::after {
   .shop-grid { grid-template-columns: repeat(2, 1fr); }
   .biome-card { flex: 0 0 130px; }
 }
+
+/* ===== LIGHT THEME ===== */
+:root[data-theme="light"] {
+  --bg-0: #f6f6fb;
+  --bg-1: #e9ebf5;
+  --panel: rgba(255, 255, 255, 0.92);
+  --panel-2: rgba(255, 255, 255, 0.98);
+  --border: rgba(15, 18, 40, 0.14);
+  --text: #15192e;
+  --muted: #5b6280;
+  --btn: #15192e;
+  --btn-h: #2a3050;
+}
+:root[data-theme="light"] html,
+:root[data-theme="light"] body {
+  background: linear-gradient(to bottom, #f6f6fb 0%, #e9ebf5 50%, #f6f6fb 100%);
+  color: #15192e;
+}
+:root[data-theme="light"] .pill { background: rgba(15,18,40,0.06); color: #15192e; }
+:root[data-theme="light"] .button.ghost { color: #15192e; border-color: rgba(15,18,40,0.3); }
+:root[data-theme="light"] .icon-btn { background: rgba(15,18,40,0.06); color: #15192e; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg-0: #f6f6fb;
+    --bg-1: #e9ebf5;
+    --panel: rgba(255, 255, 255, 0.92);
+    --panel-2: rgba(255, 255, 255, 0.98);
+    --border: rgba(15, 18, 40, 0.14);
+    --text: #15192e;
+    --muted: #5b6280;
+    --btn: #15192e;
+    --btn-h: #2a3050;
+  }
+  :root:not([data-theme="dark"]) html,
+  :root:not([data-theme="dark"]) body {
+    background: linear-gradient(to bottom, #f6f6fb 0%, #e9ebf5 50%, #f6f6fb 100%);
+    color: #15192e;
+  }
+}

@@ -6,9 +6,13 @@
   <meta name="theme-color" content="#0b1020" />
   <meta name="description" content="MiniGames Arcade — 7 free browser games. Bounce Ball, Color Clash, Stick Runner, The Rising, Helix Drop, Crossy Hop, Piano Tap." />
   <title>MiniGames Arcade — 7 free browser games</title>
+  <script>(function(){try{var k='minigames:v1:theme';var v=localStorage.getItem(k);if(v==='light'||v==='dark')document.documentElement.setAttribute('data-theme',v);}catch(e){}})();</script>
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="stylesheet" href="shared/theme.css" />
+  <script src="./shared/identity.js" defer></script>
+  <script src="./shared/share.js" defer></script>
   <style>
     :root {
       --bg: #0b1020;
@@ -22,6 +26,50 @@
       --ring: rgba(92,242,196,0.45);
       --shadow: 0 12px 40px rgba(0,0,0,0.45);
       --radius: 18px;
+      --bg-edge: #060912;
+      --card-border: rgba(255,255,255,0.07);
+      --card-border-hover: rgba(255,255,255,0.18);
+      --tag-bg: rgba(255,255,255,0.06);
+      --footer-border: rgba(255,255,255,0.06);
+      --native-border: rgba(255,255,255,0.12);
+      --halo-1: rgba(255,92,138,0.18);
+      --halo-2: rgba(92,242,196,0.18);
+    }
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme="dark"]) {
+        --bg: #f6f6fb;
+        --bg-2: #e9ebf5;
+        --fg: #15192e;
+        --muted: #5b6280;
+        --card: rgba(15,18,40,0.04);
+        --card-hover: rgba(15,18,40,0.07);
+        --shadow: 0 10px 32px rgba(15,18,40,0.12);
+        --bg-edge: #e3e6f1;
+        --card-border: rgba(15,18,40,0.08);
+        --card-border-hover: rgba(15,18,40,0.18);
+        --tag-bg: rgba(15,18,40,0.06);
+        --footer-border: rgba(15,18,40,0.08);
+        --native-border: rgba(15,18,40,0.18);
+        --halo-1: rgba(255,92,138,0.12);
+        --halo-2: rgba(92,242,196,0.14);
+      }
+    }
+    :root[data-theme="light"] {
+      --bg: #f6f6fb;
+      --bg-2: #e9ebf5;
+      --fg: #15192e;
+      --muted: #5b6280;
+      --card: rgba(15,18,40,0.04);
+      --card-hover: rgba(15,18,40,0.07);
+      --shadow: 0 10px 32px rgba(15,18,40,0.12);
+      --bg-edge: #e3e6f1;
+      --card-border: rgba(15,18,40,0.08);
+      --card-border-hover: rgba(15,18,40,0.18);
+      --tag-bg: rgba(15,18,40,0.06);
+      --footer-border: rgba(15,18,40,0.08);
+      --native-border: rgba(15,18,40,0.18);
+      --halo-1: rgba(255,92,138,0.12);
+      --halo-2: rgba(92,242,196,0.14);
     }
     @media (prefers-reduced-motion: reduce) {
       * { animation: none !important; transition: none !important; }
@@ -32,9 +80,9 @@
       font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       color: var(--fg);
       background:
-        radial-gradient(1200px 600px at 10% -10%, rgba(255,92,138,0.18), transparent 60%),
-        radial-gradient(900px 500px at 110% 10%, rgba(92,242,196,0.18), transparent 55%),
-        linear-gradient(180deg, var(--bg) 0%, #060912 100%);
+        radial-gradient(1200px 600px at 10% -10%, var(--halo-1), transparent 60%),
+        radial-gradient(900px 500px at 110% 10%, var(--halo-2), transparent 55%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-edge) 100%);
       min-height: 100vh;
       min-height: 100dvh;
       -webkit-font-smoothing: antialiased;
@@ -49,18 +97,18 @@
     h1 .gradient { background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
     .tagline { color: var(--muted); font-size: clamp(15px, 1.6vw, 18px); max-width: 640px; }
     .meta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
-    .chip { background: var(--card); border: 1px solid rgba(255,255,255,0.07); color: var(--muted); padding: 6px 12px; border-radius: 999px; font-size: 13px; }
+    .chip { background: var(--card); border: 1px solid var(--card-border); color: var(--muted); padding: 6px 12px; border-radius: 999px; font-size: 13px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
-    .card { position: relative; background: var(--card); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); padding: 18px; text-decoration: none; color: var(--fg); display: flex; flex-direction: column; min-height: 240px; overflow: hidden; transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease; isolation: isolate; }
-    .card:hover, .card:focus-visible { background: var(--card-hover); transform: translateY(-3px); box-shadow: var(--shadow); border-color: rgba(255,255,255,0.18); }
+    .card { position: relative; background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 18px; text-decoration: none; color: var(--fg); display: flex; flex-direction: column; min-height: 240px; overflow: hidden; transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease; isolation: isolate; }
+    .card:hover, .card:focus-visible { background: var(--card-hover); transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--card-border-hover); }
     .card:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
     .card .thumb { height: 110px; border-radius: 12px; margin-bottom: 14px; display: grid; place-items: center; overflow: hidden; position: relative; }
     .card .title { font-size: 18px; font-weight: 700; letter-spacing: 0.2px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
     .card .desc { color: var(--muted); font-size: 14px; margin-top: 6px; line-height: 1.4; flex: 1; }
     .card .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
-    .tag { background: rgba(255,255,255,0.06); color: var(--muted); font-size: 11px; padding: 3px 8px; border-radius: 999px; letter-spacing: 0.3px; text-transform: uppercase; }
+    .tag { background: var(--tag-bg); color: var(--muted); font-size: 11px; padding: 3px 8px; border-radius: 999px; letter-spacing: 0.3px; text-transform: uppercase; }
     .badge-new { background: linear-gradient(135deg, var(--accent), #2ec3a5); color: #062019; font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 999px; letter-spacing: 0.5px; text-transform: uppercase; }
-    footer.foot { margin-top: 56px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.06); color: var(--muted); font-size: 13px; display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; }
+    footer.foot { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--footer-border); color: var(--muted); font-size: 13px; display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; }
     footer.foot a { color: var(--accent); text-decoration: none; }
     footer.foot a:hover { text-decoration: underline; }
     .thumb-bounce { background: linear-gradient(135deg, #1a2455, #3b1d6e); }
@@ -84,7 +132,13 @@
     .thumb-piano { background: #0c0f1f; display: flex; }
     .thumb-piano::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0 25%, rgba(255,255,255,0.95) 25% 25.5%, transparent 25.5% 50%, rgba(255,255,255,0.95) 50% 50.5%, transparent 50.5% 75%, rgba(255,255,255,0.95) 75% 75.5%, transparent 75.5% 100%); }
     .thumb-piano::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0 4%, #111 4% 21%, transparent 21% 29%, #111 29% 46%, transparent 46% 54%, #111 54% 71%, transparent 71% 79%, #111 79% 96%, transparent 96% 100%); background-size: 100% 28px; background-repeat: no-repeat; background-position: 0 22px; }
-    .native-note { margin-top: 36px; background: var(--card); border: 1px dashed rgba(255,255,255,0.12); border-radius: var(--radius); padding: 18px 20px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+    .native-note { margin-top: 36px; background: var(--card); border: 1px dashed var(--native-border); border-radius: var(--radius); padding: 18px 20px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+    header.hero .hero-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    header.hero .hero-row .spacer { flex: 1; }
+    .player-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--card); border: 1px solid var(--card-border); color: var(--muted); padding: 6px 12px; border-radius: 999px; font-size: 13px; cursor: pointer; }
+    .player-chip:hover { background: var(--card-hover); color: var(--fg); }
+    .player-chip .edit-icon { opacity: 0.7; font-size: 12px; }
+    .player-chip[hidden] { display: none; }
     .native-note strong { color: var(--fg); }
     @media (max-width: 520px) { .card .thumb { height: 92px; } .card { min-height: 220px; padding: 14px; } }
   </style>
@@ -92,7 +146,15 @@
 <body>
   <div class="container">
     <header class="hero">
-      <span class="brand"><span class="brand-mark" aria-hidden="true">M</span> MiniGames Arcade</span>
+      <div class="hero-row">
+        <span class="brand"><span class="brand-mark" aria-hidden="true">M</span> MiniGames Arcade</span>
+        <span class="spacer"></span>
+        <button id="playerChip" class="player-chip" type="button" aria-label="Edit player name" hidden>
+          <span id="playerChipText">Hi, player</span>
+          <span class="edit-icon" aria-hidden="true">✎</span>
+        </button>
+        <button id="themeCycle" class="theme-cycle-btn" type="button" aria-label="Theme: system" title="Theme: system">🌓</button>
+      </div>
       <h1>Seven <span class="gradient">tiny worlds</span> to tap, dodge, and beat.</h1>
       <p class="tagline">Free, no install, no ads, no sign-up. Each game runs in your browser, saves locally, and works offline once loaded. Coming to iOS &amp; Android too.</p>
       <div class="meta-row" role="list">
@@ -156,6 +218,7 @@
       <span><a href="https://github.com/philipposk/MiniGames">View source on GitHub</a></span>
     </footer>
   </div>
+  <script src="shared/theme.js"></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
     if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
@@ -163,6 +226,48 @@
         navigator.serviceWorker.register('./service-worker.js').catch(() => {});
       });
     }
+    (function () {
+      var KEY = 'minigames:v1:theme';
+      MGTheme.init(KEY);
+      var btn = document.getElementById('themeCycle');
+      var ORDER = ['light', 'dark', 'system'];
+      var ICON = { light: '☀️', dark: '🌙', system: '🌓' };
+      var LABEL = { light: 'Theme: light', dark: 'Theme: dark', system: 'Theme: system' };
+      function paint() {
+        var cur = MGTheme.get(KEY);
+        btn.textContent = ICON[cur] || '🌓';
+        btn.setAttribute('aria-label', LABEL[cur]);
+        btn.setAttribute('title', LABEL[cur]);
+      }
+      btn.addEventListener('click', function () {
+        var cur = MGTheme.get(KEY);
+        var next = ORDER[(ORDER.indexOf(cur) + 1) % ORDER.length];
+        MGTheme.set(next, KEY);
+        paint();
+      });
+      paint();
+    })();
+    // Player chip: shows "Hi, <name>" if a name has been set; click to edit via prompt().
+    (function () {
+      if (!window.MGIdentity) return;
+      try { MGIdentity.uuid(); } catch (e) {}
+      var chip = document.getElementById('playerChip');
+      var txt  = document.getElementById('playerChipText');
+      if (!chip || !txt) return;
+      function paintChip() {
+        var n = (MGIdentity.name() || '').trim();
+        if (n) { txt.textContent = 'Hi, ' + n; chip.hidden = false; }
+        else { chip.hidden = true; }
+      }
+      chip.addEventListener('click', function () {
+        var cur = MGIdentity.name() || '';
+        var next = prompt('Your display name (max 24 chars). Leave blank to clear.', cur);
+        if (next === null) return;
+        MGIdentity.setName(next);
+        paintChip();
+      });
+      paintChip();
+    })();
   </script>
 </body>
 </html>

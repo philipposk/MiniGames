@@ -5,10 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#1b1f2a" />
 <title>Crossy Hop</title>
+<script>(function(){try{var k='crossy-road:v1:theme';var v=localStorage.getItem(k);if(v==='light'||v==='dark')document.documentElement.setAttribute('data-theme',v);}catch(e){}})();</script>
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
 <link rel="apple-touch-icon" href="./icons/icon.svg" />
+<link rel="stylesheet" href="../shared/theme.css" />
 <link rel="stylesheet" href="./styles.css" />
+<script src="../shared/theme.js" defer></script>
 </head>
 <body>
 <div id="app">
@@ -140,6 +143,14 @@
         <span>Name (3 letters)</span>
         <input type="text" id="player-name" maxlength="3" />
       </label>
+      <div class="row">
+        <span>Theme</span>
+        <div class="theme-toggle" role="radiogroup" aria-label="Theme" id="themeToggle">
+          <button type="button" data-theme-pref="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-pref="dark" aria-pressed="false">Dark</button>
+          <button type="button" data-theme-pref="system" aria-pressed="true">Auto</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -203,6 +214,8 @@
   <!-- TOAST -->
   <div id="toast" class="toast hidden"></div>
 </div>
+<script src="../shared/identity.js" defer></script>
+<script src="../shared/share.js" defer></script>
 <script src="./game.js" defer></script>
 </body>
 </html>

@@ -7,9 +7,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0f3460">
+    <script>(function(){try{var k='the-rising:v1:theme';var v=localStorage.getItem(k);if(v==='light'||v==='dark')document.documentElement.setAttribute('data-theme',v);}catch(e){}})();</script>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
     <link rel="apple-touch-icon" href="icons/icon.svg">
+    <link rel="stylesheet" href="../shared/theme.css">
+    <script src="../shared/theme.js" defer></script>
     <title>The Rising - Survival Stack</title>
     <style>
         * {
@@ -286,6 +289,54 @@
         @media (prefers-reduced-motion: reduce) {
             * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
         }
+
+        /* ===== LIGHT THEME ===== */
+        :root[data-theme="light"] body { background: linear-gradient(to bottom, #f6f6fb 0%, #e9ebf5 100%); color: #15192e; }
+        :root[data-theme="light"] #gameCanvas { background: #dde1ef; }
+        :root[data-theme="light"] #survivors { color: #1f7a55; }
+        :root[data-theme="light"] .instruction { color: rgba(15, 25, 60, 0.7); text-shadow: 1px 1px 2px rgba(255,255,255,0.6); }
+        :root[data-theme="light"] .modal-backdrop { background: rgba(15, 25, 60, 0.45); }
+        :root[data-theme="light"] .modal {
+            background: linear-gradient(180deg, #ffffff, #f0f2fa);
+            border-color: rgba(15, 25, 60, 0.15);
+            color: #15192e;
+            box-shadow: 0 12px 40px rgba(15, 25, 60, 0.25);
+        }
+        :root[data-theme="light"] .modal h2 { color: #1f7a55; }
+        :root[data-theme="light"] .modal select,
+        :root[data-theme="light"] .modal input[type="text"] {
+            background: #ffffff;
+            color: #15192e;
+            border-color: rgba(15, 25, 60, 0.25);
+        }
+        :root[data-theme="light"] .modal button.btn {
+            background: #1f4e7a;
+            color: #fff;
+            border-color: rgba(15, 25, 60, 0.25);
+        }
+        :root[data-theme="light"] .modal button.btn:hover,
+        :root[data-theme="light"] .modal button.btn:focus { background: #2a649c; outline-color: #1f7a55; }
+        :root[data-theme="light"] .modal button.btn.ghost { background: transparent; color: #15192e; }
+        :root[data-theme="light"] .modal .list,
+        :root[data-theme="light"] .modal .ach { border-color: rgba(15, 25, 60, 0.10); }
+        :root[data-theme="light"] .modal .ach .desc,
+        :root[data-theme="light"] .modal .ach .icon { color: #15192e; }
+        :root[data-theme="light"] .modal .ach .icon { background: rgba(15, 25, 60, 0.08); }
+        :root[data-theme="light"] .skin-cell { background: rgba(15, 25, 60, 0.05); border-color: rgba(15, 25, 60, 0.18); color: #15192e; }
+        :root[data-theme="light"] .skin-cell.selected { border-color: #1f7a55; }
+        :root[data-theme="light"] .close-x { color: rgba(15, 25, 60, 0.7); }
+        :root[data-theme="light"] .toast { background: rgba(255, 255, 255, 0.95); color: #15192e; border-color: #1f7a55; box-shadow: 0 4px 16px rgba(15, 25, 60, 0.2); }
+
+        @media (prefers-color-scheme: light) {
+            :root:not([data-theme="dark"]) body { background: linear-gradient(to bottom, #f6f6fb 0%, #e9ebf5 100%); color: #15192e; }
+            :root:not([data-theme="dark"]) #gameCanvas { background: #dde1ef; }
+            :root:not([data-theme="dark"]) .instruction { color: rgba(15, 25, 60, 0.7); text-shadow: 1px 1px 2px rgba(255,255,255,0.6); }
+            :root:not([data-theme="dark"]) .modal-backdrop { background: rgba(15, 25, 60, 0.45); }
+            :root:not([data-theme="dark"]) .modal { background: linear-gradient(180deg, #ffffff, #f0f2fa); border-color: rgba(15, 25, 60, 0.15); color: #15192e; }
+            :root:not([data-theme="dark"]) .modal select,
+            :root:not([data-theme="dark"]) .modal input[type="text"] { background: #ffffff; color: #15192e; border-color: rgba(15, 25, 60, 0.25); }
+            :root:not([data-theme="dark"]) .skin-cell { background: rgba(15, 25, 60, 0.05); border-color: rgba(15, 25, 60, 0.18); color: #15192e; }
+        }
     </style>
 </head>
 <body>
@@ -324,6 +375,13 @@
                     <select id="language" aria-label="Language">
                         <option value="en">English</option>
                     </select>
+                </div>
+                <div class="row"><label>Theme</label>
+                    <div class="theme-toggle" role="radiogroup" aria-label="Theme" id="themeToggle">
+                        <button type="button" data-theme-pref="light" aria-pressed="false">Light</button>
+                        <button type="button" data-theme-pref="dark" aria-pressed="false">Dark</button>
+                        <button type="button" data-theme-pref="system" aria-pressed="true">Auto</button>
+                    </div>
                 </div>
                 <button class="btn danger" id="resetProgress">Reset Progress</button>
                 <button class="btn ghost" data-close="settingsModal">Done</button>
@@ -408,6 +466,8 @@
         </div>
     </div>
 
+    <script src="../shared/identity.js"></script>
+    <script src="../shared/share.js"></script>
     <script src="ending.js"></script>
     <script src="sounds.js"></script>
     <script src="game.js"></script>

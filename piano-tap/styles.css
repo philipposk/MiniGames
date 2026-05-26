@@ -150,3 +150,56 @@ h2 { font-size: 22px; letter-spacing: 1px; text-align: center; margin-bottom: 4p
 @media (prefers-reduced-motion: reduce) {
   .btn { transition: none; }
 }
+
+/* ===== LIGHT THEME =====
+ * Neon accents kept (they read fine on warm off-white). Only adjust the
+ * surrounding UI surfaces, not the in-canvas falling-tile colors.
+ */
+:root[data-theme="light"] {
+  --bg: #f6f6fb;
+  --bg-2: #e9ebf5;
+  --fg: #15192e;
+  --muted: #5b6280;
+  --card: rgba(255, 255, 255, 0.96);
+}
+:root[data-theme="light"] body { background: var(--bg); color: var(--fg); }
+:root[data-theme="light"] .overlay {
+  background: radial-gradient(ellipse at center, rgba(233,235,245,0.65), rgba(246,246,251,0.95));
+}
+:root[data-theme="light"] .menu-card {
+  background: #ffffff;
+  border-color: rgba(0, 200, 168, 0.35);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08), 0 10px 40px rgba(15,18,40,0.10);
+}
+:root[data-theme="light"] .logo { color: #15192e; text-shadow: 0 0 8px var(--neon); }
+:root[data-theme="light"] .btn {
+  background: rgba(15, 18, 40, 0.04);
+  color: #15192e;
+  border-color: rgba(15, 18, 40, 0.12);
+}
+:root[data-theme="light"] .btn:hover, :root[data-theme="light"] .btn:focus {
+  background: rgba(0, 200, 168, 0.10);
+}
+:root[data-theme="light"] .btn.ghost { background: transparent; border-color: rgba(15,18,40,0.15); }
+:root[data-theme="light"] .btn span { color: #5b6280; }
+:root[data-theme="light"] .song-row {
+  background: rgba(15, 18, 40, 0.04);
+  border-color: rgba(15, 18, 40, 0.10);
+  color: #15192e;
+}
+:root[data-theme="light"] .toast { background: rgba(15, 18, 40, 0.9); color: #fff; }
+:root[data-theme="light"] .hud-top .icon-btn { background: rgba(255,255,255,0.85); color: #15192e; }
+:root[data-theme="light"] .score { color: #15192e; text-shadow: 0 0 6px rgba(255,255,255,0.7); }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f6f6fb;
+    --bg-2: #e9ebf5;
+    --fg: #15192e;
+    --muted: #5b6280;
+    --card: rgba(255, 255, 255, 0.96);
+  }
+  :root:not([data-theme="dark"]) body { background: var(--bg); color: var(--fg); }
+  :root:not([data-theme="dark"]) .menu-card { background: #ffffff; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+  :root:not([data-theme="dark"]) .btn { background: rgba(15, 18, 40, 0.04); color: #15192e; border-color: rgba(15, 18, 40, 0.12); }
+  :root:not([data-theme="dark"]) .song-row { background: rgba(15, 18, 40, 0.04); border-color: rgba(15, 18, 40, 0.10); color: #15192e; }
+}

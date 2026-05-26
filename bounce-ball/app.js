@@ -580,6 +580,7 @@
                         else navigate('#menu');
                     }
                 }, levelConfig.daily ? 'BACK' : (levelConfig.index < window.BB_LEVELS.length ? 'NEXT' : 'MENU')),
+                el('button', { class: 'btn-secondary', onclick: () => _shareScore(r, levelConfig, true) }, 'SHARE'),
                 el('button', { class: 'btn-secondary', onclick: () => { overlay.remove(); navigate('#menu'); } }, 'MENU')
             ])
         ]);
@@ -598,11 +599,29 @@
                     class: 'btn-primary',
                     onclick: () => { overlay.remove(); navigate('#level/' + (levelConfig.daily ? 1 : levelConfig.index)); }
                 }, 'RETRY'),
+                el('button', { class: 'btn-secondary', onclick: () => _shareScore(r, levelConfig, false) }, 'SHARE'),
                 el('button', { class: 'btn-secondary', onclick: () => { overlay.remove(); navigate('#menu'); } }, 'MENU')
             ])
         ]);
         overlay.appendChild(content);
         app.appendChild(overlay);
+    }
+
+    function _shareScore(r, levelConfig, cleared) {
+        if (!window.MGShare) return;
+        const name = (window.MGIdentity && MGIdentity.name())
+            || lsGet(NS + 'lastName', '')
+            || 'Anonymous';
+        const stars = r.stars != null ? r.stars : 0;
+        MGShare.share({
+            gameTitle: 'Bounce Ball',
+            subtitle: cleared ? 'Level cleared' : 'Game over',
+            score: r.score,
+            name,
+            detail: 'Level ' + (levelConfig.index || 1) + ' • ' + stars + '★',
+            url: 'https://philipposk.github.io/MiniGames/bounce-ball/',
+            accent: '#ff5c8a', bg1: '#1a2455', bg2: '#3b1d6e'
+        });
     }
 
     function checkNewBestEntry(levelConfig, r) {
@@ -644,10 +663,22 @@
         return null;
     }
 
+    function _identityFields() {
+        const out = {};
+        try {
+            if (window.MGIdentity) {
+                out.playerId = MGIdentity.uuid();
+                const dn = MGIdentity.name();
+                if (dn) out.displayName = dn;
+            }
+        } catch (e) {}
+        return out;
+    }
+
     function addLeaderboardEntry(level, name, r) {
         const key = String(level);
         const board = state.leaderboard.byLevel[key] || [];
-        board.push({ name, score: r.score, time: r.timeSec });
+        board.push(Object.assign({ name, score: r.score, time: r.timeSec }, _identityFields()));
         board.sort((a, b) => b.score - a.score || a.time - b.time);
         state.leaderboard.byLevel[key] = board.slice(0, 10);
     }
@@ -655,7 +686,7 @@
 
     function addDailyLeaderboardEntry(dateStr, name, r) {
         const board = state.lbDaily.byDate[dateStr] || [];
-        board.push({ name, score: r.score, time: r.timeSec });
+        board.push(Object.assign({ name, score: r.score, time: r.timeSec }, _identityFields()));
         board.sort((a, b) => b.score - a.score || a.time - b.time);
         state.lbDaily.byDate[dateStr] = board.slice(0, 10);
     }
@@ -722,6 +753,10 @@
             state.settings.language = v; saveAll();
         }));
 
+        body.appendChild(themeRow());
+
+        appendPlayerSection(body);
+
         const reset = el('button', {
             class: 'btn-secondary danger',
             onclick: () => {
@@ -775,6 +810,77 @@
         row.appendChild(btn);
         return row;
     }
+    function themeRow() {
+        const THEME_KEY = 'bounce-ball:v1:theme';
+        const row = el('div', { class: 'setting-row' });
+        row.appendChild(el('label', null, 'Theme'));
+        const group = el('div', { class: 'theme-toggle', role: 'radiogroup', 'aria-label': 'Theme' });
+        const opts = [['light', 'Light'], ['dark', 'Dark'], ['system', 'Auto']];
+        const cur = (window.MGTheme && MGTheme.get(THEME_KEY)) || 'system';
+        const buttons = [];
+        opts.forEach(([pref, label]) => {
+            const b = el('button', {
+                type: 'button',
+                'data-theme-pref': pref,
+                'aria-pressed': pref === cur ? 'true' : 'false',
+                onclick: () => {
+                    if (window.MGTheme) MGTheme.set(pref, THEME_KEY);
+                    buttons.forEach(bb => bb.setAttribute('aria-pressed', bb.getAttribute('data-theme-pref') === pref ? 'true' : 'false'));
+                }
+            }, label);
+            buttons.push(b);
+            group.appendChild(b);
+        });
+        row.appendChild(group);
+        return row;
+    }
+
+    function appendPlayerSection(body) {
+        if (!window.MGIdentity) return;
+        body.appendChild(el('h3', { class: 'lb-h4' }, 'PLAYER'));
+        const nameRow = el('div', { class: 'setting-row' });
+        nameRow.appendChild(el('label', { for: 'mg-player-name' }, 'Your name'));
+        const nameInput = el('input', {
+            type: 'text', id: 'mg-player-name', maxlength: '24',
+            placeholder: 'Anonymous', value: MGIdentity.name() || ''
+        });
+        nameInput.addEventListener('input', () => {
+            MGIdentity.setName(nameInput.value);
+        });
+        nameRow.appendChild(nameInput);
+        body.appendChild(nameRow);
+
+        const sugRow = el('div', { class: 'setting-row' });
+        sugRow.appendChild(el('label', null, 'Suggest a name'));
+        const sugBtn = el('button', {
+            class: 'btn-secondary small',
+            onclick: () => {
+                const s = MGIdentity.suggest();
+                nameInput.value = s;
+                MGIdentity.setName(s);
+            }
+        }, 'SUGGEST');
+        sugRow.appendChild(sugBtn);
+        body.appendChild(sugRow);
+
+        const idRow = el('div', { class: 'setting-row' });
+        idRow.appendChild(el('label', null, 'Player ID'));
+        const fullId = MGIdentity.uuid();
+        const idText = el('span', { title: fullId, style: 'font-family:monospace;font-size:12px;opacity:0.7;' }, fullId.slice(0, 8) + '…');
+        idRow.appendChild(idText);
+        const copyBtn = el('button', {
+            class: 'btn-secondary small',
+            onclick: () => {
+                try {
+                    if (navigator.clipboard) navigator.clipboard.writeText(fullId).then(() => toast('Player ID copied'));
+                    else toast(fullId);
+                } catch (e) { toast(fullId); }
+            }
+        }, 'COPY');
+        idRow.appendChild(copyBtn);
+        body.appendChild(idRow);
+    }
+
     function selectRow(label, value, options, onChange) {
         const row = el('div', { class: 'setting-row' });
         row.appendChild(el('label', null, label));
@@ -817,7 +923,7 @@
             body.appendChild(el('h4', { class: 'lb-h4' }, 'Level ' + i));
             for (const e of board) {
                 body.appendChild(el('div', { class: 'lb-row' }, [
-                    el('span', null, e.name),
+                    el('span', null, e.displayName || e.name),
                     el('span', null, e.score + ' pts · ' + e.time + 's')
                 ]));
             }
@@ -830,7 +936,7 @@
                 body.appendChild(el('h4', { class: 'lb-h4' }, d));
                 for (const e of (state.lbDaily.byDate[d] || []).slice(0, 3)) {
                     body.appendChild(el('div', { class: 'lb-row' }, [
-                        el('span', null, e.name),
+                        el('span', null, e.displayName || e.name),
                         el('span', null, e.score + ' pts · ' + e.time + 's')
                     ]));
                 }
@@ -950,6 +1056,7 @@
 
     // ----- Init -----
     function init() {
+        if (window.MGTheme) MGTheme.init('bounce-ball:v1:theme');
         loadAll();
         registerSW();
         if (!location.hash) location.hash = '#menu';

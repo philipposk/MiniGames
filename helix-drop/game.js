@@ -554,12 +554,24 @@ class Ball {
 class Leaderboard {
   constructor() { this.data = SaveManager.loadLeaderboard(); }
   save() { SaveManager.saveLeaderboard(this.data); }
+  _mergeIdentity(entry) {
+    try {
+      if (window.MGIdentity) {
+        entry.playerId = MGIdentity.uuid();
+        const dn = MGIdentity.name();
+        if (dn) entry.displayName = dn;
+      }
+    } catch (e) {}
+    return entry;
+  }
   addEndless(entry) {
+    this._mergeIdentity(entry);
     this.data.endless = (this.data.endless || []).concat(entry)
       .sort((a, b) => b.score - a.score).slice(0, 10);
     this.save();
   }
   addDaily(dateStr, entry) {
+    this._mergeIdentity(entry);
     if (!this.data.daily) this.data.daily = {};
     const arr = (this.data.daily[dateStr] || []).concat(entry)
       .sort((a, b) => b.score - a.score).slice(0, 10);
@@ -856,6 +868,8 @@ class Game {
       case 'quit': this.quitToMenu(); break;
       case 'next-level': this.nextLevel(); break;
       case 'submit-score': this._submitScoreFromOverlay(); break;
+      case 'share-score': this._shareScore('gameover'); break;
+      case 'share-score-clear': this._shareScore('clear'); break;
       case 'wipe-save': this._confirmWipe(); break;
       case 'play-level': {
         const idx = parseInt(el.dataset.level, 10);
@@ -1057,6 +1071,80 @@ class Game {
       this.playerName = newName;
       SaveManager.saveName(newName);
     });
+
+    // shared identity Player section
+    this._buildMGPlayerSection();
+
+    // theme toggle
+    const THEME_KEY = 'helix-drop:v1:theme';
+    const wrap = document.getElementById('themeToggle');
+    if (wrap && window.MGTheme) {
+      const buttons = wrap.querySelectorAll('button[data-theme-pref]');
+      const cur = MGTheme.get(THEME_KEY);
+      buttons.forEach(b => {
+        b.setAttribute('aria-pressed', b.getAttribute('data-theme-pref') === cur ? 'true' : 'false');
+        b.onclick = () => {
+          const pref = b.getAttribute('data-theme-pref');
+          MGTheme.set(pref, THEME_KEY);
+          buttons.forEach(bb => bb.setAttribute('aria-pressed', bb.getAttribute('data-theme-pref') === pref ? 'true' : 'false'));
+        };
+      });
+    }
+  }
+
+  _buildMGPlayerSection() {
+    if (!window.MGIdentity) return;
+    try { MGIdentity.uuid(); } catch (e) {}
+    const list = document.querySelector('#screen-settings .settings-list');
+    if (!list) return;
+    let wrap = document.getElementById('mg-player-section');
+    if (wrap) wrap.remove();
+    wrap = document.createElement('div');
+    wrap.id = 'mg-player-section';
+    const fullId = MGIdentity.uuid();
+    wrap.innerHTML =
+      '<h3 class="shop-sub" style="margin-top:14px;">Player</h3>' +
+      '<label class="setting-row"><span>Your name</span>' +
+      '  <input type="text" id="mg-player-name" maxlength="24" placeholder="Anonymous" />' +
+      '</label>' +
+      '<label class="setting-row"><span>Suggest a name</span>' +
+      '  <button type="button" class="btn" id="mg-player-suggest">SUGGEST</button>' +
+      '</label>' +
+      '<label class="setting-row"><span>Player ID</span>' +
+      '  <span style="display:flex;gap:8px;align-items:center;">' +
+      '    <span title="' + fullId + '" style="font-family:monospace;font-size:12px;opacity:0.7;">' + fullId.slice(0, 8) + '…</span>' +
+      '    <button type="button" class="btn" id="mg-player-copy">COPY</button>' +
+      '  </span>' +
+      '</label>';
+    list.insertBefore(wrap, list.querySelector('[data-action="wipe-save"]'));
+    const ni = wrap.querySelector('#mg-player-name');
+    ni.value = MGIdentity.name() || '';
+    ni.addEventListener('input', () => MGIdentity.setName(ni.value));
+    wrap.querySelector('#mg-player-suggest').addEventListener('click', () => {
+      const s = MGIdentity.suggest();
+      ni.value = s;
+      MGIdentity.setName(s);
+    });
+    wrap.querySelector('#mg-player-copy').addEventListener('click', () => {
+      try { if (navigator.clipboard) navigator.clipboard.writeText(fullId); } catch (e) {}
+    });
+  }
+
+  _shareScore(mode) {
+    if (!window.MGShare) return;
+    const name = (window.MGIdentity && MGIdentity.name())
+      || (this.playerName && this.playerName.toUpperCase())
+      || 'Anonymous';
+    const combo = this.bestComboThisRun || 0;
+    MGShare.share({
+      gameTitle: 'Helix Drop',
+      subtitle: mode === 'clear' ? 'Level cleared' : 'Game over',
+      score: this.score || 0,
+      name,
+      detail: 'Level ' + ((this.levelIndex != null ? this.levelIndex + 1 : 1)) + ' • ' + combo + 'x combo',
+      url: 'https://philipposk.github.io/MiniGames/helix-drop/',
+      accent: '#5cf2c4', bg1: '#2a1a55', bg2: '#0b0a25'
+    });
   }
 
   _confirmWipe() {
@@ -1120,7 +1208,7 @@ class Game {
       row.className = 'lb-row';
       row.innerHTML = `
         <span class="lb-rank">${i+1}</span>
-        <span class="lb-name">${escapeHtml(e.name || '???')}</span>
+        <span class="lb-name">${escapeHtml(e.displayName || e.name || '???')}</span>
         <span class="lb-score">${e.score}</span>
         <span class="lb-depth">${showDepth ? 'd ' + (e.depth || 0) : (e.date || '')}</span>
       `;
@@ -1717,6 +1805,7 @@ function escapeHtml(s) {
 // BOOT
 // ----------------------------------------------------------------------------
 window.addEventListener('DOMContentLoaded', () => {
+  if (window.MGTheme) MGTheme.init('helix-drop:v1:theme');
   const game = new Game();
   game.boot();
   // expose for debug

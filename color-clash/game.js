@@ -480,6 +480,95 @@ class ColorClash {
             }
         });
 
+        // Player section (shared identity)
+        (function wirePlayer() {
+            if (!window.MGIdentity) return;
+            try { MGIdentity.uuid(); } catch (e) {}
+            const list = document.querySelector('#settings .settings-list');
+            if (!list || document.getElementById('mg-player-section')) return;
+            const wrap = document.createElement('div');
+            wrap.id = 'mg-player-section';
+            const fullId = MGIdentity.uuid();
+            wrap.innerHTML = `
+              <h3 class="shop-sec" style="margin-top:12px;">PLAYER</h3>
+              <label class="setting-row">
+                <span>Your name</span>
+                <input id="mg-player-name" type="text" maxlength="24" placeholder="Anonymous" />
+              </label>
+              <label class="setting-row">
+                <span>Suggest a name</span>
+                <button id="mg-player-suggest" class="toggle-btn" type="button">SUGGEST</button>
+              </label>
+              <label class="setting-row">
+                <span>Player ID</span>
+                <span style="display:flex;gap:8px;align-items:center;">
+                  <span id="mg-player-id" title="${fullId}" style="font-family:monospace;font-size:12px;opacity:0.7;">${fullId.slice(0,8)}…</span>
+                  <button id="mg-player-copy" class="toggle-btn" type="button">COPY</button>
+                </span>
+              </label>
+            `;
+            list.appendChild(wrap);
+            const nameInput = wrap.querySelector('#mg-player-name');
+            nameInput.value = MGIdentity.name() || '';
+            nameInput.addEventListener('input', () => MGIdentity.setName(nameInput.value));
+            wrap.querySelector('#mg-player-suggest').addEventListener('click', () => {
+                const s = MGIdentity.suggest();
+                nameInput.value = s;
+                MGIdentity.setName(s);
+            });
+            wrap.querySelector('#mg-player-copy').addEventListener('click', () => {
+                try {
+                    if (navigator.clipboard) navigator.clipboard.writeText(fullId);
+                } catch (e) {}
+            });
+        })();
+
+        // SHARE button on game over (lazy-inject)
+        (function wireShare() {
+            if (!window.MGShare) return;
+            const group = document.querySelector('#gameOver .button-group');
+            if (!group || document.getElementById('mg-share-btn')) return;
+            const btn = document.createElement('button');
+            btn.id = 'mg-share-btn';
+            btn.className = 'btn-secondary';
+            btn.type = 'button';
+            btn.textContent = 'SHARE';
+            const self = this;
+            btn.addEventListener('click', () => {
+                const name = (window.MGIdentity && MGIdentity.name())
+                    || (self.nameInput && self.nameInput.value && self.nameInput.value.toUpperCase())
+                    || 'Anonymous';
+                const modeName = (self.mode || 'classic').toUpperCase();
+                MGShare.share({
+                    gameTitle: 'Color Clash',
+                    subtitle: 'Game over',
+                    score: self.score,
+                    name,
+                    detail: modeName + ' • Level ' + (self.level || 1),
+                    url: 'https://philipposk.github.io/MiniGames/color-clash/',
+                    accent: '#5cf2c4', bg1: '#2d1a55', bg2: '#6e1d2e'
+                });
+            });
+            group.insertBefore(btn, group.querySelector('#menuBtn') || null);
+        }).call(this);
+
+        // theme toggle
+        (function wireTheme() {
+            const THEME_KEY = 'color-clash:v1:theme';
+            const wrap = document.getElementById('themeToggle');
+            if (!wrap || !window.MGTheme) return;
+            const buttons = wrap.querySelectorAll('button[data-theme-pref]');
+            const cur = MGTheme.get(THEME_KEY);
+            buttons.forEach(b => {
+                b.setAttribute('aria-pressed', b.getAttribute('data-theme-pref') === cur ? 'true' : 'false');
+                b.addEventListener('click', () => {
+                    const pref = b.getAttribute('data-theme-pref');
+                    MGTheme.set(pref, THEME_KEY);
+                    buttons.forEach(bb => bb.setAttribute('aria-pressed', bb.getAttribute('data-theme-pref') === pref ? 'true' : 'false'));
+                });
+            });
+        })();
+
         // leaderboard tabs
         document.querySelectorAll('.tab').forEach(t => {
             t.addEventListener('click', () => {
@@ -785,8 +874,10 @@ class ColorClash {
         }
         list.slice(0, 10).forEach((e, i) => {
             const li = document.createElement('li');
+            const _esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+            const display = e.displayName ? _esc(e.displayName) : _esc((e.name || '---').toUpperCase());
             li.innerHTML = `<span class="lb-rank">#${i + 1}</span>
-                <span class="lb-name">${(e.name || '---').toUpperCase()}</span>
+                <span class="lb-name">${display}</span>
                 <span class="lb-score">${e.score}</span>`;
             ol.appendChild(li);
         });
@@ -1260,6 +1351,13 @@ class ColorClash {
         const lb = Store.get(KEY.LEADERBOARD, {}) || {};
         const today = todayStr();
         const entry = { name: raw, score: this.score, date: today };
+        try {
+            if (window.MGIdentity) {
+                entry.playerId = MGIdentity.uuid();
+                const dn = MGIdentity.name();
+                if (dn) entry.displayName = dn;
+            }
+        } catch (e) {}
         if (this.pendingLb && this.pendingLb.dateKey) {
             lb.dailyByDate = lb.dailyByDate || {};
             const list = lb.dailyByDate[this.pendingLb.dateKey] || [];
@@ -1459,6 +1557,7 @@ class ColorClash {
 let game;
 window.addEventListener('DOMContentLoaded', () => {
     try {
+        if (window.MGTheme) MGTheme.init('color-clash:v1:theme');
         game = new ColorClash();
         window.game = game;
 

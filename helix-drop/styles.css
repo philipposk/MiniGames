@@ -662,3 +662,32 @@ kbd {
   .menu-card { width: min(420px, 50vw); }
   .level-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
 }
+
+/* ==== LIGHT THEME ==== */
+:root[data-theme="light"] {
+  --bg-0: #f6f6fb;
+  --bg-1: #e9ebf5;
+  --bg-2: #dadeed;
+  --fg: #15192e;
+  --fg-dim: #5b6280;
+  --card: rgba(255, 255, 255, 0.92);
+  --card-border: rgba(15, 18, 40, 0.08);
+  --shadow: 0 8px 32px rgba(15, 18, 40, 0.12);
+}
+:root[data-theme="light"] body {
+  background:
+    radial-gradient(120% 80% at 50% 0%, var(--bg-2) 0%, transparent 60%),
+    radial-gradient(140% 120% at 50% 100%, var(--bg-1) 0%, var(--bg-0) 70%);
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg-0: #f6f6fb;
+    --bg-1: #e9ebf5;
+    --bg-2: #dadeed;
+    --fg: #15192e;
+    --fg-dim: #5b6280;
+    --card: rgba(255, 255, 255, 0.92);
+    --card-border: rgba(15, 18, 40, 0.08);
+    --shadow: 0 8px 32px rgba(15, 18, 40, 0.12);
+  }
+}

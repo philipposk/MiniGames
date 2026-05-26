@@ -379,3 +379,106 @@ body:not(.in-game) #app { overflow-y: auto; }
     .icon-btn { width: 34px; height: 34px; font-size: 16px; }
     .sub-header h2 { font-size: 16px; }
 }
+
+/* ===== LIGHT THEME (overrides) ===== */
+/* Warm off-white surfaces, dark navy text, keep the yellow/red accents. */
+:root[data-theme="light"] body {
+    background: #f6f6fb;
+    color: #15192e;
+}
+:root[data-theme="light"] :focus-visible {
+    outline-color: #c89200;
+}
+:root[data-theme="light"] .menu-screen,
+:root[data-theme="light"] .sub-screen {
+    background: linear-gradient(135deg, #eef0fa 0%, #e2e5f3 100%);
+    color: #15192e;
+}
+:root[data-theme="light"] .game-screen { background: #eef0fa; }
+:root[data-theme="light"] .topbar,
+:root[data-theme="light"] .game-screen .game-header,
+:root[data-theme="light"] .sub-header {
+    background: rgba(15, 25, 60, 0.08);
+}
+:root[data-theme="light"] .topbar-stat {
+    background: rgba(15, 25, 60, 0.06);
+    color: #15192e;
+}
+:root[data-theme="light"] .icon-btn {
+    border-color: rgba(15, 25, 60, 0.35);
+    background: rgba(255, 255, 255, 0.7);
+    color: #15192e;
+}
+:root[data-theme="light"] .icon-btn:active { background: rgba(15, 25, 60, 0.15); }
+:root[data-theme="light"] .level-tile {
+    background: rgba(15, 25, 60, 0.06);
+    border-color: rgba(15, 25, 60, 0.15);
+    color: #15192e;
+}
+:root[data-theme="light"] .level-tile:hover:not(.locked) { background: rgba(15, 25, 60, 0.12); }
+:root[data-theme="light"] .level-tile.locked {
+    background: rgba(15, 25, 60, 0.05);
+    border-color: rgba(15, 25, 60, 0.08);
+    color: rgba(21, 25, 46, 0.4);
+}
+:root[data-theme="light"] .star { color: rgba(15, 25, 60, 0.25); }
+:root[data-theme="light"] #gameCanvas { background: #dde1ef; }
+:root[data-theme="light"] .pause-overlay { background: rgba(238, 240, 250, 0.92); color: #15192e; }
+:root[data-theme="light"] .modal-overlay { background: rgba(15, 25, 60, 0.55); }
+:root[data-theme="light"] .modal-content {
+    background: #fff;
+    color: #15192e;
+    box-shadow: 0 10px 40px rgba(15, 25, 60, 0.25);
+}
+:root[data-theme="light"] .arcade-input {
+    background: #fff;
+    color: #15192e;
+    border-color: #c89200;
+}
+:root[data-theme="light"] .btn-primary { background: #15192e; color: #fff; }
+:root[data-theme="light"] .btn-secondary { color: #15192e; border-color: #15192e; }
+:root[data-theme="light"] .btn-secondary:active { background: rgba(15, 25, 60, 0.1); }
+:root[data-theme="light"] .new-best { background: rgba(249, 202, 36, 0.25); }
+:root[data-theme="light"] .new-best-label { color: #8a6500; }
+:root[data-theme="light"] .setting-row { border-bottom-color: rgba(15, 25, 60, 0.1); }
+:root[data-theme="light"] .setting-row select {
+    background: #fff;
+    color: #15192e;
+    border-color: rgba(15, 25, 60, 0.3);
+}
+:root[data-theme="light"] .toggle {
+    background: rgba(15, 25, 60, 0.08);
+    color: #15192e;
+    border-color: rgba(15, 25, 60, 0.3);
+}
+:root[data-theme="light"] .toggle.on { background: #2ecc71; color: #fff; border-color: #2ecc71; }
+:root[data-theme="light"] .lb-row,
+:root[data-theme="light"] .ach-row { border-bottom-color: rgba(15, 25, 60, 0.1); }
+:root[data-theme="light"] .skin-tile {
+    background: rgba(15, 25, 60, 0.06);
+    border-color: rgba(15, 25, 60, 0.15);
+    color: #15192e;
+}
+:root[data-theme="light"] .skin-tile.selected { background: rgba(249, 202, 36, 0.25); border-color: #c89200; }
+:root[data-theme="light"] .swatch { border-color: rgba(15, 25, 60, 0.3); }
+:root[data-theme="light"] .toast { background: rgba(15, 25, 60, 0.9); color: #fff; }
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) body { background: #f6f6fb; color: #15192e; }
+    :root:not([data-theme="dark"]) .menu-screen,
+    :root:not([data-theme="dark"]) .sub-screen { background: linear-gradient(135deg, #eef0fa 0%, #e2e5f3 100%); color: #15192e; }
+    :root:not([data-theme="dark"]) .game-screen { background: #eef0fa; }
+    :root:not([data-theme="dark"]) .topbar,
+    :root:not([data-theme="dark"]) .game-screen .game-header,
+    :root:not([data-theme="dark"]) .sub-header { background: rgba(15, 25, 60, 0.08); }
+    :root:not([data-theme="dark"]) .topbar-stat { background: rgba(15, 25, 60, 0.06); color: #15192e; }
+    :root:not([data-theme="dark"]) .icon-btn { border-color: rgba(15, 25, 60, 0.35); background: rgba(255, 255, 255, 0.7); color: #15192e; }
+    :root:not([data-theme="dark"]) .level-tile { background: rgba(15, 25, 60, 0.06); border-color: rgba(15, 25, 60, 0.15); color: #15192e; }
+    :root:not([data-theme="dark"]) #gameCanvas { background: #dde1ef; }
+    :root:not([data-theme="dark"]) .modal-content { background: #fff; color: #15192e; }
+    :root:not([data-theme="dark"]) .btn-primary { background: #15192e; color: #fff; }
+    :root:not([data-theme="dark"]) .btn-secondary { color: #15192e; border-color: #15192e; }
+    :root:not([data-theme="dark"]) .setting-row select { background: #fff; color: #15192e; border-color: rgba(15, 25, 60, 0.3); }
+    :root:not([data-theme="dark"]) .toggle { background: rgba(15, 25, 60, 0.08); color: #15192e; border-color: rgba(15, 25, 60, 0.3); }
+    :root:not([data-theme="dark"]) .pause-overlay { background: rgba(238, 240, 250, 0.92); color: #15192e; }
+    :root:not([data-theme="dark"]) .modal-overlay { background: rgba(15, 25, 60, 0.55); }
+}

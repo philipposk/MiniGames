@@ -800,9 +800,17 @@ const Game = {
     const today = dateStr();
     SaveManager.leaderboard.daily = SaveManager.leaderboard.daily || {};
     SaveManager.leaderboard.daily[today] = SaveManager.leaderboard.daily[today] || [];
-    SaveManager.leaderboard.daily[today].push({
+    const dailyEntry = {
       name: SaveManager.playerName, time: t, char: SaveManager.selectedChar, date: today,
-    });
+    };
+    try {
+      if (window.MGIdentity) {
+        dailyEntry.playerId = MGIdentity.uuid();
+        const dn = MGIdentity.name();
+        if (dn) dailyEntry.displayName = dn;
+      }
+    } catch (e) {}
+    SaveManager.leaderboard.daily[today].push(dailyEntry);
     SaveManager.leaderboard.daily[today].sort((a, b) => a.time - b.time);
     SaveManager.leaderboard.daily[today] = SaveManager.leaderboard.daily[today].slice(0, 10);
     SaveManager.saveLeaderboard();
@@ -1277,6 +1285,13 @@ const Game = {
 };
 
 function addToLeaderboard(category, entry) {
+  try {
+    if (window.MGIdentity) {
+      entry.playerId = MGIdentity.uuid();
+      const dn = MGIdentity.name();
+      if (dn) entry.displayName = dn;
+    }
+  } catch (e) {}
   SaveManager.leaderboard[category] = SaveManager.leaderboard[category] || [];
   SaveManager.leaderboard[category].push(entry);
   SaveManager.leaderboard[category].sort((a, b) => b.score - a.score);
@@ -1418,7 +1433,7 @@ const UI = {
       const e = entries[i];
       const li = document.createElement('li');
       const rank = document.createElement('span'); rank.className = 'rank'; rank.textContent = (i+1) + '.';
-      const name = document.createElement('span'); name.className = 'name'; name.textContent = (e.name || '???');
+      const name = document.createElement('span'); name.className = 'name'; name.textContent = (e.displayName || e.name || '???');
       const score = document.createElement('span'); score.className = 'score';
       if (tab === 'daily') score.textContent = (e.time != null ? e.time.toFixed(2) + 's' : '-');
       else score.textContent = (e.score != null ? e.score : '-');
@@ -1512,14 +1527,100 @@ function bindSettings() {
     const v = nm.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3) || 'YOU';
     SaveManager.playerName = v; nm.value = v; SaveManager.savePlayerName();
   };
+
+  // Theme toggle
+  const THEME_KEY = 'crossy-road:v1:theme';
+  const wrap = document.getElementById('themeToggle');
+  if (wrap && window.MGTheme) {
+    const buttons = wrap.querySelectorAll('button[data-theme-pref]');
+    const cur = MGTheme.get(THEME_KEY);
+    buttons.forEach(b => {
+      b.setAttribute('aria-pressed', b.getAttribute('data-theme-pref') === cur ? 'true' : 'false');
+      b.onclick = () => {
+        const pref = b.getAttribute('data-theme-pref');
+        MGTheme.set(pref, THEME_KEY);
+        buttons.forEach(bb => bb.setAttribute('aria-pressed', bb.getAttribute('data-theme-pref') === pref ? 'true' : 'false'));
+      };
+    });
+  }
+}
+
+// ============================================================
+// SHARED IDENTITY / SHARE INJECTION
+// ============================================================
+function injectPlayerSettings() {
+  if (!window.MGIdentity) return;
+  const card = document.querySelector('#overlay-settings .card');
+  if (!card || document.getElementById('mg-player-section')) return;
+  const fullId = MGIdentity.uuid();
+  const wrap = document.createElement('div');
+  wrap.id = 'mg-player-section';
+  wrap.innerHTML =
+    '<h3 style="margin-top:14px;">Player</h3>' +
+    '<label class="row"><span>Your name</span>' +
+    '  <input type="text" id="mg-player-name" maxlength="24" placeholder="Anonymous" />' +
+    '</label>' +
+    '<label class="row"><span>Suggest a name</span>' +
+    '  <button class="big-btn small" id="mg-player-suggest" type="button">SUGGEST</button>' +
+    '</label>' +
+    '<label class="row"><span>Player ID</span>' +
+    '  <span style="display:flex;gap:8px;align-items:center;">' +
+    '    <span id="mg-player-id" title="' + fullId + '" style="font-family:monospace;font-size:12px;opacity:0.7;">' + fullId.slice(0, 8) + '…</span>' +
+    '    <button class="big-btn small" id="mg-player-copy" type="button">COPY</button>' +
+    '  </span>' +
+    '</label>';
+  card.appendChild(wrap);
+  const ni = wrap.querySelector('#mg-player-name');
+  ni.value = MGIdentity.name() || '';
+  ni.addEventListener('input', () => MGIdentity.setName(ni.value));
+  wrap.querySelector('#mg-player-suggest').addEventListener('click', () => {
+    const s = MGIdentity.suggest();
+    ni.value = s;
+    MGIdentity.setName(s);
+  });
+  wrap.querySelector('#mg-player-copy').addEventListener('click', () => {
+    try { if (navigator.clipboard) navigator.clipboard.writeText(fullId); } catch (e) {}
+  });
+}
+
+function injectShareButton() {
+  if (!window.MGShare) return;
+  const death = document.querySelector('#overlay-death .small-card');
+  if (!death || document.getElementById('btn-share')) return;
+  const btn = document.createElement('button');
+  btn.id = 'btn-share';
+  btn.className = 'big-btn';
+  btn.type = 'button';
+  btn.textContent = 'SHARE';
+  btn.addEventListener('click', () => {
+    const name = (window.MGIdentity && MGIdentity.name()) || (SaveManager.playerName || 'Anonymous');
+    const modeLabel = (Game.mode || 'classic').toUpperCase();
+    MGShare.share({
+      gameTitle: 'Crossy Hop',
+      subtitle: 'Game over',
+      score: Game.score || 0,
+      name,
+      detail: modeLabel + ' • ' + (Game.score || 0) + 'm',
+      url: 'https://philipposk.github.io/MiniGames/crossy-road/',
+      accent: '#6cbe5a', bg1: '#1b2c48', bg2: '#324e7b'
+    });
+  });
+  // Insert before the MENU button (last button) for clarity
+  const menuBtn = document.getElementById('btn-menu');
+  if (menuBtn && menuBtn.parentNode === death) death.insertBefore(btn, menuBtn);
+  else death.appendChild(btn);
 }
 
 // ============================================================
 // BOOT
 // ============================================================
 function boot() {
+  if (window.MGTheme) MGTheme.init('crossy-road:v1:theme');
+  if (window.MGIdentity) { try { MGIdentity.uuid(); } catch (e) {} }
   SaveManager.load();
   Game.init();
+  injectPlayerSettings();
+  injectShareButton();
   // pause / death buttons
   document.getElementById('btn-resume').addEventListener('click', () => Game.resume());
   document.getElementById('btn-restart').addEventListener('click', () => Game.startGame(Game.mode));

@@ -411,6 +411,22 @@ const game = {
             }
         });
 
+        // Theme toggle
+        const themeWrap = document.getElementById('themeToggle');
+        if (themeWrap && window.MGTheme) {
+            const THEME_KEY = 'the-rising:v1:theme';
+            const buttons = themeWrap.querySelectorAll('button[data-theme-pref]');
+            const cur = MGTheme.get(THEME_KEY);
+            buttons.forEach(b => {
+                b.setAttribute('aria-pressed', b.getAttribute('data-theme-pref') === cur ? 'true' : 'false');
+                b.addEventListener('click', () => {
+                    const pref = b.getAttribute('data-theme-pref');
+                    MGTheme.set(pref, THEME_KEY);
+                    buttons.forEach(bb => bb.setAttribute('aria-pressed', bb.getAttribute('data-theme-pref') === pref ? 'true' : 'false'));
+                });
+            });
+        }
+
         // Leaderboard scope
         const lbScope = document.getElementById('lbScope');
         if (lbScope) lbScope.addEventListener('change', () => this.refreshLeaderboardUI());
@@ -1991,6 +2007,7 @@ const game = {
 
 window.addEventListener('load', () => {
     try {
+        if (window.MGTheme) MGTheme.init('the-rising:v1:theme');
         game.init();
     } catch (e) {
         console.error('Error during game.init:', e);

@@ -6,10 +6,13 @@
 <meta name="theme-color" content="#0b0d2a" />
 <meta name="description" content="Helix Drop — rotate the tower, find the gap, drop to victory." />
 <title>Helix Drop</title>
+<script>(function(){try{var k='helix-drop:v1:theme';var v=localStorage.getItem(k);if(v==='light'||v==='dark')document.documentElement.setAttribute('data-theme',v);}catch(e){}})();</script>
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
 <link rel="apple-touch-icon" href="./icons/icon.svg" />
+<link rel="stylesheet" href="../shared/theme.css" />
 <link rel="stylesheet" href="./styles.css" />
+<script src="../shared/theme.js" defer></script>
 </head>
 <body>
 <div id="app">
@@ -109,6 +112,14 @@
         <span>Player Name</span>
         <div class="name-entry" id="name-entry-settings"></div>
       </label>
+      <div class="setting-row">
+        <span>Theme</span>
+        <div class="theme-toggle" role="radiogroup" aria-label="Theme" id="themeToggle">
+          <button type="button" data-theme-pref="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-pref="dark" aria-pressed="false">Dark</button>
+          <button type="button" data-theme-pref="system" aria-pressed="true">Auto</button>
+        </div>
+      </div>
       <button class="btn btn-danger" data-action="wipe-save">WIPE SAVE DATA</button>
     </div>
   </section>
@@ -184,6 +195,7 @@
         <button class="btn btn-primary" data-action="submit-score">SUBMIT</button>
       </div>
       <button class="btn btn-primary" data-action="restart">RETRY</button>
+      <button class="btn" data-action="share-score">SHARE</button>
       <button class="btn" data-action="quit">QUIT</button>
     </div>
   </div>
@@ -199,6 +211,7 @@
       </div>
       <button class="btn btn-primary" data-action="next-level">NEXT LEVEL</button>
       <button class="btn" data-action="restart">REPLAY</button>
+      <button class="btn" data-action="share-score-clear">SHARE</button>
       <button class="btn" data-action="quit">QUIT</button>
     </div>
   </div>
@@ -215,6 +228,8 @@
 
 </div>
 
+<script src="../shared/identity.js" defer></script>
+<script src="../shared/share.js" defer></script>
 <script src="./game.js" defer></script>
 </body>
 </html>

@@ -5,9 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
 <meta name="theme-color" content="#0a0a14" />
 <title>Piano Tap</title>
+<script>(function(){try{var k='piano-tap:v1:theme';var v=localStorage.getItem(k);if(v==='light'||v==='dark')document.documentElement.setAttribute('data-theme',v);}catch(e){}})();</script>
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+<link rel="stylesheet" href="../shared/theme.css" />
 <link rel="stylesheet" href="styles.css" />
+<script src="../shared/theme.js" defer></script>
 </head>
 <body>
 <div id="app">
@@ -120,6 +123,14 @@
         </label>
         <button id="calibrateBtn" class="btn">Calibrate latency</button>
         <div id="calibrateStatus" class="calibrate-status"></div>
+        <div class="setting-row">
+          <span>Theme</span>
+          <div class="theme-toggle" role="radiogroup" aria-label="Theme" id="themeToggle">
+            <button type="button" data-theme-pref="light" aria-pressed="false">Light</button>
+            <button type="button" data-theme-pref="dark" aria-pressed="false">Dark</button>
+            <button type="button" data-theme-pref="system" aria-pressed="true">Auto</button>
+          </div>
+        </div>
         <button id="resetData" class="btn ghost danger">Reset all data</button>
       </div>
       <button class="btn ghost" data-route="#/">BACK</button>
@@ -184,6 +195,7 @@
         <div><span class="lbl">Max Combo</span><span id="goCombo">0</span></div>
       </div>
       <button id="retryBtn" class="btn primary">RETRY</button>
+      <button id="shareBtn" class="btn">SHARE</button>
       <button class="btn" data-route="#/songs">SONGS</button>
       <button class="btn ghost" data-route="#/">MENU</button>
     </div>
@@ -192,6 +204,8 @@
   <!-- Toast -->
   <div id="toast" class="toast hidden"></div>
 </div>
+<script src="../shared/identity.js"></script>
+<script src="../shared/share.js"></script>
 <script src="game.js"></script>
 </body>
 </html>

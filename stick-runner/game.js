@@ -760,6 +760,12 @@
         </div></div>
       <div class="form-row"><label for="language">Language</label>
         <select id="language"><option value="en" ${s.language==='en'?'selected':''}>English</option></select></div>
+      <div class="form-row"><label>Theme</label>
+        <div class="theme-toggle" role="radiogroup" aria-label="Theme" id="themeToggle">
+          <button type="button" data-theme-pref="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-pref="dark" aria-pressed="false">Dark</button>
+          <button type="button" data-theme-pref="system" aria-pressed="true">Auto</button>
+        </div></div>
       <div class="cta-row">
         <button class="button ghost" id="settingsBack">BACK</button>
         <button class="button danger" id="resetProgress">RESET PROGRESS</button>
@@ -779,9 +785,63 @@
         location.reload();
       }
     });
+
+    appendPlayerSection(root);
+
+    // theme toggle
+    (function () {
+      const THEME_KEY = 'stick-runner:v1:theme';
+      const wrap = root.querySelector('#themeToggle');
+      if (!wrap || !window.MGTheme) return;
+      const buttons = wrap.querySelectorAll('button[data-theme-pref]');
+      const cur = MGTheme.get(THEME_KEY);
+      buttons.forEach(b => {
+        b.setAttribute('aria-pressed', b.getAttribute('data-theme-pref') === cur ? 'true' : 'false');
+        b.addEventListener('click', () => {
+          const pref = b.getAttribute('data-theme-pref');
+          MGTheme.set(pref, THEME_KEY);
+          buttons.forEach(bb => bb.setAttribute('aria-pressed', bb.getAttribute('data-theme-pref') === pref ? 'true' : 'false'));
+        });
+      });
+    })();
   }
 
   // ---------- Leaderboard UI ----------
+  function appendPlayerSection(root) {
+    if (!window.MGIdentity) return;
+    try { MGIdentity.uuid(); } catch (e) {}
+    const fullId = MGIdentity.uuid();
+    if (root.querySelector('#mg-player-section')) return;
+    const wrap = document.createElement('div');
+    wrap.id = 'mg-player-section';
+    wrap.innerHTML =
+      '<h2 style="margin-top:18px;">PLAYER</h2>' +
+      '<div class="form-row"><label for="mg-player-name">Your name</label>' +
+      '  <input type="text" id="mg-player-name" maxlength="24" placeholder="Anonymous"></div>' +
+      '<div class="form-row"><label>Suggest a name</label>' +
+      '  <button type="button" class="button ghost" id="mg-player-suggest">SUGGEST</button></div>' +
+      '<div class="form-row"><label>Player ID</label>' +
+      '  <span style="display:flex;gap:8px;align-items:center;">' +
+      '    <span title="' + fullId + '" style="font-family:monospace;font-size:12px;opacity:0.7;">' + fullId.slice(0, 8) + '…</span>' +
+      '    <button type="button" class="button ghost" id="mg-player-copy">COPY</button>' +
+      '  </span></div>';
+    const ctaRows = root.querySelectorAll('.cta-row');
+    const lastCta = ctaRows[ctaRows.length - 1];
+    if (lastCta && lastCta.parentNode === root) root.insertBefore(wrap, lastCta);
+    else root.appendChild(wrap);
+    const ni = wrap.querySelector('#mg-player-name');
+    ni.value = MGIdentity.name() || '';
+    ni.addEventListener('input', () => MGIdentity.setName(ni.value));
+    wrap.querySelector('#mg-player-suggest').addEventListener('click', () => {
+      const s = MGIdentity.suggest();
+      ni.value = s;
+      MGIdentity.setName(s);
+    });
+    wrap.querySelector('#mg-player-copy').addEventListener('click', () => {
+      try { if (navigator.clipboard) navigator.clipboard.writeText(fullId); } catch (e) {}
+    });
+  }
+
   let lbTab = 'overall';
   function renderLeaderboard() {
     const root = document.getElementById('leaderboardScreen');
@@ -806,7 +866,7 @@
       list.innerHTML = '<div class="row"><span>(no entries yet)</span></div>';
     } else {
       list.innerHTML = entries.map((e, i) =>
-        `<div class="row"><span>${(i+1).toString().padStart(2,'0')}. ${escapeHtml(e.name)}</span><span>${Math.floor(e.dist)}m</span></div>`
+        `<div class="row"><span>${(i+1).toString().padStart(2,'0')}. ${escapeHtml(e.displayName || e.name)}</span><span>${Math.floor(e.dist)}m</span></div>`
       ).join('');
     }
   }
@@ -821,7 +881,15 @@
     if (board.length < 10 || dist > tenth) {
       const name = (prompt('NEW BEST! Enter 3-letter name', 'AAA') || 'AAA')
         .replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 3).padEnd(3, 'A');
-      board.push({ name, dist, date: Date.now() });
+      const entry = { name, dist, date: Date.now() };
+      try {
+        if (window.MGIdentity) {
+          entry.playerId = MGIdentity.uuid();
+          const dn = MGIdentity.name();
+          if (dn) entry.displayName = dn;
+        }
+      } catch (e) {}
+      board.push(entry);
       board.sort((a, b) => b.dist - a.dist);
       state.leaderboard[boardKey] = board.slice(0, 10);
       lsSet(K.leaderboard, state.leaderboard);
@@ -1760,6 +1828,7 @@
 
   // ---------- Boot ----------
   function boot() {
+    if (window.MGTheme) MGTheme.init('stick-runner:v1:theme');
     applySettingsToBody();
     Game.init();
 
@@ -1814,6 +1883,23 @@
       navigate(wasDaily ? '#daily' : '#play/' + state.selectedBiome);
     });
     if ($('btnGoMenu')) $('btnGoMenu').addEventListener('click', () => navigate('#menu'));
+    if ($('btnShare') && window.MGShare) {
+      $('btnShare').addEventListener('click', () => {
+        const name = (window.MGIdentity && MGIdentity.name()) || 'Anonymous';
+        const biome = (state.selectedBiome || 'forest').toUpperCase();
+        const score = parseInt($('finalScore').textContent || '0', 10) || 0;
+        const dist = parseInt($('finalDist').textContent || '0', 10) || 0;
+        MGShare.share({
+          gameTitle: 'Stick Runner',
+          subtitle: 'Game over',
+          score,
+          name,
+          detail: biome + ' • ' + dist + 'm',
+          url: 'https://philipposk.github.io/MiniGames/stick-runner/',
+          accent: '#5cf2c4', bg1: '#1b2c48', bg2: '#324e7b'
+        });
+      });
+    }
   }
 
   // ---------- PWA service worker ----------

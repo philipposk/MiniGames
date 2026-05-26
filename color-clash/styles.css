@@ -732,3 +732,70 @@ body.reduced-motion * { animation-duration: 0.01ms !important; transition-durati
         padding-right: env(safe-area-inset-right);
     }
 }
+
+/* ===== LIGHT THEME ===== */
+:root[data-theme="light"] body { background: #f6f6fb; color: #15192e; }
+:root[data-theme="light"] .menu-screen {
+    background: linear-gradient(135deg, #e9ebf5 0%, #d9dcef 100%);
+    color: #15192e;
+}
+:root[data-theme="light"] .sub-screen {
+    background: linear-gradient(180deg, #f6f6fb 0%, #e9ebf5 100%);
+    color: #15192e;
+}
+:root[data-theme="light"] .top-bar {
+    background: linear-gradient(180deg, rgba(15,18,40,0.06), rgba(15,18,40,0));
+}
+:root[data-theme="light"] .icon-btn,
+:root[data-theme="light"] .back-btn {
+    background: rgba(255,255,255,0.8);
+    border-color: rgba(15,18,40,0.18);
+    color: #15192e;
+}
+:root[data-theme="light"] .coin-pill {
+    background: rgba(255,255,255,0.85);
+    border-color: rgba(200,146,0,0.5);
+    color: #8a6500;
+}
+:root[data-theme="light"] .btn-primary { background: #15192e; color: #fff; box-shadow: 0 6px 18px rgba(15,18,40,0.18); }
+:root[data-theme="light"] .btn-secondary { color: #15192e; border-color: #15192e; }
+:root[data-theme="light"] .btn-secondary:active { background: rgba(15,18,40,0.08); }
+:root[data-theme="light"] .setting-row { color: #15192e; }
+:root[data-theme="light"] .setting-row select,
+:root[data-theme="light"] .setting-row input[type="range"] {
+    background: #fff;
+    color: #15192e;
+}
+:root[data-theme="light"] .toggle-btn {
+    background: rgba(15,18,40,0.06);
+    color: #15192e;
+    border-color: rgba(15,18,40,0.2);
+}
+:root[data-theme="light"] .toggle-btn[aria-pressed="true"] {
+    background: rgba(78,204,163,0.25);
+}
+:root[data-theme="light"] #game { background: #15192e; }
+:root[data-theme="light"] .pause-overlay,
+:root[data-theme="light"] .pause-card { color: #15192e; }
+:root[data-theme="light"] .pause-card { background: #fff; box-shadow: 0 10px 40px rgba(15,18,40,0.25); }
+
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) body { background: #f6f6fb; color: #15192e; }
+    :root:not([data-theme="dark"]) .menu-screen {
+        background: linear-gradient(135deg, #e9ebf5 0%, #d9dcef 100%);
+        color: #15192e;
+    }
+    :root:not([data-theme="dark"]) .sub-screen {
+        background: linear-gradient(180deg, #f6f6fb 0%, #e9ebf5 100%);
+        color: #15192e;
+    }
+    :root:not([data-theme="dark"]) .icon-btn,
+    :root:not([data-theme="dark"]) .back-btn {
+        background: rgba(255,255,255,0.8);
+        border-color: rgba(15,18,40,0.18);
+        color: #15192e;
+    }
+    :root:not([data-theme="dark"]) .btn-primary { background: #15192e; color: #fff; }
+    :root:not([data-theme="dark"]) .btn-secondary { color: #15192e; border-color: #15192e; }
+    :root:not([data-theme="dark"]) #game { background: #15192e; }
+}

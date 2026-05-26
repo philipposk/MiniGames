@@ -583,6 +583,23 @@ class Game {
       document.getElementById('latencyVal').textContent = s.latencyOffsetMs;
     });
     document.getElementById('calibrateBtn').addEventListener('click', () => this._calibrate());
+
+    // theme toggle
+    const THEME_KEY = 'piano-tap:v1:theme';
+    const themeWrap = document.getElementById('themeToggle');
+    if (themeWrap && window.MGTheme) {
+      const buttons = themeWrap.querySelectorAll('button[data-theme-pref]');
+      const cur = MGTheme.get(THEME_KEY);
+      buttons.forEach(b => {
+        b.setAttribute('aria-pressed', b.getAttribute('data-theme-pref') === cur ? 'true' : 'false');
+        b.addEventListener('click', () => {
+          const pref = b.getAttribute('data-theme-pref');
+          MGTheme.set(pref, THEME_KEY);
+          buttons.forEach(bb => bb.setAttribute('aria-pressed', bb.getAttribute('data-theme-pref') === pref ? 'true' : 'false'));
+        });
+      });
+    }
+
     document.getElementById('resetData').addEventListener('click', () => {
       if (confirm('Reset all scores, unlocks and settings?')) {
         this.save.reset();
@@ -599,6 +616,15 @@ class Game {
     document.getElementById('nameInput').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') this._submitName();
     });
+
+    // Share button (game-over)
+    const shareBtn = document.getElementById('shareBtn');
+    if (shareBtn && window.MGShare) {
+      shareBtn.addEventListener('click', () => this._sharePianoTapScore());
+    }
+
+    // Player section (shared identity) injection into settings
+    this._injectMGPlayerSection();
 
     // Pointer input on canvas
     this.canvas.addEventListener('pointerdown', (e) => this._onPointerDown(e));
@@ -742,9 +768,11 @@ class Game {
     }
     entries.forEach((e, i) => {
       const li = document.createElement('li');
+      const _esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+      const display = _esc(e.displayName || e.name || '???');
       li.innerHTML = `
         <span class="rank">#${i + 1}</span>
-        <span class="name">${e.name}</span>
+        <span class="name">${display}</span>
         <span>${e.score}</span>
         <span class="acc">${e.accuracy.toFixed(0)}%</span>
       `;
@@ -862,12 +890,73 @@ class Game {
       document.getElementById('gameover').classList.remove('hidden');
     }
   }
+  _sharePianoTapScore() {
+    if (!window.MGShare) return;
+    const acc = this.attempts ? (this.accSum / this.attempts) : 0;
+    const song = (window.SONG_BY_ID && SONG_BY_ID[this.songId]) ||
+                 (typeof SONGS !== 'undefined' && SONGS.find(s => s.id === this.songId)) || null;
+    const songName = song ? song.name : (this.songId || 'Song');
+    const name = (window.MGIdentity && MGIdentity.name())
+      || (this.save && this.save.get && (this.save.get('lastName') || '')).toString().toUpperCase()
+      || 'Anonymous';
+    MGShare.share({
+      gameTitle: 'Piano Tap',
+      subtitle: 'Game over',
+      score: this.score || 0,
+      name,
+      detail: songName + ' • ' + Math.round(acc) + '% accuracy',
+      url: 'https://philipposk.github.io/MiniGames/piano-tap/',
+      accent: '#5cf2c4', bg1: '#0c0f1f', bg2: '#2a1a55'
+    });
+  }
+
+  _injectMGPlayerSection() {
+    if (!window.MGIdentity) return;
+    try { MGIdentity.uuid(); } catch (e) {}
+    const list = document.querySelector('#settings .settings-list');
+    if (!list || document.getElementById('mg-player-section')) return;
+    const fullId = MGIdentity.uuid();
+    const wrap = document.createElement('div');
+    wrap.id = 'mg-player-section';
+    wrap.innerHTML =
+      '<label class="setting-row" style="margin-top:14px;border-top:1px solid rgba(255,255,255,0.08);padding-top:10px;"><span>Your name</span>' +
+      '  <input type="text" id="mg-player-name" maxlength="24" placeholder="Anonymous" />' +
+      '</label>' +
+      '<label class="setting-row"><span>Suggest a name</span>' +
+      '  <button type="button" class="btn" id="mg-player-suggest">SUGGEST</button>' +
+      '</label>' +
+      '<label class="setting-row"><span>Player ID</span>' +
+      '  <span style="display:flex;gap:8px;align-items:center;">' +
+      '    <span title="' + fullId + '" style="font-family:monospace;font-size:12px;opacity:0.7;">' + fullId.slice(0, 8) + '…</span>' +
+      '    <button type="button" class="btn" id="mg-player-copy">COPY</button>' +
+      '  </span>' +
+      '</label>';
+    list.appendChild(wrap);
+    const ni = wrap.querySelector('#mg-player-name');
+    ni.value = MGIdentity.name() || '';
+    ni.addEventListener('input', () => MGIdentity.setName(ni.value));
+    wrap.querySelector('#mg-player-suggest').addEventListener('click', () => {
+      const s = MGIdentity.suggest();
+      ni.value = s;
+      MGIdentity.setName(s);
+    });
+    wrap.querySelector('#mg-player-copy').addEventListener('click', () => {
+      try { if (navigator.clipboard) navigator.clipboard.writeText(fullId); } catch (e) {}
+    });
+  }
+
   _submitName() {
     const raw = (document.getElementById('nameInput').value || 'YOU').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3) || 'YOU';
     const acc = this.attempts ? (this.accSum / this.attempts) : 0;
-    this.lb.submit(this.songId, {
-      name: raw, score: this.score, accuracy: acc, date: new Date().toISOString().slice(0, 10)
-    });
+    const entry = { name: raw, score: this.score, accuracy: acc, date: new Date().toISOString().slice(0, 10) };
+    try {
+      if (window.MGIdentity) {
+        entry.playerId = MGIdentity.uuid();
+        const dn = MGIdentity.name();
+        if (dn) entry.displayName = dn;
+      }
+    } catch (e) {}
+    this.lb.submit(this.songId, entry);
     document.getElementById('nameEntry').classList.add('hidden');
     document.getElementById('gameover').classList.remove('hidden');
   }
@@ -1144,5 +1233,6 @@ class Game {
 // BOOT
 // ============================================================
 window.addEventListener('DOMContentLoaded', () => {
+  if (window.MGTheme) MGTheme.init('piano-tap:v1:theme');
   window.__game = new Game();
 });

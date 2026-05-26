@@ -1127,7 +1127,7 @@
       headParticle = null;
       gameSpeed = OBSTACLE_SPEED_INITIAL;
       lastObstacleSpawn = Date.now();
-      lastFrameTime = Date.now();
+      lastFrameTime = 0;
       lastFootstepTime = Date.now();
       lastExhaleTime = Date.now();
       canDoubleJump = false; canDoubleSlide = false;
@@ -1337,9 +1337,9 @@
       ctx.fillRect(0, 0, cssWidth(), cssHeight());
     }
 
-    function drawParallax(speed) {
+    function drawParallax(speed, dt60) {
       if (state.settings.reducedMotion) return;
-      bgOffset = (bgOffset + speed * 0.3) % cssWidth();
+      bgOffset = (bgOffset + speed * 0.3 * dt60) % cssWidth();
       const w = cssWidth();
       // Layer 1 silhouettes
       ctx.fillStyle = 'rgba(255,255,255,0.05)';
@@ -1481,7 +1481,7 @@
       }
     }
 
-    function updateGame() {
+    function updateGame(timestamp) {
       if (gameState !== 'playing') return;
       if (isPaused) {
         ctx.fillStyle = 'rgba(0,0,0,0.55)';
@@ -1492,21 +1492,23 @@
         ctx.fillText('PAUSED', cssWidth()/2, cssHeight()/2);
         ctx.font = '16px Arial';
         ctx.fillText('Press P to resume — Esc to menu', cssWidth()/2, cssHeight()/2 + 36);
-        lastFrameTime = Date.now();
+        lastFrameTime = timestamp;
         gameLoop = requestAnimationFrame(updateGame);
         return;
       }
 
+      if (!lastFrameTime) lastFrameTime = timestamp;
+      const dt60 = Math.min(Math.max((timestamp - lastFrameTime) * 60 / 1000, 0.1), 3);
+      lastFrameTime = timestamp;
       const now = Date.now();
-      lastFrameTime = now;
 
       // Animation/footsteps/exhales
       if (!isJumping && !isSliding) {
-        animationFrame += gameSpeed * 0.5;
+        animationFrame += gameSpeed * 0.5 * dt60;
         const fsInt = Math.max(200, 400 - (gameSpeed - OBSTACLE_SPEED_INITIAL) * 20);
         if (now - lastFootstepTime > fsInt) { playFootstep(); lastFootstepTime = now; }
       }
-      blinkPhase = (blinkPhase + 0.02) % 1;
+      blinkPhase = (blinkPhase + 0.02 * dt60) % 1;
 
       if (gameState === 'playing' && score > 20 && Math.random() < 0.001 && now - lastExhaleTime > 3000) {
         playExhale(); lastExhaleTime = now;
@@ -1514,10 +1516,10 @@
 
       // Player physics
       if (isJumping) {
-        playerY += jumpVelocity;
-        jumpVelocity += 0.9;
+        playerY += jumpVelocity * dt60;
+        jumpVelocity += 0.9 * dt60;
         if (isFlipping || isBackFlipping) {
-          flipRotation += 15 * flipDirection;
+          flipRotation += 15 * flipDirection * dt60;
           if (isFlipping && flipRotation >= 360) { flipRotation = 360; isFlipping = false; }
           else if (isBackFlipping && flipRotation <= -360) { flipRotation = -360; isBackFlipping = false; }
         }
@@ -1534,7 +1536,7 @@
           }
         }
       } else if (isSliding) {
-        slideTimer++;
+        slideTimer += dt60;
         playerY = GROUND_Y - 80;
         const maxSlide = canDoubleSlide ? 30 : 45;
         if (slideTimer > maxSlide) stopSlide();
@@ -1572,13 +1574,13 @@
       }
 
       // Move obstacles
-      obstacles = obstacles.map(o => ({ ...o, x: o.x - currentSpeed })).filter(o => o.x > -50);
+      obstacles = obstacles.map(o => ({ ...o, x: o.x - currentSpeed * dt60 })).filter(o => o.x > -50);
 
       // Track distance (meters): roughly currentSpeed pixels per frame
-      distance += currentSpeed * 0.08; // tunable
+      distance += currentSpeed * 0.08 * dt60; // tunable
 
       // Coins per 10m
-      if (Math.floor(distance / 10) > Math.floor((distance - currentSpeed * 0.08) / 10)) {
+      if (Math.floor(distance / 10) > Math.floor((distance - currentSpeed * 0.08 * dt60) / 10)) {
         runCoins += 1;
         updateHud();
       }
@@ -1592,8 +1594,8 @@
       const playerTop = actualHeadY - 10;
 
       obstacles.forEach(obs => {
-        const obsLeft = obs.x;
-        const obsRight = obs.x + 20;
+        const obsLeft = obs.x - 14;
+        const obsRight = obs.x + 34;
 
         if (obs.type === 'ceiling' && obs.bottom !== undefined) {
           const slideHeadY = GROUND_Y - 80 + 25;
@@ -1650,10 +1652,10 @@
       });
 
       // Camera FX
-      if (cameraShake > 0) { cameraShake *= 0.9; if (cameraShake < 0.1) cameraShake = 0; }
+      if (cameraShake > 0) { cameraShake *= Math.pow(0.9, dt60); if (cameraShake < 0.1) cameraShake = 0; }
       if (isRebounding) {
-        cameraOffsetX += reboundVelocityX; cameraOffsetY += reboundVelocityY;
-        reboundVelocityX *= 0.9; reboundVelocityY *= 0.9;
+        cameraOffsetX += reboundVelocityX * dt60; cameraOffsetY += reboundVelocityY * dt60;
+        reboundVelocityX *= Math.pow(0.9, dt60); reboundVelocityY *= Math.pow(0.9, dt60);
         if (Math.abs(cameraOffsetX) < 1 && Math.abs(cameraOffsetY) < 1) {
           cameraOffsetX = 0; cameraOffsetY = 0; isRebounding = false;
         }
@@ -1669,7 +1671,7 @@
       }
       if (isRebounding) ctx.translate(cameraOffsetX, cameraOffsetY);
 
-      drawParallax(currentSpeed);
+      drawParallax(currentSpeed, dt60);
       drawGround();
       obstacles.forEach(drawObstacle);
 

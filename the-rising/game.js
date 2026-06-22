@@ -1421,6 +1421,11 @@ const game = {
         const overlapRatio = placedBlock.width > 0 ? overlapWidth / placedBlock.width : 0;
 
         if (overlapRatio > 0.1) {
+            // Capture pre-trim geometry: the falling debris must use the block's
+            // ACTUAL width (narrow-hazard blocks are 0.75× full) and render on the
+            // side that actually overhung — placedBlock.x/width are mutated below.
+            const origX = placedBlock.x;
+            const origW = placedBlock.width;
             const peopleToSave = Math.max(1, Math.floor(placedBlock.peopleCount * overlapRatio));
             const peopleLost = Math.max(0, placedBlock.peopleCount - peopleToSave);
             placedBlock.x = overlapStart;
@@ -1440,8 +1445,8 @@ const game = {
             if (peopleLost > 0) {
                 const fallingPart = {
                     ...placedBlock,
-                    width: Math.max(8, config.block.width - overlapWidth),
-                    x: placedBlock.x > baseBlock.x ? baseBlock.x : overlapEnd,
+                    width: Math.max(8, origW - overlapWidth),
+                    x: origX < baseBlock.x ? origX : overlapEnd,
                     peopleCount: peopleLost,
                     falling: true,
                     velocity: 0,
@@ -1726,7 +1731,10 @@ const game = {
                 }
             });
         } else if (this.state === 'freezing') {
-            if (this.water.y > 0) this.water.y -= config.water.freezeSpeed;
+            // dt-scale so the victory water-recede runs at the same real-time
+            // speed on 120Hz / 30Hz as on 60Hz (matches the rising-water fix).
+            const dt60 = dt * 60;
+            if (this.water.y > 0) this.water.y -= config.water.freezeSpeed * dt60;
         }
     },
 

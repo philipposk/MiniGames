@@ -1,7 +1,7 @@
 /* Bounce Ball service worker - cache-first app shell.
  * Bump CACHE_NAME to invalidate on deploy.
  */
-const CACHE_NAME = 'bounce-ball-v1';
+const CACHE_NAME = 'bounce-ball-v2';
 const APP_SHELL = [
     './',
     './index.html',

@@ -1,10 +1,10 @@
 /* Crossy Hop service worker */
-const CACHE = 'crossy-hop-v1';
+const CACHE = 'crossy-hop-v3';
 const ASSETS = [
   './',
   './index.html',
   './styles.css',
-  './game.js',
+  './game.js?v=3',
   './manifest.webmanifest',
   './icons/icon.svg'
 ];

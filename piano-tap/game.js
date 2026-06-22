@@ -244,6 +244,7 @@ class ScrollEngine {
     this.synth = synth;
     this.opts = opts || {};
     this.bpm = song.bpm * (opts.speedMul || 1);
+    this.baseBpm = this.bpm;          // never mutated — ramp is baked per-loop instead
     this.tempoRampPer16Bars = opts.tempoRamp || 0;
     this.startTime = 0;
     this.tiles = []; // active tiles
@@ -255,22 +256,54 @@ class ScrollEngine {
     this.travelTime = 1.2;
     this.allNotes = []; // expanded across all loops we know about
     this.scheduledBassBars = new Set();
+    // Per-loop absolute start time + step duration. The timeline must be
+    // tempo-STABLE: bumping bpm in place and multiplying a global step index
+    // by the current secondsPerStep retroactively re-times the whole grid, so
+    // at each loop boundary the next note jumps backward in time and is
+    // auto-missed (unwinnable Rush/Fast-Ramp). Instead we lock each loop's
+    // start + step duration once, so a faster tempo only affects future loops.
+    this.loopStarts = [];
+    this.loopStepDur = [];
   }
   get secondsPerBeat() { return 60 / this.bpm; }
+  _stepDurForBpm(bpm) {
+    const stepsPerBeat = this.song.timeSig === 4 ? 4 : 2;
+    return (60 / bpm) / stepsPerBeat;
+  }
+  _ensureLoop(loopIdx) {
+    if (this.loopStarts.length === 0) {
+      this.loopStarts[0] = this.startTime;
+      this.loopStepDur[0] = this._stepDurForBpm(this.baseBpm);
+    }
+    while (this.loopStarts.length <= loopIdx) {
+      const i = this.loopStarts.length;
+      this.loopStarts[i] = this.loopStarts[i - 1] + this.song.totalSteps * this.loopStepDur[i - 1];
+      const bpm = this.baseBpm + this.tempoRampPer16Bars * i;
+      this.loopStepDur[i] = this._stepDurForBpm(bpm);
+    }
+  }
   get secondsPerStep() {
     const stepsPerBeat = this.song.timeSig === 4 ? 4 : 2; // 16ths per quarter, or 8ths per dotted quarter
     return this.secondsPerBeat / stepsPerBeat;
   }
   start(currentTime) {
-    this.startTime = currentTime + 0.2;
+    // Lead-in must cover the full tile travel time, otherwise the first note
+    // (beat 0) spawns already near the hit-line and is effectively un-hittable
+    // (instant early-miss). Give one full travelTime + a small buffer so the
+    // opening tile falls from the top like every other note.
+    this.startTime = currentTime + this.travelTime + 0.4;
     this.nextNoteIdx = 0;
     this.loopCount = 0;
     this.tiles = [];
+    this.loopStarts = [];
+    this.loopStepDur = [];
   }
-  // Get scheduled hit time for a note in absolute audio time
+  // Get scheduled hit time for a note in absolute audio time.
+  // Uses the step duration locked for that loop so a mid-song tempo bump
+  // never moves notes already scheduled in earlier loops.
   noteHitTime(note, loopIdx) {
-    const loopDurSteps = this.song.totalSteps;
-    return this.startTime + (note.beat + loopIdx * loopDurSteps) * this.secondsPerStep;
+    this._ensureLoop(loopIdx);
+    return this.loopStarts[loopIdx] + note.beat * this.loopStepDur[loopIdx];
   }
   // Spawn upcoming tiles (visually) so they appear at top of screen `travelTime` before hit
   update(currentTime) {
@@ -290,13 +323,9 @@ class ScrollEngine {
       this.maybeScheduleBass(note, loopIdx);
       this.nextNoteIdx++;
     }
-    // Tempo ramp - increase bpm every 16 bars (one loop)
-    const elapsedLoops = Math.floor((currentTime - this.startTime) /
-      (this.song.totalSteps * this.secondsPerStep));
-    if (this.tempoRampPer16Bars > 0 && elapsedLoops > this.loopCount) {
-      this.loopCount = elapsedLoops;
-      this.bpm += this.tempoRampPer16Bars;
-    }
+    // Tempo ramp is baked into each loop's locked step duration (_ensureLoop),
+    // so there is no in-place bpm mutation here — that retroactively re-timed
+    // the whole grid and caused an unwinnable auto-miss at every loop boundary.
   }
   maybeScheduleBass(note, loopIdx) {
     // Schedule a simple bass on every downbeat once per bar

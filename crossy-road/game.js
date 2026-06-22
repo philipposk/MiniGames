@@ -705,8 +705,12 @@ const Game = {
 
   resize() {
     this.dpr = Math.min(2, window.devicePixelRatio || 1);
-    const w = this.canvas.clientWidth = window.innerWidth;
-    const h = this.canvas.clientHeight = window.innerHeight;
+    // clientWidth/clientHeight are read-only — derive display size from the
+    // canvas's rendered box (CSS sizes it to the viewport), falling back to
+    // window dims. Assigning to clientWidth threw under 'use strict' and
+    // aborted boot, freezing the menu so the game never started.
+    const w = this.canvas.clientWidth || window.innerWidth;
+    const h = this.canvas.clientHeight || window.innerHeight;
     this.canvas.width = Math.floor(w * this.dpr);
     this.canvas.height = Math.floor(h * this.dpr);
     this.w = w; this.h = h;
@@ -728,6 +732,10 @@ const Game = {
   },
 
   startGame(mode) {
+    // Cancel any pending ice auto-slide from a previous run so it can't inject
+    // a phantom forward hop (or suppress sliding) into the fresh run.
+    if (this._iceSlideT) { clearTimeout(this._iceSlideT); this._iceSlideT = null; }
+    this.iceSliding = false;
     this.mode = mode || 'classic';
     let rng;
     if (this.mode === 'daily') {
@@ -773,6 +781,8 @@ const Game = {
 
   die(reason) {
     if (this.state !== 'playing') return;
+    if (this._iceSlideT) { clearTimeout(this._iceSlideT); this._iceSlideT = null; }
+    this.iceSliding = false;
     this.state = 'dead';
     SaveManager.addCoins(this.coinsRun);
     AudioBus.death();
@@ -973,7 +983,12 @@ const Game = {
         if (lane.type === LANE_ROAD || lane.type === LANE_RAIL) {
           for (let i = 0; i < lane.entities.length; i++) {
             const e = lane.entities[i];
-            const lx = e.x, rx = e.x + e.len * TILE_W;
+            // Match collision width to the rendered sprite. Cars/trucks are
+            // drawn at 0.9 * len*TILE_W; using the full logical length left a
+            // 6–13px sprite-free tail that caused unfair "cheap deaths" when
+            // hopping in just behind a vehicle. Rail trains render full-width.
+            const visW = (lane.type === LANE_RAIL) ? e.len * TILE_W : e.len * TILE_W * 0.9;
+            const lx = e.x, rx = e.x + visW;
             const px = this.hopper.x + TILE_W * 0.5;
             if (px > lx && px < rx) {
               if (lane.type === LANE_RAIL) {
@@ -1003,7 +1018,7 @@ const Game = {
           const aheadLane = this.world.getLane(this.hopper.row + 1);
           if (aheadLane && (aheadLane.type === LANE_GRASS && !(aheadLane.tree && aheadLane.tree[this.hopper.col]) || aheadLane.type === LANE_ICE)) {
             this.iceSliding = true;
-            setTimeout(() => { this.iceSliding = false; this.tryMove(0, 1, 0); }, 120);
+            this._iceSlideT = setTimeout(() => { this.iceSliding = false; this.tryMove(0, 1, 0); }, 120);
           }
         }
         this.hopper.lastRow = this.hopper.row;

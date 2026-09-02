@@ -1,7 +1,7 @@
 /* Piano Tap - service worker */
 'use strict';
 
-const CACHE = 'piano-tap-v2';
+const CACHE = 'piano-tap-v3';
 const APP_SHELL = [
   './',
   './index.html',

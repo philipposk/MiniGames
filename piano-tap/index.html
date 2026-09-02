@@ -97,6 +97,14 @@
     <div class="menu-card">
       <h2>SETTINGS</h2>
       <div class="settings-list">
+        <div class="setting-row">
+          <span>Difficulty</span>
+          <div class="theme-toggle" role="radiogroup" aria-label="Difficulty" id="difficultyToggle">
+            <button type="button" data-difficulty="easy" aria-pressed="true">Easy</button>
+            <button type="button" data-difficulty="normal" aria-pressed="false">Normal</button>
+            <button type="button" data-difficulty="hard" aria-pressed="false">Hard</button>
+          </div>
+        </div>
         <label class="setting-row">
           <span>Music volume</span>
           <input type="range" id="musicVol" min="0" max="100" />

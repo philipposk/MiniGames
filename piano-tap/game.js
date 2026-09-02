@@ -19,7 +19,8 @@ class SaveManager {
   constructor() {
     this.defaults = {
       settings: { sfxVol: 70, musicVol: 80, haptics: true,
-                  latencyOffsetMs: 0, colorblind: false, reducedMotion: false },
+                  latencyOffsetMs: 0, colorblind: false, reducedMotion: false,
+                  difficulty: 'easy' },
       unlocks: { songsUnlocked: ['lullaby'] },
       leaderboard: {},
       bestPerSong: {},
@@ -120,6 +121,16 @@ const SONGS = [
 ];
 const SONG_BY_ID = {};
 SONGS.forEach(s => SONG_BY_ID[s.id] = s);
+
+// Difficulty profiles. Beginners found the default too fast, so a player can
+// pick a curve. Easy = slower playback (speedMul<1), much longer tile travel
+// (more reaction time), wider hit windows, gentler in-song tempo ramp. Hard =
+// faster, tighter, ramps quicker. Default is 'easy' so first-timers can learn.
+const DIFFICULTY = {
+  easy:   { label: 'Easy',   speedMul: 0.80, travelMul: 1.55, windowMul: 1.40, rampMul: 0.5 },
+  normal: { label: 'Normal', speedMul: 1.00, travelMul: 1.00, windowMul: 1.00, rampMul: 1.0 },
+  hard:   { label: 'Hard',   speedMul: 1.18, travelMul: 0.82, windowMul: 0.85, rampMul: 1.4 },
+};
 
 // ============================================================
 // AUDIO BUS + SYNTH
@@ -252,8 +263,10 @@ class ScrollEngine {
     this.loopCount = 0;
     this.scheduledAheadTime = 0;
     this.hitWindow = 0.12; // seconds; visual lead time
-    // Travel time for tile from top -> hit-line; we want tiles to take ~1.2s
-    this.travelTime = 1.2;
+    // Travel time for tile from top -> hit-line (~1.2s at normal). Difficulty
+    // scales it: Easy gives a longer fall = more reaction time for beginners.
+    this.travelTime = 1.2 * (opts.travelMul || 1);
+    this.windowMul = opts.windowMul || 1; // scales tap-accept + auto-miss windows
     this.allNotes = []; // expanded across all loops we know about
     this.scheduledBassBars = new Set();
     // Per-loop absolute start time + step duration. The timeline must be
@@ -352,7 +365,7 @@ class ScrollEngine {
     for (const t of this.tiles) {
       if (t.status !== 'pending' || t.lane !== lane) continue;
       const delta = Math.abs(t.hitTime - currentTime);
-      if (delta < bestDelta && delta < 0.25) {
+      if (delta < bestDelta && delta < 0.25 * this.windowMul) {
         best = t; bestDelta = delta;
       }
     }
@@ -626,6 +639,21 @@ class Game {
     });
     document.getElementById('calibrateBtn').addEventListener('click', () => this._calibrate());
 
+    // difficulty toggle
+    const diffWrap = document.getElementById('difficultyToggle');
+    if (diffWrap) {
+      const dButtons = diffWrap.querySelectorAll('button[data-difficulty]');
+      dButtons.forEach(b => {
+        b.addEventListener('click', () => {
+          const d = b.getAttribute('data-difficulty');
+          const s = this.save.get('settings');
+          s.difficulty = d;
+          this.save.set('settings', s);
+          dButtons.forEach(bb => bb.setAttribute('aria-pressed', bb.getAttribute('data-difficulty') === d ? 'true' : 'false'));
+        });
+      });
+    }
+
     // theme toggle
     const THEME_KEY = 'piano-tap:v1:theme';
     const themeWrap = document.getElementById('themeToggle');
@@ -707,6 +735,12 @@ class Game {
     document.getElementById('reducedMotion').checked = !!s.reducedMotion;
     document.getElementById('latencyOffset').value = s.latencyOffsetMs || 0;
     document.getElementById('latencyVal').textContent = s.latencyOffsetMs || 0;
+    const diffWrap = document.getElementById('difficultyToggle');
+    if (diffWrap) {
+      const cur = s.difficulty || 'easy';
+      diffWrap.querySelectorAll('button[data-difficulty]').forEach(b =>
+        b.setAttribute('aria-pressed', b.getAttribute('data-difficulty') === cur ? 'true' : 'false'));
+    }
     this._applyAudioVols();
   }
   _applyAudioVols() {
@@ -900,6 +934,14 @@ class Game {
     if (mode === 'arcade') this.modeOpts.tempoRamp = 0;
     if (mode === 'daily') this.dailyMod.mod.apply(this.modeOpts);
 
+    // Fold the chosen difficulty into the run: scale speed, tile travel time,
+    // hit-window forgiveness and how fast the tempo ramps.
+    const diff = DIFFICULTY[this.save.get('settings').difficulty || 'easy'] || DIFFICULTY.normal;
+    this.modeOpts.speedMul = (this.modeOpts.speedMul || 1) * diff.speedMul;
+    this.modeOpts.tempoRamp = (this.modeOpts.tempoRamp || 0) * diff.rampMul;
+    this.modeOpts.travelMul = diff.travelMul;
+    this.modeOpts.windowMul = diff.windowMul;
+
     this.engine = new ScrollEngine(song, this.audio, this.synth, this.modeOpts);
     this.engine.start(this.audio.now());
     this.score = 0; this.combo = 0; this.maxCombo = 0;
@@ -1090,11 +1132,12 @@ class Game {
       return;
     }
     const delta = Math.abs(tile.hitTime - now) * 1000;
+    const wm = (this.engine && this.engine.windowMul) || 1; // difficulty forgiveness
     let pts = 0;
     let label = '';
-    if (delta <= 30) { pts = 3; label = 'PERFECT'; this.accSum += 100; if (window.MGNative) MGNative.Haptics.light(); }
-    else if (delta <= 60) { pts = 2; label = 'GREAT'; this.accSum += 80; }
-    else if (delta <= 100) { pts = 1; label = 'OK'; this.accSum += 60; }
+    if (delta <= 30 * wm) { pts = 3; label = 'PERFECT'; this.accSum += 100; if (window.MGNative) MGNative.Haptics.light(); }
+    else if (delta <= 60 * wm) { pts = 2; label = 'GREAT'; this.accSum += 80; }
+    else if (delta <= 100 * wm) { pts = 1; label = 'OK'; this.accSum += 60; }
     else { pts = 0; label = 'LATE'; this.accSum += 30; if (window.MGNative) MGNative.Haptics.heavy(); }
     this.attempts++;
     if (pts > 0) {
@@ -1135,7 +1178,7 @@ class Game {
       const s = this.save.get('settings');
       const offset = (s.latencyOffsetMs || 0) / 1000;
       for (const tile of this.engine.tiles) {
-        if (tile.status === 'pending' && now - offset > tile.hitTime + 0.26) {
+        if (tile.status === 'pending' && now - offset > tile.hitTime + 0.26 * this.engine.windowMul) {
           tile.status = 'missed';
           this.synth.playMiss();
           if (s.haptics && navigator.vibrate) navigator.vibrate(80);

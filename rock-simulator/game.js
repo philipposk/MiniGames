@@ -702,6 +702,13 @@ const Game = {
     this.state = loaded ? this.migrate(loaded) : freshState();
 
     if (window.MGTheme) MGTheme.init(THEME_KEY);
+    applyThemeColor();
+    if (window.matchMedia) {
+      const mq = matchMedia('(prefers-color-scheme: dark)');
+      const onScheme = () => applyThemeColor();
+      if (mq.addEventListener) mq.addEventListener('change', onScheme);
+      else if (mq.addListener) mq.addListener(onScheme);
+    }
     document.documentElement.setAttribute('data-reduced', this.settings.reducedMotion ? '1' : '0');
 
     RockView.init($('#game-canvas'));
@@ -714,18 +721,23 @@ const Game = {
     const offline = loaded ? this.applyOffline(loaded.savedAt) : null;
     UI.refreshAll();
 
-    if (offline && (offline.grit > 0 || offline.moss > 0)) UI.showOffline(offline);
+    if (offline && offline.elapsed >= 60 && (offline.grit > 0 || offline.moss > 0)) UI.showOffline(offline);
 
     this.rafLast = performance.now();
     requestAnimationFrame(t => this.frame(t));
 
+    // Phones suspend the tab the moment you switch apps: requestAnimationFrame
+    // stops, so on the way back we credit the gap the same way a cold load does.
     window.addEventListener('visibilitychange', () => {
-      if (document.hidden) this.save();
-      else { this.rafLast = performance.now(); }
+      if (document.hidden) { this.save(); return; }
+      this.rafLast = performance.now();
+      this.resumeFromBackground();
     });
+    window.addEventListener('pageshow', () => this.resumeFromBackground());
     window.addEventListener('pagehide', () => this.save());
     if (window.MGNative && MGNative.App) {
       MGNative.App.onPause(() => this.save());
+      MGNative.App.onResume(() => this.resumeFromBackground());
       MGNative.App.onBackButton(() => UI.back());
     }
     this.registerSW();
@@ -745,7 +757,7 @@ const Game = {
   // ---- offline catch-up -----------------------------------------------------
   applyOffline(savedAt) {
     const elapsed = (Date.now() - (savedAt || Date.now())) / 1000;
-    if (!isFinite(elapsed) || elapsed < 60) return null;
+    if (!isFinite(elapsed) || elapsed < 2) return null;
     const gSec = Math.min(elapsed, OFFLINE_GRIT_CAP_S);
     const mSec = Math.min(elapsed, OFFLINE_MOSS_CAP_S);
     const grit = Economy.gps() * gSec * OFFLINE_EFFICIENCY;
@@ -760,6 +772,16 @@ const Game = {
     this.checkEra(true);
     this.checkAchievements();
     return { grit, moss, elapsed };
+  },
+
+  resumeFromBackground() {
+    if (document.hidden) return;
+    const savedAt = this.state.savedAt;
+    const o = this.applyOffline(savedAt);
+    this.save();
+    AudioBus.resume();
+    if (o && o.elapsed >= 60 && (o.grit > 0 || o.moss > 0)) UI.showOffline(o);
+    UI.refreshAll();
   },
 
   // ---- main loop ------------------------------------------------------------
@@ -1049,6 +1071,7 @@ const UI = {
       if (th && window.MGTheme) {
         MGTheme.set(th.getAttribute('data-theme-pref'), THEME_KEY);
         this.syncThemeButtons();
+        applyThemeColor();
       }
     });
 
@@ -1470,6 +1493,18 @@ const UI = {
     });
   }
 };
+
+// The shared theme module paints the arcade's default blue into <meta theme-color>.
+// This game is stone, so we set our own after it runs (and whenever it changes) —
+// on Android the installed PWA takes its window chrome from this value.
+function applyThemeColor() {
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) return;
+  const pref = (window.MGTheme && MGTheme.get(THEME_KEY)) || 'system';
+  const dark = pref === 'dark' || (pref === 'system' &&
+    (!window.matchMedia || matchMedia('(prefers-color-scheme: dark)').matches));
+  meta.setAttribute('content', dark ? '#0d0b09' : '#efe9dd');
+}
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

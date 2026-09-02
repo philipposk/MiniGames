@@ -1,5 +1,5 @@
 /* Rock Simulator service worker — versioned cache, app-shell strategy. */
-const CACHE_VERSION = 'rock-simulator-v1';
+const CACHE_VERSION = 'rock-simulator-v3';
 const APP_SHELL = [
   './',
   './index.html',
@@ -7,6 +7,9 @@ const APP_SHELL = [
   './game.js',
   './manifest.webmanifest',
   './icons/icon.svg',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/apple-touch-icon.png',
   '../shared/theme.css',
   '../shared/theme.js',
   '../shared/identity.js',

@@ -1,5 +1,5 @@
 /* Helix Drop service worker — versioned cache, app-shell strategy. */
-const CACHE_VERSION = 'helix-drop-v2';
+const CACHE_VERSION = 'helix-drop-v3';
 const APP_SHELL = [
   './',
   './index.html',
@@ -9,10 +9,12 @@ const APP_SHELL = [
   './icons/icon.svg'
 ];
 
+// `cache: 'reload'` bypasses the HTTP cache, so a new version never re-caches
+// a stale asset the browser is still holding from the previous deploy.
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_VERSION)
-      .then((cache) => cache.addAll(APP_SHELL))
+      .then((cache) => cache.addAll(APP_SHELL.map((u) => new Request(u, { cache: 'reload' }))))
       .then(() => self.skipWaiting())
       .catch(() => { /* offline-friendly: don't crash install */ })
   );

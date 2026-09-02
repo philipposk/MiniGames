@@ -1,7 +1,7 @@
 /* Piano Tap - service worker */
 'use strict';
 
-const CACHE = 'piano-tap-v3';
+const CACHE = 'piano-tap-v4';
 const APP_SHELL = [
   './',
   './index.html',
@@ -11,9 +11,11 @@ const APP_SHELL = [
   './icons/icon.svg'
 ];
 
+// `cache: 'reload'` bypasses the HTTP cache, so a new version never re-caches
+// a stale asset the browser is still holding from the previous deploy.
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(APP_SHELL)).catch(() => {})
+    caches.open(CACHE).then((c) => c.addAll(APP_SHELL.map((u) => new Request(u, { cache: 'reload' })))).catch(() => {})
   );
   self.skipWaiting();
 });

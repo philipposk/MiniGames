@@ -18,10 +18,12 @@ const APP_SHELL = [
   '../shared/native.js'
 ];
 
+// `cache: 'reload'` bypasses the HTTP cache, so a new version never re-caches
+// a stale asset the browser is still holding from the previous deploy.
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_VERSION)
-      .then((cache) => cache.addAll(APP_SHELL))
+      .then((cache) => cache.addAll(APP_SHELL.map((u) => new Request(u, { cache: 'reload' }))))
       .then(() => self.skipWaiting())
       .catch(() => { /* offline-friendly: don't crash install */ })
   );

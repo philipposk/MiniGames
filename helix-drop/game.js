@@ -28,6 +28,9 @@ const SKINS = [
 ];
 
 const GHOST_POWER_COST = 50;
+// Keyboard hint stays at full strength until the player has rotated with the
+// keys this many times, then dims to a permanent reminder.
+const KBD_LEARNED_USES = 40;
 const SKIP_COST = 5;
 
 // Hand-tuned curve: 30 levels.
@@ -816,8 +819,8 @@ class Game {
     window.addEventListener('keydown', (e) => {
       if (e.repeat) return;
       const k = e.key.toLowerCase();
-      if (k === 'arrowleft' || k === 'a') this.input.keyLeft = true;
-      if (k === 'arrowright' || k === 'd') this.input.keyRight = true;
+      if (k === 'arrowleft' || k === 'a') { this.input.keyLeft = true; this._noteKeyboardUse(); }
+      if (k === 'arrowright' || k === 'd') { this.input.keyRight = true; this._noteKeyboardUse(); }
       if (k === 'p' || k === 'escape') {
         if (this.state === 'play') this.pause();
         else if (this.state === 'paused') this.resume();
@@ -1339,8 +1342,28 @@ class Game {
     if (this.settings.music) this.audio.setMusicOn(true);
   }
 
+  // Laptop players have no on-screen rotate buttons, so the key hint takes their
+  // place: full strength until they have actually rotated with the keyboard a
+  // few times, then it stays as a dim reminder rather than vanishing.
+  _refreshKeyHint() {
+    const el = document.getElementById('hud-keys');
+    if (!el) return;
+    const hasKeyboard = !!(window.matchMedia &&
+      matchMedia('(hover: hover) and (pointer: fine)').matches);
+    el.hidden = !hasKeyboard;
+    el.classList.toggle('is-learned', (SaveManager._get('kbdUses', 0) | 0) >= KBD_LEARNED_USES);
+  }
+  _noteKeyboardUse() {
+    const n = (SaveManager._get('kbdUses', 0) | 0) + 1;
+    if (n <= KBD_LEARNED_USES + 1) {
+      SaveManager._set('kbdUses', n);
+      if (n === KBD_LEARNED_USES) this._refreshKeyHint();
+    }
+  }
+
   _showHud(on) {
     document.getElementById('hud').hidden = !on;
+    if (on) this._refreshKeyHint();
     // mode label
     const lbl = document.getElementById('hud-mode-label');
     const val = document.getElementById('hud-mode');

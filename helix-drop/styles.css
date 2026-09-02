@@ -34,7 +34,10 @@ html, body {
   font-family: var(--font);
   overflow: hidden;
   overscroll-behavior: none;
-  touch-action: none;
+  /* `none` here blocks touch-scrolling in every descendant, so the longer
+     screens (levels, shop, settings) could not be panned with a finger.
+     `manipulation` still kills double-tap zoom; the canvas keeps `none`. */
+  touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -690,4 +693,40 @@ kbd {
     --card-border: rgba(15, 18, 40, 0.08);
     --shadow: 0 8px 32px rgba(15, 18, 40, 0.12);
   }
+}
+
+/* Scrollable screens pan vertically; the play surface stays locked. */
+.screen, .leaderboard-content, .howto-body, .settings-list { touch-action: pan-y; overscroll-behavior: contain; }
+
+/* Keyboard controls, shown only where there is a real pointer + keyboard.
+   Full strength until the player has used the keys, then a dim reminder. */
+.hud-keys {
+  pointer-events: none;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(7, 8, 28, 0.55);
+  border: 1px solid var(--card-border);
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  color: var(--fg-dim);
+  opacity: 0.9;
+  transition: opacity 0.4s ease;
+}
+.hud-keys[hidden] { display: none; }
+.hud-keys.is-learned { opacity: 0.32; }
+.hud-keys-sep { opacity: 0.5; }
+.hud-keys kbd {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--fg);
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  padding: 2px 7px;
+  margin-right: 3px;
 }

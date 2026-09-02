@@ -11,6 +11,10 @@ const TILE_HEIGHT_FRAC = 0.18; // of canvas height
 const LOOKAHEAD_MS = 100;
 const SCHEDULER_INTERVAL_MS = 25;
 const KEY_MAP = { 'd': 0, 'f': 1, 'j': 2, 'k': 3, 'D': 0, 'F': 1, 'J': 2, 'K': 3 };
+const LANE_KEYS = ['D', 'F', 'J', 'K']; // shown on the lanes for keyboard players
+// Keycaps stay on screen at full strength until the player has actually used the
+// keyboard this many times, then dim to a permanent reminder.
+const KBD_LEARNED_HITS = 60;
 
 // ============================================================
 // SAVE MANAGER
@@ -20,7 +24,7 @@ class SaveManager {
     this.defaults = {
       settings: { sfxVol: 70, musicVol: 80, haptics: true,
                   latencyOffsetMs: 0, colorblind: false, reducedMotion: false,
-                  difficulty: 'easy' },
+                  difficulty: 'easy', kbdHits: 0 },
       unlocks: { songsUnlocked: ['lullaby'] },
       leaderboard: {},
       bestPerSong: {},
@@ -712,6 +716,7 @@ class Game {
       const lane = KEY_MAP[e.key];
       if (lane !== undefined && !this.activeKeys.has(e.key)) {
         this.activeKeys.add(e.key);
+        this._noteKeyboardUse();
         this._tap(lane);
         e.preventDefault();
       }
@@ -1215,6 +1220,48 @@ class Game {
     else td.textContent = '';
   }
 
+  // Laptop players get no lane labels from a touchscreen, so we draw the keys on
+  // the lanes. Full strength until they have clearly learned them, dim after.
+  _hasKeyboard() {
+    return !!(window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches);
+  }
+  _noteKeyboardUse() {
+    const s = this.save.get('settings');
+    const n = (s.kbdHits || 0) + 1;
+    if (n <= KBD_LEARNED_HITS + 1) { s.kbdHits = n; this.save.set('settings', s); }
+  }
+  _drawKeyHints(ctx, w, h, hitY, laneW) {
+    if (!this._hasKeyboard()) return;
+    const learned = (this.save.get('settings').kbdHits || 0) >= KBD_LEARNED_HITS;
+    const alpha = learned ? 0.22 : 0.85;
+    const size = Math.max(16, Math.min(34, laneW * 0.34));
+    const y = Math.min(h - size * 0.9, hitY + size * 1.5);
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `800 ${size}px ui-sans-serif, system-ui, sans-serif`;
+    for (let i = 0; i < NUM_LANES; i++) {
+      const cx = i * laneW + laneW / 2;
+      const r = size * 0.78;
+      ctx.globalAlpha = alpha * 0.16;
+      ctx.fillStyle = '#0b0b18';
+      ctx.beginPath();
+      if (ctx.roundRect) { ctx.roundRect(cx - r, y - r, r * 2, r * 2, r * 0.34); }
+      else { ctx.rect(cx - r, y - r, r * 2, r * 2); }
+      ctx.fill();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = '#0b0b18';
+      ctx.fillText(LANE_KEYS[i], cx, y + 1);
+    }
+    if (!learned) {
+      ctx.globalAlpha = 0.7;
+      ctx.font = '600 13px ui-sans-serif, system-ui, sans-serif';
+      ctx.fillStyle = '#3a3a55';
+      ctx.fillText('press these keys when a tile reaches the line', w / 2, Math.min(h - 10, y + size * 1.5));
+    }
+    ctx.restore();
+  }
+
   _render() {
     const ctx = this.ctx;
     const w = this.width, h = this.height;
@@ -1249,6 +1296,8 @@ class Game {
     ctx.lineTo(w, hitY);
     ctx.stroke();
     ctx.shadowBlur = 0;
+
+    this._drawKeyHints(ctx, w, h, hitY, laneW);
 
     // Tiles
     if (this.state === 'playing' || this.state === 'paused') {

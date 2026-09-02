@@ -12,7 +12,7 @@ It's made for anyone who wants a quick, no-fuss bit of fun: a few minutes of bre
 - Lets you earn coins and spend them on cosmetic extras (skins, colors, hats)
 - Can be installed like a real app on your home screen
 
-The games include a brick-breaker, a color-timing game, an endless runner, a climbing puzzle, a ball-drop game, a tap-to-hop crossing game, and a piano rhythm game.
+The games include a brick-breaker, a color-timing game, an endless runner, a climbing puzzle, a ball-drop game, a tap-to-hop crossing game, a piano rhythm game, and an idle game where you are a rock and progress carries on while the tab is shut.
 
 ## Status
 Working website that you can also add to your phone like an app. The same files can be packaged into proper iOS and Android apps.

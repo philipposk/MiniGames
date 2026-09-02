@@ -1,0 +1,19 @@
+{
+  "name": "Rock Simulator",
+  "short_name": "RockSim",
+  "description": "You are a rock. Do nothing, brilliantly. An idle game about erosion, moss, and deep time.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0b09",
+  "theme_color": "#0d0b09",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "192x192 512x512 any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -78,7 +78,7 @@ create table if not exists scores (
   constraint detail_length check (detail is null or length(detail) <= 80),
   constraint game_id_allowed check (game_id in (
     'bounce-ball','color-clash','crossy-hop','helix-drop',
-    'piano-tap','stick-runner','the-rising'
+    'piano-tap','rock-simulator','stick-runner','the-rising'
   ))
 );
 

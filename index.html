@@ -4,21 +4,21 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#f4efe4" />
-  <meta name="description" content="MiniGames Arcade — 7 free browser games. No install, no ads, no sign-up." />
+  <meta name="description" content="MiniGames Arcade — 8 free browser games. No install, no ads, no sign-up." />
   <meta name="color-scheme" content="light dark" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="MiniGames" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="format-detection" content="telephone=no" />
-  <title>MiniGames Arcade — Seven small games.</title>
+  <title>MiniGames Arcade — Eight small games.</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icon.svg" />
 
   <!-- Open Graph -->
-  <meta property="og:title" content="MiniGames Arcade — Seven small games." />
-  <meta property="og:description" content="An arcade of seven offline-ready browser games. No accounts, no ads, no telemetry." />
+  <meta property="og:title" content="MiniGames Arcade — Eight small games." />
+  <meta property="og:description" content="An arcade of eight offline-ready browser games. No accounts, no ads, no telemetry." />
   <meta property="og:url" content="https://philipposk.github.io/MiniGames/" />
   <meta property="og:site_name" content="MiniGames Arcade" />
   <meta property="og:type" content="website" />
@@ -30,7 +30,7 @@
   <!-- Twitter / X -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="MiniGames Arcade" />
-  <meta name="twitter:description" content="Seven offline-ready browser games. No accounts, no ads, no telemetry." />
+  <meta name="twitter:description" content="Eight offline-ready browser games. No accounts, no ads, no telemetry." />
   <meta name="twitter:image" content="https://philipposk.github.io/MiniGames/icon.svg" />
 
   <!-- Structured data -->
@@ -39,7 +39,7 @@
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     "name": "MiniGames Arcade",
-    "description": "Seven free, offline-ready browser games — Bounce Ball, Color Clash, Stick Runner, The Rising, Helix Drop, Crossy Hop, Piano Tap.",
+    "description": "Eight free, offline-ready browser games — Bounce Ball, Color Clash, Stick Runner, The Rising, Helix Drop, Crossy Hop, Piano Tap, Rock Simulator.",
     "url": "https://philipposk.github.io/MiniGames/",
     "image": "https://philipposk.github.io/MiniGames/icon.svg",
     "isAccessibleForFree": true,
@@ -545,13 +545,13 @@
     <!-- Hero -->
     <section class="hero">
       <div>
-        <span class="eyebrow"><span class="bar"></span> Seven games · One tab · Zero install</span>
+        <span class="eyebrow"><span class="bar"></span> Eight games · One tab · Zero install</span>
         <h1>Small games,<br/>played in a <em>browser</em> tab.</h1>
       </div>
       <div class="hero-right">
-        <p>An arcade of seven offline-ready browser games. No accounts, no ads, no telemetry. Each one fits in your pocket and saves to your device.</p>
+        <p>An arcade of eight offline-ready browser games. No accounts, no ads, no telemetry. Each one fits in your pocket and saves to your device.</p>
         <div class="stats">
-          <div class="stat"><span class="n">7</span><span class="l">Games</span></div>
+          <div class="stat"><span class="n">8</span><span class="l">Games</span></div>
           <div class="stat"><span class="n">100%</span><span class="l">Offline</span></div>
           <div class="stat"><span class="n">0</span><span class="l">Trackers</span></div>
         </div>
@@ -567,11 +567,30 @@
           <button type="button" aria-pressed="false" data-filter="arcade">Arcade</button>
           <button type="button" aria-pressed="false" data-filter="puzzle">Puzzle</button>
           <button type="button" aria-pressed="false" data-filter="rhythm">Rhythm</button>
+          <button type="button" aria-pressed="false" data-filter="idle">Idle</button>
           <button type="button" aria-pressed="false" data-filter="new">New</button>
         </div>
       </div>
 
       <div class="grid" id="grid">
+        <!-- Featured: Rock Simulator -->
+        <a class="card is-featured" href="rock-simulator/" data-cats="idle new" aria-label="Play Rock Simulator">
+          <div class="thumb">
+            <img src="icons/rock-simulator.svg" alt="" />
+            <span class="corner"><span class="pulse" aria-hidden="true"></span> New</span>
+            <span class="num">G/08</span>
+          </div>
+          <div class="meta">
+            <h3 class="title">Rock Simulator</h3>
+            <span class="kind">Idle / incremental</span>
+          </div>
+          <p class="desc">You are a rock. Do nothing, brilliantly. Erode for grit, grow moss while you leave it alone, evolve from pebble to continent, then crumble for permanent sediment. Keeps earning while the tab is closed.</p>
+          <div class="footer-row">
+            <div class="tags"><span class="tag">idle</span><span class="tag">offline gains</span><span class="tag">prestige</span></div>
+            <span class="play">Play <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+          </div>
+        </a>
+
         <!-- Featured: Helix Drop -->
         <a class="card is-featured" href="helix-drop/" data-cats="arcade new" aria-label="Play Helix Drop">
           <div class="thumb">
@@ -712,7 +731,7 @@
 
     <footer>
       <span>© <span id="year">2026</span> · MiniGames Arcade · No tracking, no ads, no sign-up.</span>
-      <span class="keys">Quick-launch <span class="kbd">1</span><span class="kbd">2</span><span class="kbd">3</span> … <span class="kbd">7</span></span>
+      <span class="keys">Quick-launch <span class="kbd">1</span><span class="kbd">2</span><span class="kbd">3</span> … <span class="kbd">8</span></span>
       <span><a href="https://github.com/philipposk/MiniGames">View source ↗</a></span>
     </footer>
   </div>

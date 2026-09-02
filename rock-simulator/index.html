@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#0d0b09" />
+<meta name="description" content="Rock Simulator — you are a rock. Do nothing, brilliantly. An idle game about erosion, moss, and deep time." />
+<title>Rock Simulator</title>
+<script>(function(){try{var k='rock-simulator:v1:theme';var v=localStorage.getItem(k);if(v==='light'||v==='dark')document.documentElement.setAttribute('data-theme',v);}catch(e){}})();</script>
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
+<link rel="apple-touch-icon" href="./icons/icon.svg" />
+<link rel="stylesheet" href="../shared/theme.css" />
+<link rel="stylesheet" href="./styles.css" />
+<script src="../shared/theme.js" defer></script>
+</head>
+<body>
+<div id="app">
+
+  <!-- Canvas always exists behind everything. Screens float over it. -->
+  <canvas id="game-canvas" aria-label="Rock Simulator canvas"></canvas>
+
+  <!-- ============================ MENU ============================ -->
+  <section id="screen-menu" class="screen" data-screen="menu" aria-label="Main menu">
+    <div class="menu-card">
+      <h1 class="title">Rock<span class="title-accent">Simulator</span></h1>
+      <p class="subtitle">You are a rock. Do nothing, brilliantly.</p>
+      <nav class="menu-nav">
+        <button class="btn btn-primary" data-action="play">BE A ROCK</button>
+        <button class="btn" data-action="go-leaderboard">LEADERBOARD</button>
+        <button class="btn" data-action="go-settings">SETTINGS</button>
+        <button class="btn" data-action="go-howto">HOW TO PLAY</button>
+        <button class="btn btn-ghost" data-action="go-credits">CREDITS</button>
+      </nav>
+      <div class="menu-foot">
+        <span id="menu-era-line">Pebble · 0 grit</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ GAME ============================ -->
+  <section id="screen-game" class="screen" data-screen="game" hidden aria-label="Rock">
+    <header class="hud">
+      <button class="btn btn-back" data-action="back-menu" aria-label="Back to menu">‹</button>
+      <div class="hud-main">
+        <div class="hud-grit"><span id="hud-grit">0</span> <span class="unit">grit</span></div>
+        <div class="hud-rate"><span id="hud-gps">0</span>/s · <span id="hud-mult">×1</span></div>
+      </div>
+      <div class="hud-side">
+        <div class="hud-moss" title="Moss grows while you leave the rock alone">
+          <span class="moss-dot" aria-hidden="true"></span><span id="hud-moss">0</span>
+        </div>
+        <div class="hud-era" id="hud-era">Pebble</div>
+      </div>
+    </header>
+
+    <!-- Floating event banner -->
+    <div id="event-banner" class="event-banner" hidden role="status"></div>
+
+    <!-- Tap surface hint (the canvas itself takes the taps) -->
+    <div id="tap-hint" class="tap-hint">tap the rock</div>
+
+    <!-- Bottom sheet: tabs -->
+    <div class="sheet" id="sheet">
+      <div class="sheet-grip" id="sheet-grip" role="button" tabindex="0" aria-label="Expand or collapse panel"></div>
+      <nav class="tabbar" role="tablist" aria-label="Panels">
+        <button class="tab is-active" data-tab="erosion" role="tab" aria-selected="true">EROSION</button>
+        <button class="tab" data-tab="moss" role="tab" aria-selected="false">MOSS</button>
+        <button class="tab" data-tab="eras" role="tab" aria-selected="false">ERAS</button>
+        <button class="tab" data-tab="stats" role="tab" aria-selected="false">STATS</button>
+      </nav>
+
+      <div class="sheet-body">
+        <div class="panel is-active" id="panel-erosion" role="tabpanel">
+          <div id="upgrade-list" class="list"></div>
+        </div>
+
+        <div class="panel" id="panel-moss" role="tabpanel">
+          <p class="panel-note">Moss grows only while you are <em>not</em> tapping. Patience is a resource.</p>
+          <div id="moss-list" class="list"></div>
+        </div>
+
+        <div class="panel" id="panel-eras" role="tabpanel">
+          <div id="era-list" class="list"></div>
+          <div class="prestige-box">
+            <h3>ERODE</h3>
+            <p id="prestige-desc">Crumble everything back to gravel. Keep sediment forever.</p>
+            <div class="prestige-row">
+              <span>Sediment now</span><strong id="prestige-have">0</strong>
+            </div>
+            <div class="prestige-row">
+              <span>Sediment gained</span><strong id="prestige-gain">0</strong>
+            </div>
+            <div class="prestige-row">
+              <span>Bonus after</span><strong id="prestige-bonus">×1.00</strong>
+            </div>
+            <button class="btn btn-danger" id="btn-prestige" data-action="prestige">ERODE</button>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-stats" role="tabpanel">
+          <div id="stat-list" class="list stats"></div>
+          <h3 class="panel-sub">ACHIEVEMENTS</h3>
+          <div id="ach-list" class="ach-grid"></div>
+          <div class="panel-actions">
+            <button class="btn" data-action="share-score">SHARE</button>
+            <button class="btn" data-action="go-leaderboard">LEADERBOARD</button>
+            <button class="btn btn-ghost" data-action="wipe">WIPE SAVE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ LEADERBOARD ============================ -->
+  <section id="screen-leaderboard" class="screen" data-screen="leaderboard" hidden aria-label="Leaderboard">
+    <div class="screen-header">
+      <button class="btn btn-back" data-action="back" aria-label="Back">‹ BACK</button>
+      <h2>LEADERBOARD</h2>
+    </div>
+    <div class="tab-row" role="tablist">
+      <button class="tab is-active" data-lb="lifetime" role="tab">LIFETIME GRIT</button>
+      <button class="tab" data-lb="sediment" role="tab">SEDIMENT</button>
+    </div>
+    <div id="leaderboard-content" class="leaderboard-content"></div>
+  </section>
+
+  <!-- ============================ SETTINGS ============================ -->
+  <section id="screen-settings" class="screen" data-screen="settings" hidden aria-label="Settings">
+    <div class="screen-header">
+      <button class="btn btn-back" data-action="back" aria-label="Back">‹ BACK</button>
+      <h2>SETTINGS</h2>
+    </div>
+    <div class="settings-list">
+      <label class="setting-row"><span>SFX Volume</span><input type="range" id="set-sfx" min="0" max="100" value="80" /></label>
+      <label class="setting-row"><span>Ambience Volume</span><input type="range" id="set-music" min="0" max="100" value="35" /></label>
+      <label class="setting-row toggle"><span>Haptics</span><input type="checkbox" id="set-haptics" /></label>
+      <label class="setting-row toggle"><span>Colorblind Mode</span><input type="checkbox" id="set-colorblind" /></label>
+      <label class="setting-row toggle"><span>Reduced Motion</span><input type="checkbox" id="set-reducedmotion" /></label>
+      <label class="setting-row toggle"><span>Show Floating Numbers</span><input type="checkbox" id="set-floaters" /></label>
+      <div class="setting-row"><span>Player Name</span><div class="name-entry" id="name-entry-settings"></div></div>
+      <div class="setting-row">
+        <span>Theme</span>
+        <div class="theme-toggle" role="radiogroup" aria-label="Theme" id="themeToggle">
+          <button type="button" data-theme-pref="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-pref="dark" aria-pressed="false">Dark</button>
+          <button type="button" data-theme-pref="system" aria-pressed="true">Auto</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ HOW TO ============================ -->
+  <section id="screen-howto" class="screen" data-screen="howto" hidden aria-label="How to play">
+    <div class="screen-header">
+      <button class="btn btn-back" data-action="back" aria-label="Back">‹ BACK</button>
+      <h2>HOW TO PLAY</h2>
+    </div>
+    <div class="prose">
+      <h3>1. Tap the rock</h3>
+      <p>Every tap knocks loose a bit of <strong>grit</strong>. Grit is the whole economy. Yes, that is the entire skill ceiling.</p>
+      <h3>2. Buy erosion</h3>
+      <p>Rain, frost, rivers, glaciers, tectonics. Each one grinds grit off you while you do nothing at all.</p>
+      <h3>3. Grow moss</h3>
+      <p><strong>Moss</strong> only grows while you are not tapping. Put the phone down for a minute and come back richer. Moss buys permanent multipliers.</p>
+      <h3>4. Catch cracks</h3>
+      <p>Cracks open up on your surface at random. Tap one before it seals for a burst of grit or a frenzy.</p>
+      <h3>5. Evolve</h3>
+      <p>Enough lifetime grit and you graduate: Pebble → Stone → Boulder → Monolith → Meteorite → Mountain → Planetoid → Continent. Each era multiplies everything.</p>
+      <h3>6. Erode</h3>
+      <p>Prestige. Crumble back to a pebble, keep <strong>sediment</strong>, and every future run is permanently faster.</p>
+      <h3>Offline</h3>
+      <p>You keep eroding while the tab is closed — up to 8 hours of grit and 12 hours of moss. Rocks are patient.</p>
+    </div>
+  </section>
+
+  <!-- ============================ CREDITS ============================ -->
+  <section id="screen-credits" class="screen" data-screen="credits" hidden aria-label="Credits">
+    <div class="screen-header">
+      <button class="btn btn-back" data-action="back" aria-label="Back">‹ BACK</button>
+      <h2>CREDITS</h2>
+    </div>
+    <div class="prose">
+      <p>Rock Simulator — part of the MiniGames arcade.</p>
+      <p>Vanilla JS. No engine, no ads, no trackers, no network calls unless you opt into the global leaderboard. Works fully offline.</p>
+      <p>Sound is synthesised live with WebAudio. Every rock is procedurally generated from your save seed, so yours is genuinely yours.</p>
+      <p><a href="../">← Back to the arcade</a></p>
+    </div>
+  </section>
+
+  <!-- ============================ OVERLAYS ============================ -->
+  <div id="overlay-offline" class="overlay" hidden>
+    <div class="overlay-card">
+      <h2>WHILE YOU WERE GONE</h2>
+      <p class="offline-time" id="offline-time">—</p>
+      <div class="result-stats">
+        <div class="result-row"><span>GRIT</span><span id="offline-grit">+0</span></div>
+        <div class="result-row"><span>MOSS</span><span id="offline-moss">+0</span></div>
+      </div>
+      <p class="offline-quip" id="offline-quip"></p>
+      <button class="btn btn-primary" data-action="close-offline">NICE</button>
+    </div>
+  </div>
+
+  <div id="overlay-prestige" class="overlay" hidden>
+    <div class="overlay-card">
+      <h2>ERODE?</h2>
+      <p>Everything resets: grit, moss, erosion, era. You keep sediment and achievements.</p>
+      <div class="result-stats">
+        <div class="result-row"><span>SEDIMENT GAINED</span><span id="confirm-gain">0</span></div>
+        <div class="result-row"><span>NEW BONUS</span><span id="confirm-bonus">×1.00</span></div>
+      </div>
+      <button class="btn btn-danger" data-action="prestige-confirm">CRUMBLE ME</button>
+      <button class="btn" data-action="prestige-cancel">NOT YET</button>
+    </div>
+  </div>
+
+  <div id="overlay-era" class="overlay" hidden>
+    <div class="overlay-card">
+      <h2>YOU ARE NOW</h2>
+      <div class="era-big" id="era-big">STONE</div>
+      <p class="era-quip" id="era-quip"></p>
+      <div class="result-stats">
+        <div class="result-row"><span>ERA MULTIPLIER</span><span id="era-mult">×2</span></div>
+      </div>
+      <button class="btn btn-primary" data-action="close-era">CONTINUE BEING</button>
+      <button class="btn" data-action="share-score">SHARE</button>
+    </div>
+  </div>
+
+  <div id="overlay-achievement" class="achievement-pop" hidden>
+    <div class="ach-icon" aria-hidden="true">◆</div>
+    <div class="ach-text">
+      <div class="ach-title">Achievement</div>
+      <div class="ach-name" id="ach-name"></div>
+    </div>
+  </div>
+
+  <div id="overlay-toast" class="toast" hidden></div>
+
+</div>
+
+<script src="../shared/identity.js" defer></script>
+<script src="../shared/share.js" defer></script>
+<script src="../shared/leaderboard-remote.js" defer></script>
+<script src="../shared/native.js" defer></script>
+<script src="./game.js" defer></script>
+</body>
+</html>

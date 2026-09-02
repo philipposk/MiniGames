@@ -28,6 +28,7 @@ Capacitor CLI as a dev dependency.
 ├── crossy-road/
 ├── helix-drop/
 ├── piano-tap/
+├── rock-simulator/
 ├── stick-runner/
 ├── the-rising/
 └── shared/                # cross-game JS modules (theme, identity, share)

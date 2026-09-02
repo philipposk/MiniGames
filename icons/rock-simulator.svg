@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2b2318"></stop>
+      <stop offset="100%" stop-color="#0d0b09"></stop>
+    </linearGradient>
+    <linearGradient id="stone" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0%" stop-color="#b9ab93"></stop>
+      <stop offset="55%" stop-color="#7d7161"></stop>
+      <stop offset="100%" stop-color="#4a423a"></stop>
+    </linearGradient>
+    <linearGradient id="moss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8fd94f"></stop>
+      <stop offset="100%" stop-color="#4c8c2b"></stop>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="96" fill="url(#bg)"></rect>
+
+  <!-- strata -->
+  <g opacity="0.28" fill="#d9c7a3">
+    <rect x="0" y="372" width="512" height="26"></rect>
+    <rect x="0" y="416" width="512" height="14"></rect>
+    <rect x="0" y="452" width="512" height="34"></rect>
+  </g>
+
+  <!-- rock body -->
+  <path d="M118 352 L92 262 L150 176 L242 132 L344 158 L404 246 L392 336 L318 386 L188 388 Z"
+        fill="url(#stone)" stroke="#2f2a24" stroke-width="10" stroke-linejoin="round"></path>
+
+  <!-- facet highlights -->
+  <path d="M150 176 L242 132 L262 226 L168 258 Z" fill="#ffffff" opacity="0.16"></path>
+  <path d="M344 158 L404 246 L318 268 L262 226 Z" fill="#000000" opacity="0.16"></path>
+  <path d="M168 258 L262 226 L318 268 L292 358 L188 366 Z" fill="#000000" opacity="0.08"></path>
+
+  <!-- craters -->
+  <g fill="#000000" opacity="0.22">
+    <ellipse cx="206" cy="212" rx="20" ry="14"></ellipse>
+    <ellipse cx="338" cy="304" rx="15" ry="11"></ellipse>
+    <ellipse cx="242" cy="318" rx="11" ry="8"></ellipse>
+  </g>
+
+  <!-- moss patches -->
+  <g fill="url(#moss)">
+    <path d="M124 320 q28 -22 62 -12 q26 8 22 28 q-46 12 -84 6 Z"></path>
+    <path d="M300 172 q24 -18 48 -6 q16 8 10 22 q-34 6 -58 -4 Z" opacity="0.85"></path>
+  </g>
+
+  <!-- idle sparkle -->
+  <g fill="#d9c7a3" opacity="0.9">
+    <path d="M418 128 l8 22 22 8 -22 8 -8 22 -8 -22 -22 -8 22 -8 Z"></path>
+  </g>
+</svg>

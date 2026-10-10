@@ -1,7 +1,7 @@
 /* TEAM */
 
 Developer: Philippos Ktistakis
-Contact:   phktistakis [at] gmail.com
+Contact:   dev [at] 6x7.gr
 Site:      https://github.com/philipposk
 
 /* THANKS */

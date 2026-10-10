@@ -21,7 +21,7 @@ channel set up for the project.
 ## Enforcement
 
 If something happens — to you or to someone else — please open an issue
-with the `conduct` label, or email phktistakis@gmail.com. Reports are
+with the `conduct` label, or email dev@6x7.gr. Reports are
 read in private. The maintainers may remove comments, lock threads,
 revert commits, or, in serious cases, ban contributors.
 

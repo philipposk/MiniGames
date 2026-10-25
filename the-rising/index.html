@@ -62,13 +62,7 @@
         }
 
         #ui {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            text-align: center;
-            z-index: 10;
-            pointer-events: none;
+            display: none;
         }
 
         #level {
@@ -350,7 +344,7 @@
 
         <canvas id="gameCanvas" aria-label="The Rising game canvas" tabindex="0"></canvas>
 
-        <div class="instruction" id="bottomInstruction">TAP / SPACE place &middot; P pause &middot; R restart &middot; M mute &middot; H help</div>
+        <div class="instruction" id="bottomInstruction">Tap a level. Tap again to drop a boat on the stack.</div>
 
         <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
@@ -445,7 +439,7 @@
             <div class="modal">
                 <button class="close-x" aria-label="Close help" data-close="howModal">&times;</button>
                 <h2 id="howTitle">How to Play</h2>
-                <p style="font-size:14px; line-height:1.5; margin:10px 0;">The water rises. Stack floating blocks to climb toward the GOAL line. Tap or press SPACE to drop a moving block. Match overlap closely to save more people. Reach the GOAL line before the water reaches your hero.</p>
+                <p style="font-size:14px; line-height:1.5; margin:10px 0;">Tap when the moving boat is over the stack. The raft floats, so the water lifts the tower instead of drowning it. A miss falls in. Stack the boats the level asks for.</p>
                 <h3 style="font-size:14px; margin-top:12px; color:#4ecca3;">Controls</h3>
                 <p style="font-size:13px; line-height:1.6;">TAP / SPACE / ENTER &mdash; Place block<br>P or ESC &mdash; Pause<br>R &mdash; Restart<br>M &mdash; Mute<br>+ / - &mdash; Volume<br>Arrows &mdash; Navigate world map</p>
                 <button class="btn ghost" data-close="howModal">Got it</button>

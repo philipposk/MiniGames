@@ -104,6 +104,11 @@ const LEVELS = [
     { id: 19, startBlocks: 10, waterRiseRate: 0.62, goalHeight: 0.11, hazards: ['wind','fast','narrow'], targetTimeSec: 25 },
     { id: 20, startBlocks: 10, waterRiseRate: 0.68, goalHeight: 0.10, hazards: ['wind','fast','narrow'], targetTimeSec: 25 }
 ];
+
+/** How many boats make a finished tower. The old goal was a screen line the flood also climbed. */
+function blocksToWinFor(lvl) {
+    return Math.max(5, Math.round(4 + (0.42 - lvl.goalHeight) * 18));
+}
 const NUM_LEVELS = LEVELS.length;
 
 // ============================================================================
@@ -222,6 +227,7 @@ const game = {
 
         this.resizeCanvas();
         this.buildWorldMap();
+        this.updateUI();
 
         window.addEventListener('resize', () => {
             this.resizeCanvas();
@@ -339,6 +345,7 @@ const game = {
         this.hideMessage();
         this.scrollMapToHero();
         this._setGameOverActionsVisible(false);
+        this.updateUI();
     },
 
     setHash(h) {
@@ -840,7 +847,7 @@ const game = {
         config.canvas.height = screenHeight;
         config.block.width = Math.floor(screenWidth * 0.2);
         config.block.height = Math.floor(config.block.width * 0.5);
-        config.block.speed = Math.max(2, screenWidth * 0.005);
+        config.block.speed = Math.max(2.2, screenWidth / 140);
 
         if (this.state === 'menu') this.water.y = config.canvas.height - 200;
 
@@ -961,16 +968,18 @@ const game = {
     _topBarButtons() {
         const w = config.canvas.width;
         const items = [
-            { label: 'Settings',     hash: 'settings'     },
-            { label: 'Leaderboard',  hash: 'leaderboard'  },
-            { label: 'Achievements', hash: 'achievements' },
-            { label: 'Heroes',       hash: 'shop'         },
-            { label: 'Help',         hash: 'how-to'       }
+            { label: 'Set',   hash: 'settings' },
+            { label: 'Board', hash: 'leaderboard' },
+            { label: 'Stars', hash: 'achievements' },
+            { label: 'Skins', hash: 'shop' },
+            { label: 'Help',  hash: 'how-to' }
         ];
-        const bw = Math.min(70, (w - 20) / items.length);
-        const bh = 28;
-        const startX = (w - bw * items.length) / 2;
-        return items.map((it, i) => ({ ...it, x: startX + i * bw, y: 32, w: bw, h: bh }));
+        const gap = 6;
+        const bw = Math.min(72, Math.floor((w - 16 - gap * (items.length - 1)) / items.length));
+        const bh = 26;
+        const rowW = bw * items.length + gap * (items.length - 1);
+        const startX = (w - rowW) / 2;
+        return items.map((it, i) => ({ ...it, x: startX + i * (bw + gap), y: 44, w: bw, h: bh }));
     },
 
     mapNavigate(key) {
@@ -1102,18 +1111,6 @@ const game = {
             ctx.fill();
         }
 
-        // Title
-        ctx.fillStyle = '#4ecca3';
-        ctx.font = 'bold 28px Arial';
-        ctx.textAlign = 'center';
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 3;
-        ctx.strokeText('THE RISING', w / 2, 24);
-        ctx.fillText('THE RISING', w / 2, 24);
-
-        // Top-bar nav buttons
-        this._drawTopBarButtons();
-
         // Path lines between nodes (drawn first so nodes overlap)
         ctx.save();
         ctx.translate(0, -this.map.scrollY);
@@ -1157,8 +1154,25 @@ const game = {
 
         ctx.restore();
 
+        this._drawMapChrome();
+
         // Help overlay if open
         if (this.showHelp) this.drawHelpOverlay();
+    },
+
+    _drawMapChrome() {
+        const ctx = this.ctx;
+        const w = config.canvas.width;
+        ctx.fillStyle = '#0a1a3a';
+        ctx.fillRect(0, 0, w, 78);
+        ctx.fillStyle = '#4ecca3';
+        ctx.font = 'bold 26px Arial';
+        ctx.textAlign = 'center';
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 3;
+        ctx.strokeText('THE RISING', w / 2, 26);
+        ctx.fillText('THE RISING', w / 2, 26);
+        this._drawTopBarButtons();
     },
 
     _drawTopBarButtons() {
@@ -1298,6 +1312,7 @@ const game = {
         this.water.y = config.canvas.height - 200;
         this.water.rising = true;
         this.targetHeight = Math.max(40, config.canvas.height * lvl.goalHeight);
+        this.blocksToWin = blocksToWinFor(lvl);
         this.spawnFromLeft = true;
         this.direction = 1;
         this._levelFlashStart = performance.now();
@@ -1312,7 +1327,7 @@ const game = {
                 soundManager.playWaterAmbient();
             });
         }
-        this.showMessage(`LEVEL ${levelId}\n\nStack to the GOAL line`);
+        this.showMessage(`LEVEL ${levelId}\n\nStack ${this.blocksToWin} boats\nThe raft floats. A miss falls in.`);
         setTimeout(() => { if (this.state === 'playing') this.hideMessage(); }, 1800);
     },
 
@@ -1399,8 +1414,7 @@ const game = {
 
         if (placed) {
             this.blocksPlaced++;
-            if (this.stackedBlocks.length > 0 &&
-                this.stackedBlocks[this.stackedBlocks.length - 1].y <= this.targetHeight) {
+            if (this.stackedBlocks.length >= (this.blocksToWin || 6)) {
                 this.endLevel();
             } else {
                 this.spawnBlock();
@@ -1481,8 +1495,7 @@ const game = {
             return;
         }
 
-        const success = this.stackedBlocks.length > 0 &&
-            this.stackedBlocks[this.stackedBlocks.length - 1].y <= this.targetHeight;
+        const success = this.stackedBlocks.length >= (this.blocksToWin || 6);
 
         if (success) {
             // Count this as a freeze use
@@ -1710,8 +1723,18 @@ const game = {
 
             const dt60 = dt * 60;
             const riseRate = this.activeLevel ? this.activeLevel.waterRiseRate : config.water.riseSpeed;
-            if (this.water.rising && this.water.y > this.targetHeight - 40) {
+            if (this.water.rising && this.water.y > 80) {
                 this.water.y -= riseRate * dt60;
+            }
+
+            // The raft rides the flood. The base is not a person waiting to drown.
+            if (this.stackedBlocks.length) {
+                const base = this.stackedBlocks[0];
+                const ride = this.water.y - (base.y + base.height);
+                if (ride < -0.05) {
+                    for (let i = 0; i < this.stackedBlocks.length; i++) this.stackedBlocks[i].y += ride;
+                    if (this.currentBlock) this.currentBlock.y += ride;
+                }
             }
 
             this.deadBlocks.forEach(block => {
@@ -1721,21 +1744,19 @@ const game = {
                     if (block.y >= this.water.y) { block.y = this.water.y; block.falling = false; }
                 }
             });
-
-            this.stackedBlocks.forEach(block => {
-                if (block.y >= this.water.y && !block.drowned) {
-                    block.drowned = true;
-                    this.deadBlocks.push({ ...block, falling: false });
-                    if (window.MGNative) MGNative.Haptics.heavy();
-                    if (block.isHero) this.endLevel(true);
-                }
-            });
         } else if (this.state === 'freezing') {
             // dt-scale so the victory water-recede runs at the same real-time
             // speed on 120Hz / 30Hz as on 60Hz (matches the rising-water fix).
             const dt60 = dt * 60;
             if (this.water.y > 0) this.water.y -= config.water.freezeSpeed * dt60;
         }
+    },
+
+    goalWorldY() {
+        const n = this.blocksToWin || 6;
+        const hgt = config.block.height || 30;
+        if (!this.stackedBlocks.length) return this.water.y - n * hgt;
+        return this.stackedBlocks[0].y - (n - 1) * hgt;
     },
 
     draw() {
@@ -1754,6 +1775,13 @@ const game = {
             this.ending.draw(this.ctx);
             return;
         }
+
+        const focusY = this.currentBlock
+            ? this.currentBlock.y
+            : (this.stackedBlocks.length ? this.stackedBlocks[this.stackedBlocks.length - 1].y : this.water.y - 120);
+        const cam = h * 0.4 - focusY;
+        this.ctx.save();
+        this.ctx.translate(0, cam);
 
         this.drawWaterAndIce();
 
@@ -1776,14 +1804,15 @@ const game = {
         }
         this.ctx.lineWidth = 2;
         this.ctx.beginPath();
-        this.ctx.moveTo(0, this.targetHeight);
-        this.ctx.lineTo(w, this.targetHeight);
+        const goalY = this.goalWorldY();
+        this.ctx.moveTo(0, goalY);
+        this.ctx.lineTo(w, goalY);
         this.ctx.stroke();
         this.ctx.setLineDash([]);
         this.ctx.fillStyle = `rgba(255, 235, 80, ${pulse})`;
         this.ctx.font = 'bold 14px Arial';
         this.ctx.textAlign = 'left';
-        this.ctx.fillText('GOAL', 10, this.targetHeight - 6);
+        this.ctx.fillText('GOAL', 10, goalY - 6);
         this.ctx.restore();
 
         this.stackedBlocks.forEach(block => { if (!block.drowned) this.drawHuman(block); });
@@ -1795,8 +1824,8 @@ const game = {
 
         if (this.currentBlock) this.drawHuman(this.currentBlock, true);
 
+        this.ctx.restore();
         if (this.state === 'freezing' && this.hero) this.drawHeroCinematic();
-
         this.drawLevelFlash();
         this.drawHud();
         if (this.showHelp) this.drawHelpOverlay();
@@ -1821,7 +1850,8 @@ const game = {
         this.ctx.fillStyle = '#fff';
         this.ctx.font = '12px -apple-system, Arial, sans-serif';
         this.ctx.textAlign = 'left';
-        this.ctx.fillText(`L${this.levelId}  Score ${this.score}`, 8, 18);
+        const need = this.blocksToWin || 6;
+        this.ctx.fillText(`L${this.levelId}  ${this.stackedBlocks.length}/${need}  ${this.score}`, 8, 18);
         this.ctx.textAlign = 'center';
         this.ctx.fillText(`Best L${this.progress.bestLevel}  ${this.progress.bestScore}pts`, w / 2, 18);
         this.ctx.textAlign = 'right';
@@ -1864,7 +1894,7 @@ const game = {
         grad.addColorStop(0, 'rgba(64, 156, 255, 0.85)');
         grad.addColorStop(1, 'rgba(20, 60, 120, 0.95)');
         this.ctx.fillStyle = grad;
-        this.ctx.fillRect(0, this.water.y, config.canvas.width, config.canvas.height - this.water.y);
+        this.ctx.fillRect(0, this.water.y, config.canvas.width, config.canvas.height * 2);
 
         if (this.state === 'freezing') {
             const denom = Math.max(1, config.water.freezeHeight);
@@ -2134,10 +2164,17 @@ const game = {
     updateUI() {
         const levelEl = document.getElementById('level');
         const survEl = document.getElementById('survivors');
-        if (levelEl) levelEl.textContent = (this.screen === 'menu') ? 'WORLD MAP' : `LEVEL ${this.levelId}`;
-        if (survEl) survEl.textContent = (this.screen === 'menu')
+        const hint = document.getElementById('bottomInstruction');
+        const onMap = this.screen === 'menu';
+        if (levelEl) levelEl.textContent = onMap ? 'WORLD MAP' : `LEVEL ${this.levelId}`;
+        if (survEl) survEl.textContent = onMap
             ? `★ ${this.totalStars()} · Unlocked: ${this.progress.unlockedLevel}/${NUM_LEVELS}`
             : `BLOCKS: ${this.blocksRemaining}/${this.totalPeople}`;
+        if (hint) {
+            hint.textContent = onMap
+                ? 'Tap a level.'
+                : 'Tap when the boat is over the stack.';
+        }
     },
 
     showMessage(text) {
@@ -2156,6 +2193,7 @@ window.addEventListener('load', () => {
     try {
         if (window.MGTheme) MGTheme.init('the-rising:v1:theme');
         game.init();
+        window.__rising = game;
     } catch (e) {
         console.error('Error during game.init:', e);
         const msg = document.getElementById('message');

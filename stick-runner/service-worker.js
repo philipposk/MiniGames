@@ -1,5 +1,5 @@
 /* Stick Runner service worker — cache-first app shell, versioned. */
-const CACHE = 'stick-runner-v2';
+const CACHE = 'stick-runner-v3';
 const ASSETS = [
   './',
   './index.html',

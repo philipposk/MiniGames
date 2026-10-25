@@ -279,6 +279,20 @@ button {
   flex-wrap: wrap;
   justify-content: center;
 }
+#gameOverScreen .cta-row {
+  flex-direction: column;
+  align-items: stretch;
+  width: min(280px, 88vw);
+  margin-left: auto;
+  margin-right: auto;
+}
+#gameOverScreen .cta-row .button {
+  width: 100%;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  padding: 12px 16px;
+  color: #fff;
+}
 
 /* Game HUD */
 #gameScreen {

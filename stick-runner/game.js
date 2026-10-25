@@ -1415,19 +1415,18 @@
       const cb = state.settings.colorblind;
       if (type === 'ceiling') {
         switch (activeBiome.id) {
-          case 'forest': return { fill: 'rgba(120, 220, 130, 0.22)', stroke: 'rgba(120, 220, 130, 0.55)' };
-          case 'desert': return { fill: 'rgba(255, 180, 80, 0.22)', stroke: 'rgba(255, 180, 80, 0.55)' };
-          case 'city':   return { fill: 'rgba(255, 80, 200, 0.22)', stroke: 'rgba(255, 80, 200, 0.6)' };
-          case 'space':  return { fill: 'rgba(140, 200, 255, 0.22)', stroke: 'rgba(140, 200, 255, 0.6)' };
+          case 'forest': return { fill: '#3ecf6e', stroke: '#eafff0' };
+          case 'desert': return { fill: '#ff9a2e', stroke: '#fff2df' };
+          case 'city':   return { fill: '#ff4fa3', stroke: '#ffe6f4' };
+          case 'space':  return { fill: '#7ecbff', stroke: '#f2fbff' };
         }
       }
-      // ground
-      if (cb) return { fill: 'rgba(220,220,255,0.18)', stroke: 'rgba(255,255,255,0.7)' };
+      if (cb) return { fill: '#f4f4ff', stroke: '#ffffff' };
       switch (activeBiome.id) {
-        case 'forest': return { fill: 'rgba(80, 200, 100, 0.22)', stroke: 'rgba(80, 200, 100, 0.55)' };
-        case 'desert': return { fill: 'rgba(255, 150, 60, 0.22)', stroke: 'rgba(255, 150, 60, 0.55)' };
-        case 'city':   return { fill: 'rgba(180, 100, 255, 0.22)', stroke: 'rgba(180, 100, 255, 0.55)' };
-        case 'space':  return { fill: 'rgba(200, 200, 230, 0.22)', stroke: 'rgba(200, 200, 230, 0.55)' };
+        case 'forest': return { fill: '#2fbf5a', stroke: '#eafff0' };
+        case 'desert': return { fill: '#ff7a1a', stroke: '#fff2df' };
+        case 'city':   return { fill: '#b46bff', stroke: '#f6eaff' };
+        case 'space':  return { fill: '#d7d7ef', stroke: '#ffffff' };
       }
       return { fill: 'rgba(220,220,255,0.2)', stroke: 'rgba(220,220,255,0.4)' };
     }
@@ -1548,7 +1547,7 @@
       const spawnRate = Math.max(800, OBSTACLE_SPAWN_RATE - (gameSpeed - OBSTACLE_SPEED_INITIAL) * 40);
       if (now - lastObstacleSpawn > spawnRate) {
         const t = Math.random();
-        if (t < 0.7) {
+        if (t < 0.38) {
           const slideHeadY = GROUND_Y - 80 + 25;
           let obstacleBottomY;
           const variety = Math.random();
@@ -1594,15 +1593,15 @@
       const playerTop = actualHeadY - 10;
 
       obstacles.forEach(obs => {
-        const obsLeft = obs.x - 14;
-        const obsRight = obs.x + 34;
+        const obsLeft = obs.x - 2;
+        const obsRight = obs.x + 22;
 
         if (obs.type === 'ceiling' && obs.bottom !== undefined) {
           const slideHeadY = GROUND_Y - 80 + 25;
           const maxBottom = slideHeadY - 10;
           const obsBottomY = Math.min(obs.bottom, maxBottom);
           const playerHeadTop = isSliding ? playerY + 15 : playerY - 10;
-          if (PLAYER_X + 25 > obs.x - 20 && PLAYER_X < obs.x + 20 && playerHeadTop < obsBottomY) {
+          if (PLAYER_X + 22 > obs.x - 6 && PLAYER_X + 4 < obs.x + 26 && playerHeadTop < obsBottomY) {
             if (!isSliding && !gameOverPending) {
               gameOverPending = true;
               playMetalCling(); playGulp();

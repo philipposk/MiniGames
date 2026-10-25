@@ -454,58 +454,45 @@ class Helix {
     }
   }
 
-  /** Build segments around a ring: at least one gap, fill with alternating safe/kill arcs. */
+  /**
+   * One clean partition of the ring. Gaps and solids do not overlap, so the
+   * colour you see at the ball is the colour that is checked.
+   */
   _makeSegments(killPct, gapWidth, deterministic, idx, seed) {
     const rng = deterministic ? mulberry32(hash32(seed, idx)) : Math.random;
-    // 1 to 2 gaps
-    const gapCount = (rng() < 0.3) ? 2 : 1;
-    const segs = [];
-    let cursor = rng() * TAU;
-    let remaining = TAU;
-    // place gaps
+    const easy = idx < 2;
+    const gapCount = easy ? 1 : (rng() < 0.28 ? 2 : 1);
+    const gapW = Math.min(easy ? Math.max(gapWidth, 150 * DEG) : gapWidth, (TAU / gapCount) * 0.48);
+    const kill = easy ? Math.min(killPct, 0.08) : killPct;
     const gaps = [];
-    for (let i = 0; i < gapCount; i++) {
-      gaps.push(cursor % TAU);
-      cursor = (cursor + (TAU / gapCount)) % TAU;
-    }
+    const offset = rng() * TAU;
+    for (let i = 0; i < gapCount; i++) gaps.push((offset + (i * TAU) / gapCount) % TAU);
     gaps.sort((a, b) => a - b);
-    // sectors between gaps get carved into segments
-    // build a flat list of (gap, then sectorOfArcs)
-    for (let g = 0; g < gaps.length; g++) {
-      const start = gaps[g];
-      const end = (start + gapWidth) % TAU;
-      segs.push({ start, end, type: 'gap' });
-    }
-    // Now the remaining arc (TAU - gapCount * gapWidth) is divided into pieces.
-    const sectorCount = 6 + Math.floor(rng() * 4); // 6..9 sectors total around the ring
-    const sectorSpan = (TAU - gapCount * gapWidth) / sectorCount;
-    // walk between gaps and slice sectors
-    let walked = (gaps[0] + gapWidth) % TAU;
-    let placed = 0;
-    let gapIdx = 0;
-    while (placed < sectorCount) {
-      const nextGap = gaps[(gapIdx + 1) % gaps.length];
-      const distToNextGap = ((nextGap - walked) + TAU) % TAU;
-      // how many sectors fit before next gap
-      let pieces;
-      if (gapCount === 1) {
-        pieces = sectorCount - placed;
+
+    const linear = [];
+    const addArc = (start, len, type) => {
+      if (len <= 0.01) return;
+      let s = start % TAU;
+      if (s < 0) s += TAU;
+      if (s + len <= TAU + 0.0001) {
+        linear.push({ a: s, b: Math.min(TAU, s + len), type });
       } else {
-        pieces = Math.max(1, Math.round(distToNextGap / sectorSpan));
-        pieces = Math.min(pieces, sectorCount - placed);
+        linear.push({ a: s, b: TAU, type });
+        linear.push({ a: 0, b: (s + len) % TAU, type });
       }
+    };
+    for (let g = 0; g < gaps.length; g++) {
+      addArc(gaps[g], gapW, 'gap');
+      const solidStart = (gaps[g] + gapW) % TAU;
+      const nextGap = gaps[(g + 1) % gaps.length];
+      const solidLen = (nextGap - solidStart + TAU) % TAU;
+      const pieces = 2 + Math.floor(rng() * 2);
+      const span = solidLen / pieces;
       for (let i = 0; i < pieces; i++) {
-        const s = (walked + i * sectorSpan) % TAU;
-        const e = (s + sectorSpan) % TAU;
-        const type = rng() < killPct ? 'kill' : 'safe';
-        segs.push({ start: s, end: e, type });
-        placed++;
+        addArc(solidStart + i * span, span, rng() < kill ? 'kill' : 'safe');
       }
-      walked = (gaps[(gapIdx + 1) % gaps.length] + gapWidth) % TAU;
-      gapIdx = (gapIdx + 1) % gaps.length;
-      if (gapCount === 1 && placed >= sectorCount) break;
     }
-    return segs;
+    return linear.map((s) => ({ start: s.a, end: s.b, type: s.type }));
   }
 
   update(dt, inputDirection /* -1|0|+1 */, inputActive) {
@@ -1720,29 +1707,24 @@ class Game {
     ctx.restore();
   }
 
+  _ringGeom() {
+    const rx = Math.min(this.W * 0.38, 230);
+    // Flat ellipse. A tall ring swallows the ball so it looks stuck in the hole.
+    const ry = rx * 0.16;
+    const thickness = Math.max(16, rx * 0.11);
+    return { rx, ry, thickness };
+  }
+
   _renderHelix(ctx, W, H, cx, camY) {
-    const ringRadiusX = Math.min(W * 0.38, 230);
-    const ringRadiusY = ringRadiusX * 0.28;
-    // ring thickness
-    const thickness = Math.max(14, ringRadiusY * 0.6);
-    // visible window
+    const { rx, ry, thickness } = this._ringGeom();
     for (const disc of this.helix.discs) {
       const sy = disc.y - camY;
-      if (sy < -50 || sy > H + 100) continue;
-      this._renderDisc(ctx, disc, cx, sy, ringRadiusX, ringRadiusY, thickness);
+      if (sy < -80 || sy > H + 120) continue;
+      this._renderDisc(ctx, disc, cx, sy, rx, ry, thickness);
     }
   }
 
   _renderDisc(ctx, disc, cx, cy, rx, ry, thickness) {
-    // depth perspective: shrink rings further down slightly
-    const depth = 1; // could vary with distance
-    // draw shadow ellipse
-    ctx.save();
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
-    ctx.beginPath();
-    ctx.ellipse(cx, cy + ry * 0.55, rx * 0.95, ry * 0.45, 0, 0, TAU);
-    ctx.fill();
-    ctx.restore();
 
     // Draw each segment as a ring slice. Approach: stroke an elliptical arc
     // using parametric sampling.
@@ -1829,14 +1811,19 @@ class Game {
     ctx.restore();
   }
 
-  _renderBall(ctx, x, y) {
+  _renderBall(ctx, anchorX, anchorY) {
     const skinId = this.unlocks.equippedSkin || 'classic';
     const skin = SKINS.find((s) => s.id === skinId) || SKINS[0];
-    // soft shadow under ball
+    // Same angle the hit test uses. At rest that is the near rim, dead centre
+    // left-to-right, sitting on the coloured band rather than in the hole.
+    const { rx, ry } = this._ringGeom();
+    const a = this.ball.angle;
+    const x = anchorX + Math.cos(a) * rx * 0.02;
+    const y = anchorY + Math.sin(a) * (ry + this.ball.radius);
     ctx.save();
     ctx.fillStyle = 'rgba(0,0,0,0.45)';
     ctx.beginPath();
-    ctx.ellipse(x, y + this.ball.radius * 1.2, this.ball.radius * 0.9, this.ball.radius * 0.3, 0, 0, TAU);
+    ctx.ellipse(x, y + this.ball.radius * 0.85, this.ball.radius * 0.9, this.ball.radius * 0.28, 0, 0, TAU);
     ctx.fill();
     ctx.restore();
     skin.draw(ctx, x, y, this.ball.radius);

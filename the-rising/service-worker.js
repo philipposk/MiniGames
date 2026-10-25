@@ -1,7 +1,7 @@
 // The Rising - Service Worker
 // Cache-first app shell, versioned cache name.
 
-const CACHE_VERSION = 'the-rising-v2';
+const CACHE_VERSION = 'the-rising-v3';
 const APP_SHELL = [
     './',
     './index.html',

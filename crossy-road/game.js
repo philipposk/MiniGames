@@ -362,12 +362,16 @@ World.prototype.configureLane = function (type, row, diff) {
     return lane;
   }
   if (type === LANE_ROAD) {
-    const speed = 60 + r() * 80 + diff * 60;
+    const speed = 55 + r() * 45 + diff * 35;
     const lane = new Lane(LANE_ROAD, row, {
       dir: r() < 0.5 ? -1 : 1,
       speed: speed,
-      spawnEvery: 1.0 + r() * 2.5 - diff * 0.4,
+      spawnEvery: 1.4 + r() * 1.6,
     });
+    // A truck is two tiles. Leave a gap wide enough to stand in.
+    const minGap = TILE_W * 2.4;
+    const widest = TILE_W * 0.9 * 2;
+    lane.spawnEvery = Math.max(lane.spawnEvery, (widest + minGap) / lane.speed);
     return lane;
   }
   if (type === LANE_WATER) {
@@ -931,13 +935,9 @@ const Game = {
     this.particles.update(dt);
     if (this.shake > 0) this.shake = Math.max(0, this.shake - dt);
 
-    // camera lerp — slight forward bias
-    const targetY = this.hopper.y + TILE_H * 2;
+    // Follow the hopper. No invisible push from behind.
+    const targetY = this.hopper.y + TILE_H * 1.5;
     this.cameraY += (targetY - this.cameraY) * Math.min(1, dt * 4);
-
-    // forward scroll over time (force forward pressure based on score)
-    const pressure = 8 + Math.min(40, this.score * 0.4);
-    this.cameraY += pressure * dt;
 
     // ensure lanes ahead — pass hopper.row so we never trim it
     this.world.ensureLanesAhead(Math.floor(this.cameraY / TILE_H) + 12, this.hopper.row);
@@ -988,9 +988,11 @@ const Game = {
             // 6–13px sprite-free tail that caused unfair "cheap deaths" when
             // hopping in just behind a vehicle. Rail trains render full-width.
             const visW = (lane.type === LANE_RAIL) ? e.len * TILE_W : e.len * TILE_W * 0.9;
-            const lx = e.x, rx = e.x + visW;
+            // Inset so a car that only clips the tile edge does not count.
+            const pad = lane.type === LANE_RAIL ? 4 : 10;
+            const lx = e.x + pad, rx = e.x + visW - pad;
             const px = this.hopper.x + TILE_W * 0.5;
-            if (px > lx && px < rx) {
+            if (rx > lx && px > lx && px < rx) {
               if (lane.type === LANE_RAIL) {
                 this.particles.spawn(
                   this.hopper.x - this.cameraOffsetX(),
@@ -1206,6 +1208,14 @@ const Game = {
     } else if (lane.type === LANE_ICE) {
       ctx.fillStyle = (lane.row % 2 === 0) ? '#cfe8f5' : '#bfe1f2';
       ctx.fillRect(x0, y, wpx, TILE_H);
+      if (lane.iceObstacleCols) {
+        ctx.fillStyle = '#7f8c9a';
+        for (let c = 0; c < TILES_X; c++) {
+          if (!lane.iceObstacleCols[c]) continue;
+          const tx = x0 + c * TILE_W + TILE_W * 0.5;
+          ctx.fillRect(tx - 14, y + 6, 28, TILE_H - 12);
+        }
+      }
       // sparkle
       ctx.fillStyle = 'rgba(255,255,255,0.5)';
       for (let i = 0; i < 5; i++) {

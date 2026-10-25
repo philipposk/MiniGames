@@ -1,5 +1,5 @@
 /* Helix Drop service worker — versioned cache, app-shell strategy. */
-const CACHE_VERSION = 'helix-drop-v3';
+const CACHE_VERSION = 'helix-drop-v4';
 const APP_SHELL = [
   './',
   './index.html',

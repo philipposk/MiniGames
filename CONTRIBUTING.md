@@ -46,8 +46,8 @@ Every game has the same surface:
 
 - **Vanilla only.** No React, no Vue, no Svelte, no bundlers. If you find
   yourself reaching for one, file an issue first to discuss.
-- **No external CDNs at runtime.** Fonts are the only exception (Google Fonts
-  on the hub). Don't add jQuery, Lodash, animation libraries, etc.
+- **No external CDNs at runtime.** The hub typeface is self-hosted in
+  `shared/fonts/`. Don't add jQuery, Lodash, animation libraries, or a font host.
 - **No tracking.** No analytics, no Sentry, no Datadog, no Plausible (yet).
   See [`PRIVACY.md`](PRIVACY.md) — zero-collection is a feature, not an
   oversight.
@@ -64,8 +64,8 @@ Every game has the same surface:
 1. Copy the smallest existing game (`bounce-ball` or `helix-drop`) as a
    starting template.
 2. Pick a folder name (kebab-case).
-3. Wire it into the hub by adding a card in `/index.html` (with a 16:10
-   SVG thumbnail in `/icons/<game>.svg`).
+3. Wire it into the hub by adding a plate in `/index.html` (paint, a small
+   mark, one line on how to play). Keep an icon at `/icons/<game>.svg`.
 4. Reuse `shared/theme.js`, `shared/identity.js`, `shared/share.js`.
 5. Add a `manifest.webmanifest` + `service-worker.js` + `icons/icon.svg`.
 6. Update `README.md`'s game table.

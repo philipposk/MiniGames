@@ -1,20 +1,12 @@
-// MiniGames Arcade hub service worker — cache-first app shell with
-// stale-while-revalidate for shared modules and game thumbnails.
-const CACHE = 'minigames-hub-v3';
+// MiniGames hub service worker — cache-first app shell with
+// stale-while-revalidate for shared modules.
+const CACHE = 'minigames-hub-v4';
 const SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
   './icon.svg',
-  './icons/arcade.svg',
-  './icons/bounce-ball.svg',
-  './icons/color-clash.svg',
-  './icons/crossy-road.svg',
-  './icons/helix-drop.svg',
-  './icons/piano-tap.svg',
-  './icons/rock-simulator.svg',
-  './icons/stick-runner.svg',
-  './icons/the-rising.svg',
+  './shared/fonts/darker-grotesque-latin.woff2',
   './shared/identity.js',
   './shared/share.js',
   './shared/leaderboard-remote.js',

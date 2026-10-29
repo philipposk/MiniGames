@@ -1,6 +1,6 @@
 // MiniGames hub service worker — cache-first app shell with
 // stale-while-revalidate for shared modules.
-const CACHE = 'minigames-hub-v5';
+const CACHE = 'minigames-hub-v6';
 const SHELL = [
   './',
   './index.html',

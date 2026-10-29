@@ -1,244 +1,63 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <script>/* coming-soon guard: not playable yet */ if (!/[?&]preview=1/.test(location.search)) location.replace('../' + location.search.replace(/preview=[^&]*&?/, ''));</script>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-<meta name="theme-color" content="#0b0d2a" />
-<meta name="description" content="Helix Drop — rotate the tower, find the gap, drop to victory." />
-<title>Helix Drop</title>
-<script>(function(){try{var k='helix-drop:v1:theme';var v=localStorage.getItem(k);if(v==='light'||v==='dark')document.documentElement.setAttribute('data-theme',v);}catch(e){}})();</script>
-<link rel="manifest" href="./manifest.webmanifest" />
-<link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
-<link rel="apple-touch-icon" href="./icons/icon.svg" />
-<link rel="stylesheet" href="../shared/theme.css" />
-<link rel="stylesheet" href="./styles.css" />
-<script src="../shared/theme.js" defer></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <title>Helix Drop</title>
+  <meta name="description" content="Helix Drop: Turn the tower. Drop through the gaps.">
+  <meta name="theme-color" content="#1d2b4a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+  <link rel="stylesheet" href="styles.css">
+  <script src="i18n.js"></script>
+  <script src="../shared/i18n.js"></script>
 </head>
 <body>
-<div id="app">
+  <canvas id="c" aria-label="Game"></canvas>
 
-  <!-- The canvas always exists. Screens float over it. -->
-  <canvas id="game-canvas" aria-label="Helix Drop game canvas"></canvas>
-
-  <!-- ============================ MENU SCREEN ============================ -->
-  <section id="screen-menu" class="screen" data-screen="menu" aria-label="Main menu">
-    <div class="menu-card">
-      <h1 class="title">Helix<span class="title-accent">Drop</span></h1>
-      <p class="subtitle">Rotate the tower. Find the gap. Survive the drop.</p>
-      <nav class="menu-nav">
-        <button class="btn btn-primary" data-action="quick-play">PLAY</button>
-        <button class="btn" data-action="go-levels">LEVELS</button>
-        <button class="btn" data-action="go-endless">ENDLESS</button>
-        <button class="btn" data-action="go-daily">DAILY</button>
-        <button class="btn" data-action="go-leaderboard">LEADERBOARD</button>
-        <button class="btn" data-action="go-shop">SHOP</button>
-        <button class="btn" data-action="go-settings">SETTINGS</button>
-        <button class="btn" data-action="go-howto">HOW TO PLAY</button>
-        <button class="btn btn-ghost" data-action="go-credits">CREDITS</button>
-      </nav>
-      <div class="coin-display" aria-live="polite">
-        <span class="coin-icon" aria-hidden="true">★</span>
-        <span id="coin-count-menu">0</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================ LEVELS SCREEN ============================ -->
-  <section id="screen-levels" class="screen" data-screen="levels" hidden aria-label="Level select">
-    <div class="screen-header">
-      <button class="btn btn-back" data-action="back-menu" aria-label="Back to menu">‹ MENU</button>
-      <h2>LEVELS</h2>
-    </div>
-    <div id="level-grid" class="level-grid" role="list"></div>
-  </section>
-
-  <!-- ============================ LEADERBOARD SCREEN ============================ -->
-  <section id="screen-leaderboard" class="screen" data-screen="leaderboard" hidden aria-label="Leaderboards">
-    <div class="screen-header">
-      <button class="btn btn-back" data-action="back-menu" aria-label="Back to menu">‹ MENU</button>
-      <h2>LEADERBOARD</h2>
-    </div>
-    <div class="tab-row" role="tablist">
-      <button class="tab is-active" data-tab="endless" role="tab">ENDLESS</button>
-      <button class="tab" data-tab="daily" role="tab">DAILY</button>
-    </div>
-    <div id="leaderboard-content" class="leaderboard-content"></div>
-  </section>
-
-  <!-- ============================ SHOP SCREEN ============================ -->
-  <section id="screen-shop" class="screen" data-screen="shop" hidden aria-label="Shop">
-    <div class="screen-header">
-      <button class="btn btn-back" data-action="back-menu" aria-label="Back to menu">‹ MENU</button>
-      <h2>SHOP</h2>
-      <div class="coin-display">
-        <span class="coin-icon" aria-hidden="true">★</span>
-        <span id="coin-count-shop">0</span>
-      </div>
-    </div>
-    <h3 class="shop-sub">Ball Skins</h3>
-    <div id="skin-grid" class="skin-grid"></div>
-    <h3 class="shop-sub">Powers</h3>
-    <div id="power-grid" class="skin-grid"></div>
-  </section>
-
-  <!-- ============================ SETTINGS SCREEN ============================ -->
-  <section id="screen-settings" class="screen" data-screen="settings" hidden aria-label="Settings">
-    <div class="screen-header">
-      <button class="btn btn-back" data-action="back-menu" aria-label="Back to menu">‹ MENU</button>
-      <h2>SETTINGS</h2>
-    </div>
-    <div class="settings-list">
-      <label class="setting-row">
-        <span>SFX Volume</span>
-        <input type="range" id="set-sfx" min="0" max="100" value="80" />
-      </label>
-      <label class="setting-row">
-        <span>Music Volume</span>
-        <input type="range" id="set-music" min="0" max="100" value="40" />
-      </label>
-      <label class="setting-row toggle">
-        <span>Haptics</span>
-        <input type="checkbox" id="set-haptics" />
-      </label>
-      <label class="setting-row toggle">
-        <span>Colorblind Mode</span>
-        <input type="checkbox" id="set-colorblind" />
-      </label>
-      <label class="setting-row toggle">
-        <span>Reduced Motion</span>
-        <input type="checkbox" id="set-reducedmotion" />
-      </label>
-      <label class="setting-row">
-        <span>Player Name</span>
-        <div class="name-entry" id="name-entry-settings"></div>
-      </label>
-      <div class="setting-row">
-        <span>Theme</span>
-        <div class="theme-toggle" role="radiogroup" aria-label="Theme" id="themeToggle">
-          <button type="button" data-theme-pref="light" aria-pressed="false">Light</button>
-          <button type="button" data-theme-pref="dark" aria-pressed="false">Dark</button>
-          <button type="button" data-theme-pref="system" aria-pressed="true">Auto</button>
-        </div>
-      </div>
-      <button class="btn btn-danger" data-action="wipe-save">WIPE SAVE DATA</button>
-    </div>
-  </section>
-
-  <!-- ============================ HOW TO PLAY ============================ -->
-  <section id="screen-howto" class="screen" data-screen="howto" hidden aria-label="How to play">
-    <div class="screen-header">
-      <button class="btn btn-back" data-action="back-menu" aria-label="Back to menu">‹ MENU</button>
-      <h2>HOW TO PLAY</h2>
-    </div>
-    <div class="howto-body">
-      <p><strong>Drag</strong> the screen left or right to spin the tower.</p>
-      <p>Line the <span class="kw-safe">gap</span> up with the ball. The ball sits on the front of the ring, dead centre.</p>
-      <p>Land on <span class="kw-safe">green</span> = safe bounce. Hit <span class="kw-kill">red</span> = game over.</p>
-      <p>Chain drops without bouncing for a <strong>combo multiplier</strong>.</p>
-      <p>Keyboard: <kbd>A</kbd>/<kbd>D</kbd> or <kbd>←</kbd>/<kbd>→</kbd> to rotate, <kbd>P</kbd> or <kbd>Esc</kbd> to pause.</p>
-    </div>
-  </section>
-
-  <!-- ============================ CREDITS ============================ -->
-  <section id="screen-credits" class="screen" data-screen="credits" hidden aria-label="Credits">
-    <div class="screen-header">
-      <button class="btn btn-back" data-action="back-menu" aria-label="Back to menu">‹ MENU</button>
-      <h2>CREDITS</h2>
-    </div>
-    <div class="howto-body">
-      <p><strong>Helix Drop</strong></p>
-      <p>Code, art, and sound: built procedurally in pure JS + Canvas + WebAudio.</p>
-      <p>No external libraries. No tracking. No ads.</p>
-      <p>v1.0</p>
-    </div>
-  </section>
-
-  <!-- ============================ PLAY HUD ============================ -->
-  <div id="hud" class="hud" hidden aria-live="polite">
-    <div class="hud-top">
-      <button class="hud-btn" id="btn-pause" aria-label="Pause">II</button>
-      <div class="hud-stats">
-        <div class="hud-stat"><span class="hud-label">SCORE</span><span id="hud-score">0</span></div>
-        <div class="hud-stat"><span class="hud-label">DEPTH</span><span id="hud-depth">0</span></div>
-        <div class="hud-stat" id="hud-combo-wrap" hidden><span class="hud-label">COMBO</span><span id="hud-combo">x1</span></div>
-      </div>
-      <div class="hud-stat" id="hud-mode-wrap"><span class="hud-label" id="hud-mode-label">LV</span><span id="hud-mode">1</span></div>
-    </div>
-    <div class="hud-touch-buttons">
-      <button class="hud-rot" id="btn-rot-left" aria-label="Rotate left">◀</button>
-      <button class="hud-rot" id="btn-rot-right" aria-label="Rotate right">▶</button>
-    </div>
-    <!-- Keyboard players get no on-screen buttons, so the controls live here. -->
-    <div class="hud-keys" id="hud-keys" hidden>
-      <span><kbd>←</kbd><kbd>→</kbd> or <kbd>A</kbd><kbd>D</kbd> rotate</span>
-      <span class="hud-keys-sep">·</span>
-      <span><kbd>P</kbd> pause</span>
+  <div class="hud" id="hud" hidden>
+    <div class="lvlbox"><div class="score" id="score" data-no-i18n>0</div><div class="prog"><span class="lv">Level <b id="lvl" data-no-i18n>1</b></span><div class="track"><div class="bar" id="bar"></div></div></div></div>
+    <div class="right">
+      
+      <button class="icon" id="pauseBtn" aria-label="Pause">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg>
+      </button>
     </div>
   </div>
 
-  <!-- ============================ OVERLAYS ============================ -->
-  <div id="overlay-pause" class="overlay" hidden>
-    <div class="overlay-card">
-      <h2>PAUSED</h2>
-      <button class="btn btn-primary" data-action="resume">RESUME</button>
-      <button class="btn" data-action="restart">RESTART</button>
-      <button class="btn" data-action="quit">QUIT</button>
-    </div>
-  </div>
+  <div class="hint" id="hint" hidden><span>Drag left and right to turn the tower</span><span>Fall through 3 floors in a row to smash the next one</span></div>
 
-  <div id="overlay-gameover" class="overlay" hidden>
-    <div class="overlay-card">
-      <h2>GAME OVER</h2>
-      <div class="result-stats">
-        <div class="result-row"><span>SCORE</span><span id="result-score">0</span></div>
-        <div class="result-row"><span>DEPTH</span><span id="result-depth">0</span></div>
-        <div class="result-row"><span>COINS</span><span id="result-coins">+0</span></div>
-      </div>
-      <div id="result-newbest" class="newbest" hidden>NEW BEST!</div>
-      <div id="result-name-entry" hidden>
-        <p class="enter-name">ENTER YOUR NAME</p>
-        <div class="name-entry" id="name-entry-gameover"></div>
-        <button class="btn btn-primary" data-action="submit-score">SUBMIT</button>
-      </div>
-      <button class="btn btn-primary" data-action="restart">RETRY</button>
-      <button class="btn" data-action="share-score">SHARE</button>
-      <button class="btn" data-action="quit">QUIT</button>
-    </div>
-  </div>
+  <section class="card" id="start">
+    <a class="back" href="../" id="back1">‹ Games</a>
+    <h1>Helix Drop</h1>
+    <p class="sub">Turn the tower. Drop through the gaps.</p>
+    <div class="demo" aria-hidden="true"><div class="how"><span class="k">↔</span><span>Drag to turn the tower</span></div><div class="how"><span class="k">●</span><span>Fall through the gaps</span></div><div class="how"><span class="k">✕</span><span>Never land on red</span></div></div>
+    <p class="best" id="bestLine" hidden>Best <b id="best" data-no-i18n>0</b> · <span>Level</span> <b id="startLvl" data-no-i18n>1</b></p>
+    <button class="go" id="playBtn">Play</button>
+    <button class="mute" id="muteBtn" aria-label="Sound">Sound on</button>
+  </section>
 
-  <div id="overlay-levelclear" class="overlay" hidden>
-    <div class="overlay-card">
-      <h2>LEVEL CLEAR!</h2>
-      <div class="stars" id="result-stars" aria-label="Stars">★★★</div>
-      <div class="result-stats">
-        <div class="result-row"><span>SCORE</span><span id="result-clear-score">0</span></div>
-        <div class="result-row"><span>TIME</span><span id="result-clear-time">0s</span></div>
-        <div class="result-row"><span>COINS</span><span id="result-clear-coins">+0</span></div>
-      </div>
-      <button class="btn btn-primary" data-action="next-level">NEXT LEVEL</button>
-      <button class="btn" data-action="restart">REPLAY</button>
-      <button class="btn" data-action="share-score-clear">SHARE</button>
-      <button class="btn" data-action="quit">QUIT</button>
-    </div>
-  </div>
+  <section class="card" id="paused" hidden>
+    <h2>Paused</h2>
+    <button class="go" id="resumeBtn">Resume</button>
+    <button class="ghost" id="quitBtn">Menu</button>
+  </section>
 
-  <div id="overlay-achievement" class="achievement-pop" hidden>
-    <div class="ach-icon" aria-hidden="true">★</div>
-    <div class="ach-text">
-      <div class="ach-title">Achievement</div>
-      <div class="ach-name" id="ach-name"></div>
-    </div>
-  </div>
+  <section class="card" id="win" hidden>
+    <h2>Level <span id="wLvl" data-no-i18n>1</span> done!</h2>
+    <p class="sub">Score <b id="wScore" data-no-i18n>0</b></p>
+    <button class="go" id="nextBtn">Next level</button>
+  </section>
 
-  <div id="overlay-toast" class="toast" hidden></div>
+  <section class="card" id="over" hidden>
+    <h2>Game over</h2>
+    <p class="newbest" id="newBest" hidden>New best!</p>
+    <div class="stats"><div><small>Score</small><b id="oScore" data-no-i18n>0</b></div><div><small>Level</small><b id="oLvl" data-no-i18n>0</b></div><div><small>Best</small><b id="oBest" data-no-i18n>0</b></div></div>
+    <button class="go" id="againBtn">Play again</button>
+    <a class="ghost" href="../" id="back2">Back to games</a>
+  </section>
 
-</div>
-
-<script src="../shared/identity.js" defer></script>
-<script src="../shared/share.js" defer></script>
-<script src="../shared/leaderboard-remote.js" defer></script>
-<script src="../shared/native.js" defer></script>
-<script src="./game.js" defer></script>
+  <script src="game.js?v=5"></script>
 </body>
 </html>

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#e6e8ec" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#101114" media="(prefers-color-scheme: dark)" />
-  <meta name="description" content="Eight small games. Open one. No ads, no account." />
+  <meta name="description" content="Daily games and small games. No ads, no account." />
   <meta name="color-scheme" content="light dark" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -19,7 +19,7 @@
   <link rel="canonical" href="https://minigames.6x7.gr/" />
 
   <meta property="og:title" content="Mini Games" />
-  <meta property="og:description" content="Eight small games. Open one. No ads, no account." />
+  <meta property="og:description" content="Daily games and small games. No ads, no account." />
   <meta property="og:url" content="https://minigames.6x7.gr/" />
   <meta property="og:site_name" content="Mini Games" />
   <meta property="og:type" content="website" />
@@ -30,7 +30,7 @@
 
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Mini Games" />
-  <meta name="twitter:description" content="Eight small games. Open one. No ads, no account." />
+  <meta name="twitter:description" content="Daily games and small games. No ads, no account." />
   <meta name="twitter:image" content="https://minigames.6x7.gr/icon.svg" />
 
   <script type="application/ld+json">
@@ -46,6 +46,25 @@
   }
   </script>
 
+  <link rel="preconnect" href="https://ballpark.6x7.gr" crossorigin>
+  <link rel="preconnect" href="https://dailies.6x7.gr" crossorigin>
+  <script>window.MG_DICT = {
+    "Mini Games": {el:"Μίνι παιχνίδια",tr:"Mini oyunlar"}, "Mini games": {el:"Μίνι παιχνίδια",tr:"Mini oyunlar"},
+    "Daily games": {el:"Ημερήσια παιχνίδια",tr:"Günlük oyunlar"},
+    "Guess today's number.": {el:"Μάντεψε τον σημερινό αριθμό.",tr:"Bugünün sayısını tahmin et."},
+    "Word, Closer, and Scale.": {el:"Λέξη, Πιο κοντά και Κλίμακα.",tr:"Kelime, Yakın ve Ölçek."},
+    "Match the color.": {el:"Ταίριαξε το χρώμα.",tr:"Rengi eşleştir."},
+    "Hit the black tiles.": {el:"Πάτα τα μαύρα πλακίδια.",tr:"Siyah karolara dokun."},
+    "Be a rock.": {el:"Γίνε βράχος.",tr:"Kaya ol."},
+    "Jump and slide.": {el:"Πήδα και γλίστρα.",tr:"Zıpla ve kay."},
+    "Break the bricks. Pick your speed.": {el:"Σπάσε τα τούβλα. Διάλεξε ταχύτητα.",tr:"Tuğlaları kır. Hızını seç."},
+    "Coming soon": {el:"Έρχονται σύντομα",tr:"Yakında"}, "Soon": {el:"Σύντομα",tr:"Yakında"},
+    "Skip to the games": {el:"Μετάβαση στα παιχνίδια",tr:"Oyunlara geç"},
+    "Keys 1 to 5 open a game.": {el:"Τα πλήκτρα 1 έως 5 ανοίγουν παιχνίδι.",tr:"1-5 tuşları bir oyun açar."},
+    "No ads. No account. Progress stays on this device.": {el:"Χωρίς διαφημίσεις. Χωρίς λογαριασμό. Η πρόοδος μένει σε αυτή τη συσκευή.",tr:"Reklam yok. Hesap yok. İlerleme bu cihazda kalır."},
+    "Source": {el:"Κώδικας",tr:"Kaynak"}, "Hi": {el:"Γεια",tr:"Merhaba"}, "Your name (max 24 chars):": {el:"Το όνομά σου (έως 24 χαρακτήρες):",tr:"Adın (en fazla 24 karakter):"}, "Change your display name": {el:"Άλλαξε το όνομά σου",tr:"Görünen adını değiştir"}
+  };</script>
+  <script src="./shared/i18n.js"></script>
   <script src="./shared/identity.js" defer></script>
   <script src="./shared/share.js" defer></script>
   <script src="./shared/leaderboard-remote.js" defer></script>
@@ -295,52 +314,84 @@
       .mark { width: 52px; height: 52px; }
       .doors { grid-template-columns: 1fr 1fr; }
     }
+
+    .langs { display: flex; gap: 4px; padding-bottom: 6px; }
+    .langs button { appearance: none; border: 2px solid var(--ink); background: transparent; color: var(--ink); font-weight: 800; font-size: 1rem; padding: 3px 9px; cursor: pointer; }
+    .langs button[aria-pressed="true"] { background: var(--ink); color: var(--hall); }
+    .from { display: inline-block; margin-bottom: 10px; color: var(--quiet); font-weight: 700; font-size: 1.1rem; text-decoration: none; }
+    .feature { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: 1fr; }
+    .hero { display: flex; align-items: center; gap: 14px; min-height: 120px; padding: 14px 16px; text-decoration: none; touch-action: manipulation; }
+    .hero:active { filter: brightness(0.94); }
+    .hero:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+    .hero .name { font-size: 2.2rem; }
+    .hero-ballpark { background: #0d3b2e; color: #eafff5; }
+    .hero-dailies { background: #5a1f3c; color: #fff1f6; }
+    .anim { width: 128px; height: 72px; flex: none; }
+    .bp-ball { animation: bp 3.2s cubic-bezier(.45,0,.55,1) infinite; }
+    .bp-tag { animation: bptag 3.2s cubic-bezier(.45,0,.55,1) infinite; }
+    @keyframes bp { 0% { transform: translate(20px,55px); } 25% { transform: translate(60px,30px); } 50% { transform: translate(95px,55px); } 70% { transform: translate(70px,40px); } 85%,100% { transform: translate(69px,55px); } }
+    @keyframes bptag { 0%,80% { transform: translate(69px,55px) scale(0); opacity: 0; } 88%,100% { transform: translate(69px,55px) scale(1); opacity: 1; } }
+    .dl-t rect { fill: rgba(255,255,255,.14); stroke: rgba(255,255,255,.55); stroke-width: 2; }
+    .dl-t text { fill: #fff; font-size: 24px; font-weight: 900; }
+    .dl-t { transform-box: fill-box; transform-origin: center; animation: flip 3.6s ease-in-out infinite; }
+    .dl-2 { animation-delay: .25s; } .dl-3 { animation-delay: .5s; }
+    .dl-1 rect { animation: tg 3.6s infinite; } .dl-2 rect { animation: ty 3.6s .25s infinite; } .dl-3 rect { animation: tg 3.6s .5s infinite; }
+    @keyframes flip { 0%,20% { transform: scaleY(1); } 28% { transform: scaleY(0); } 36%,100% { transform: scaleY(1); } }
+    @keyframes tg { 0%,27% { fill: rgba(255,255,255,.14); } 29%,92% { fill: #3fae6a; } 100% { fill: rgba(255,255,255,.14); } }
+    @keyframes ty { 0%,27% { fill: rgba(255,255,255,.14); } 29%,92% { fill: #d6a72b; } 100% { fill: rgba(255,255,255,.14); } }
+    @media (prefers-reduced-motion: reduce) { .bp-ball, .bp-tag, .dl-t, .dl-t rect { animation: none !important; } .bp-ball { transform: translate(69px,55px); } }
+    .soon { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; grid-template-columns: 1fr 1fr 1fr; }
+    .later { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; padding: 12px; border: 2px dashed var(--quiet); color: var(--quiet); cursor: default; user-select: none; }
+    .later .name { font-size: 1.25rem; }
+    .badge { font-size: .95rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+    @media (min-width: 640px) { .feature { grid-template-columns: 1fr 1fr; gap: 12px; } }
+    @media (min-width: 1080px) { .wall { grid-template-columns: repeat(5, 1fr); } }
   </style>
 </head>
 <body>
   <a class="skip" href="#games">Skip to the games</a>
   <div class="hall">
+    <a class="from" id="from" href="https://umami.6x7.gr" hidden>‹ UMAMI</a>
     <header class="mast">
-      <h1>Mini Games</h1>
+      <h1>Games</h1>
+      <div class="langs" id="langs" role="group" aria-label="Language" data-no-i18n>
+        <button type="button" data-l="el">ΕΛ</button><button type="button" data-l="en">EN</button><button type="button" data-l="tr">TR</button>
+      </div>
       <button id="hi" class="hi" type="button" hidden>Hi</button>
     </header>
 
     <main>
-      <ul class="wall" id="games">
+      <ul class="feature" aria-label="Daily games">
         <li>
-          <a class="plate plate-bounce" href="bounce-ball/">
-            <svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="18" cy="15" r="7" fill="currentColor"/><path d="M8 36h28" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>
-            <span class="copy"><span class="name">Bounce Ball</span><span class="how">Break the bricks.</span></span>
+          <a class="hero hero-ballpark" href="https://ballpark.6x7.gr" data-warm>
+            <svg class="anim" viewBox="0 0 160 90" aria-hidden="true">
+              <line x1="12" y1="66" x2="148" y2="66" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+              <g opacity=".55" font-size="11" font-weight="800" fill="currentColor"><text x="8" y="84">0</text><text x="72" y="84">50</text><text x="136" y="84">100</text></g>
+              <line x1="12" y1="60" x2="12" y2="72" stroke="currentColor" stroke-width="3"/><line x1="80" y1="60" x2="80" y2="72" stroke="currentColor" stroke-width="3"/><line x1="148" y1="60" x2="148" y2="72" stroke="currentColor" stroke-width="3"/>
+              <g class="bp-ball"><circle cx="0" cy="0" r="9" fill="#ffd447"/><path d="M-6 -3q6 4 12 0M-6 3q6 -4 12 0" stroke="#c98a00" stroke-width="1.6" fill="none"/></g>
+              <g class="bp-tag"><rect x="-17" y="-34" width="34" height="18" rx="9" fill="#fff"/><text x="0" y="-21" text-anchor="middle" font-size="12" font-weight="900" fill="#0d3b2e">~42</text></g>
+            </svg>
+            <span class="copy"><span class="name">Ballpark</span><span class="how">Guess today's number.</span></span>
           </a>
         </li>
+        <li>
+          <a class="hero hero-dailies" href="https://dailies.6x7.gr" data-warm>
+            <svg class="anim" viewBox="0 0 160 90" aria-hidden="true">
+              <g class="dl-t dl-1"><rect x="14" y="22" width="38" height="42" rx="7"/><text x="33" y="51" text-anchor="middle">W</text></g>
+              <g class="dl-t dl-2"><rect x="61" y="22" width="38" height="42" rx="7"/><text x="80" y="51" text-anchor="middle">O</text></g>
+              <g class="dl-t dl-3"><rect x="108" y="22" width="38" height="42" rx="7"/><text x="127" y="51" text-anchor="middle">W</text></g>
+            </svg>
+            <span class="copy"><span class="name">Dailies</span><span class="how">Word, Closer, and Scale.</span></span>
+          </a>
+        </li>
+      </ul>
+
+      <h2 class="elsewhere">Mini games</h2>
+      <ul class="wall" id="games">
         <li>
           <a class="plate plate-color" href="color-clash/">
             <svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="12" width="20" height="20" fill="currentColor"/><rect x="22" y="18" width="20" height="20" fill="currentColor" opacity="0.45"/></svg>
             <span class="copy"><span class="name">Color Clash</span><span class="how">Match the color.</span></span>
-          </a>
-        </li>
-        <li>
-          <a class="plate plate-stick" href="stick-runner/">
-            <svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="34" cy="10" r="4" fill="currentColor"/><path d="M34 14 L26 26 L34 26 L40 40 M26 26 L16 34 M8 40h32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span class="copy"><span class="name">Stick Runner</span><span class="how">Run and jump.</span></span>
-          </a>
-        </li>
-        <li>
-          <a class="plate plate-rising" href="the-rising/">
-            <svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="32" width="36" height="6" fill="currentColor"/><rect x="12" y="22" width="24" height="6" fill="currentColor"/><rect x="17" y="12" width="14" height="6" fill="currentColor"/></svg>
-            <span class="copy"><span class="name">The Rising</span><span class="how">Climb above the ice.</span></span>
-          </a>
-        </li>
-        <li>
-          <a class="plate plate-helix" href="helix-drop/">
-            <svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><ellipse cx="24" cy="32" rx="14" ry="5" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="24" cy="14" r="6" fill="currentColor"/></svg>
-            <span class="copy"><span class="name">Helix Drop</span><span class="how">Drop through the helix.</span></span>
-          </a>
-        </li>
-        <li>
-          <a class="plate plate-crossy" href="crossy-road/">
-            <svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="4" y="30" width="40" height="5" fill="currentColor" opacity="0.35"/><rect x="4" y="18" width="40" height="5" fill="currentColor" opacity="0.35"/><circle cx="24" cy="9" r="5" fill="currentColor"/></svg>
-            <span class="copy"><span class="name">Crossy Hop</span><span class="how">Hop across.</span></span>
           </a>
         </li>
         <li>
@@ -355,27 +406,30 @@
             <span class="copy"><span class="name">Rock Simulator</span><span class="how">Be a rock.</span></span>
           </a>
         </li>
+        <li>
+          <a class="plate plate-stick" href="stick-runner/">
+            <svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="34" cy="10" r="4" fill="currentColor"/><path d="M34 14 L26 26 L34 26 L40 40 M26 26 L16 34 M8 40h32" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="copy"><span class="name">Stick Runner</span><span class="how">Jump and slide.</span></span>
+          </a>
+        </li>
+        <li>
+          <a class="plate plate-bounce" href="bounce-ball/">
+            <svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="18" cy="15" r="7" fill="currentColor"/><path d="M8 36h28" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>
+            <span class="copy"><span class="name">Bounce Ball</span><span class="how">Break the bricks. Pick your speed.</span></span>
+          </a>
+        </li>
       </ul>
 
-      <h2 class="elsewhere">Also on 6×7</h2>
-      <ul class="doors">
-        <li>
-          <a class="door" href="https://ballpark.6x7.gr">
-            <span class="copy"><span class="name">Ballpark</span><span class="how">Guess today's number.</span></span>
-            <span class="sr">Leaves this site.</span>
-          </a>
-        </li>
-        <li>
-          <a class="door" href="https://dailies.6x7.gr">
-            <span class="copy"><span class="name">Dailies</span><span class="how">Word, Closer, and Scale.</span></span>
-            <span class="sr">Leaves this site.</span>
-          </a>
-        </li>
+      <h2 class="elsewhere">Coming soon</h2>
+      <ul class="soon" aria-label="Coming soon">
+        <li class="later" aria-disabled="true"><span class="name">Crossy Hop</span><span class="badge">Soon</span></li>
+        <li class="later" aria-disabled="true"><span class="name">Helix Drop</span><span class="badge">Soon</span></li>
+        <li class="later" aria-disabled="true"><span class="name">The Rising</span><span class="badge">Soon</span></li>
       </ul>
     </main>
 
     <footer>
-      <p class="keys">Keys 1 to 8 open a game.</p>
+      <p class="keys">Keys 1 to 5 open a game.</p>
       <p>No ads. No account. Progress stays on this device.</p>
       <p><a href="https://github.com/philipposk/MiniGames">Source</a></p>
     </footer>
@@ -383,6 +437,46 @@
 
   <script>
     const plates = Array.from(document.querySelectorAll('.wall a'));
+    // Language: carry it into every game and the daily games.
+    (function () {
+      var L = window.MGI18n ? MGI18n.lang : 'en';
+      document.querySelectorAll('#langs button').forEach(function (b) {
+        b.setAttribute('aria-pressed', b.dataset.l === L ? 'true' : 'false');
+        b.addEventListener('click', function () { MGI18n.setLang(b.dataset.l); });
+      });
+      document.querySelectorAll('main a[href]').forEach(function (a) {
+        var u = new URL(a.getAttribute('href'), location.href);
+        u.searchParams.set('lang', L);
+        a.href = u.toString();
+      });
+      var q = new URLSearchParams(location.search);
+      if (q.get('from') === 'umami') { try { sessionStorage.setItem('mg_from', 'umami'); } catch (e) {} }
+      var from = null; try { from = sessionStorage.getItem('mg_from'); } catch (e) {}
+      if (from === 'umami') document.getElementById('from').hidden = false;
+    })();
+    // Ballpark and Dailies render on the server; wake them up as soon as the hall shows
+    // so the first tap doesn't pay for a cold start.
+    (function () {
+      var warmed = {};
+      function warm(a) {
+        var h = a.href; if (warmed[h]) return; warmed[h] = 1;
+        try { fetch(h, { mode: 'no-cors', credentials: 'omit', cache: 'no-store' }).catch(function () {}); } catch (e) {}
+      }
+      var hero = document.querySelectorAll('a[data-warm]');
+      var go = function () { hero.forEach(warm); };
+      if ('requestIdleCallback' in window) requestIdleCallback(go, { timeout: 1200 }); else setTimeout(go, 400);
+      // Mini games: prefetch a game's page and script the moment a finger lands on it.
+      document.querySelectorAll('.wall a').forEach(function (a) {
+        var done = false;
+        function pre() {
+          if (done) return; done = true;
+          var base = a.getAttribute('href').split('?')[0];
+          ['', 'game.js'].forEach(function (f) { var l = document.createElement('link'); l.rel = 'prefetch'; l.href = new URL(base + f, location.href).toString(); document.head.appendChild(l); });
+        }
+        a.addEventListener('pointerdown', pre, { passive: true });
+        a.addEventListener('mouseenter', pre, { passive: true });
+      });
+    })();
     document.addEventListener('keydown', (e) => {
       if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
       const tag = (e.target && e.target.tagName) || '';
@@ -401,7 +495,7 @@
       if (!chip) return;
       if (name) {
         chip.hidden = false;
-        chip.textContent = 'Hi, ' + name;
+        chip.textContent = (window.MGI18n ? MGI18n.t('Hi') : 'Hi') + ', ' + name;
         chip.setAttribute('aria-label', 'Change your display name');
       } else {
         chip.hidden = true;

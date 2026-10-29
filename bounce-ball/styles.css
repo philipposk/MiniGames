@@ -482,3 +482,12 @@ body:not(.in-game) #app { overflow-y: auto; }
     :root:not([data-theme="dark"]) .pause-overlay { background: rgba(238, 240, 250, 0.92); color: #15192e; }
     :root:not([data-theme="dark"]) .modal-overlay { background: rgba(15, 25, 60, 0.55); }
 }
+
+/* Ball speed picker on the menu */
+.pace-row { display: flex; align-items: center; gap: 6px; margin: 10px 0 4px; flex-wrap: wrap; }
+.pace-label { flex-basis: 100%; font-weight: 700; font-size: 0.9rem; opacity: 0.8; margin-right: 4px; }
+.pace-btn {
+  flex: 1 1 0; min-width: 60px; padding: 9px 6px; border-radius: 12px; border: 2px solid currentColor;
+  background: transparent; color: inherit; font: inherit; font-weight: 800; font-size: 0.85rem; cursor: pointer; opacity: 0.7;
+}
+.pace-btn.on { opacity: 1; background: #ff6b6b; border-color: #ff6b6b; color: #fff; }

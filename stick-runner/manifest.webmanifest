@@ -1,7 +1,7 @@
 {
   "name": "Stick Runner",
   "short_name": "Stick Runner",
-  "description": "Endless stick-figure runner with biomes, characters, and a shop.",
+  "description": "Run, jump the blocks, slide under the bars.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

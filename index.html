@@ -58,6 +58,10 @@
     "Be a rock.": {el:"Γίνε βράχος.",tr:"Kaya ol."},
     "Jump and slide.": {el:"Πήδα και γλίστρα.",tr:"Zıpla ve kay."},
     "Break the bricks. Pick your speed.": {el:"Σπάσε τα τούβλα. Διάλεξε ταχύτητα.",tr:"Tuğlaları kır. Hızını seç."},
+    "Cross the roads, rivers and rails.": {el:"Πέρνα δρόμους, ποτάμια και ράγες.",tr:"Yolları, nehirleri ve rayları geç."},
+    "Turn the tower. Drop through the gaps.": {el:"Γύρνα τον πύργο. Πέσε από τα κενά.",tr:"Kuleyi çevir. Boşluklardan düş."},
+    "Stack the blocks. Stay above the water.": {el:"Στοίβαξε τα τουβλάκια. Μείνε πάνω από το νερό.",tr:"Blokları üst üste koy. Suyun üstünde kal."},
+    "The Rising": {el:"Η Άνοδος",tr:"Yükseliş"},
     "Coming soon": {el:"Έρχονται σύντομα",tr:"Yakında"}, "Soon": {el:"Σύντομα",tr:"Yakında"},
     "Skip to the games": {el:"Μετάβαση στα παιχνίδια",tr:"Oyunlara geç"},
     "Keys 1 to 5 open a game.": {el:"Τα πλήκτρα 1 έως 5 ανοίγουν παιχνίδι.",tr:"1-5 tuşları bir oyun açar."},
@@ -234,6 +238,9 @@
 
     .plate-bounce { --paint: #14325f; --plate-ink: #f4f7fb; --mark: #ff6b6b; }
     .plate-color { --paint: #53448f; --plate-ink: #fff8f3; --mark: #ffe14a; }
+    .plate-crossy { --paint: #2f7d4a; --plate-ink: #f4fff6; --mark: #ffd34d; }
+    .plate-helix { --paint: #2a1f4d; --plate-ink: #fbf7ff; --mark: #ff5c7a; }
+    .plate-rising { --paint: #0f3d5c; --plate-ink: #eef9ff; --mark: #7fd4ff; }
     .plate-stick { --paint: #141824; --plate-ink: #f3fff7; --mark: #7fdfa5; }
     .plate-rising { --paint: #0e2d55; --plate-ink: #eaf4ff; --mark: #f9ca24; }
     .plate-helix { --paint: #2a1148; --plate-ink: #f3fff8; --mark: #3eecc0; }
@@ -418,13 +425,24 @@
             <span class="copy"><span class="name">Bounce Ball</span><span class="how">Break the bricks. Pick your speed.</span></span>
           </a>
         </li>
-      </ul>
-
-      <h2 class="elsewhere">Coming soon</h2>
-      <ul class="soon" aria-label="Coming soon">
-        <li class="later" aria-disabled="true"><span class="name">Crossy Hop</span><span class="badge">Soon</span></li>
-        <li class="later" aria-disabled="true"><span class="name">Helix Drop</span><span class="badge">Soon</span></li>
-        <li class="later" aria-disabled="true"><span class="name">The Rising</span><span class="badge">Soon</span></li>
+        <li>
+          <a class="plate plate-crossy" href="crossy-road/">
+            <svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="18" y="18" width="12" height="12" rx="2" fill="currentColor"/><path d="M6 38h36M6 10h36" stroke="currentColor" stroke-width="3" stroke-dasharray="6 4"/></svg>
+            <span class="copy"><span class="name">Crossy Hop</span><span class="how">Cross the roads, rivers and rails.</span></span>
+          </a>
+        </li>
+        <li>
+          <a class="plate plate-helix" href="helix-drop/">
+            <svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="21" y="4" width="6" height="40" fill="currentColor" opacity=".5"/><path d="M6 16h14M30 16h12M6 30h22M36 30h6" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="25" cy="10" r="4" fill="currentColor"/></svg>
+            <span class="copy"><span class="name">Helix Drop</span><span class="how">Turn the tower. Drop through the gaps.</span></span>
+          </a>
+        </li>
+        <li>
+          <a class="plate plate-rising" href="the-rising/">
+            <svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="14" y="10" width="20" height="7" fill="currentColor"/><rect x="12" y="19" width="22" height="7" fill="currentColor"/><rect x="14" y="28" width="20" height="7" fill="currentColor"/><path d="M4 40q5-4 10 0t10 0t10 0t10 0" fill="none" stroke="currentColor" stroke-width="3"/></svg>
+            <span class="copy"><span class="name">The Rising</span><span class="how">Stack the blocks. Stay above the water.</span></span>
+          </a>
+        </li>
       </ul>
     </main>
 

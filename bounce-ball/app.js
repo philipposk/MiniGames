@@ -51,6 +51,8 @@
         } catch (e) {}
     }
 
+    const PACES = [['slow', 'Slow'], ['normal', 'Normal'], ['fast', 'Fast'], ['turbo', 'Turbo']];
+
     function defaultSettings(sfx) {
         return {
             sfxVol: sfx === undefined ? 0.8 : sfx,
@@ -60,7 +62,7 @@
             reducedMotion: false,
             controlStyle: 'auto',
             sensitivity: 1.0,
-            language: 'en'
+            pace: 'normal'
         };
     }
 
@@ -281,6 +283,18 @@
             el('div', { class: 'daily-right' }, '▶')
         ]);
         screen.appendChild(daily);
+
+        // Ball speed, right on the menu so it is easy to find.
+        const pace = el('div', { class: 'pace-row', role: 'radiogroup', 'aria-label': 'Ball speed' });
+        pace.appendChild(el('span', { class: 'pace-label' }, 'Ball speed'));
+        PACES.forEach(([v, label]) => {
+            const on = (state.settings.pace || 'normal') === v;
+            pace.appendChild(el('button', {
+                class: 'pace-btn' + (on ? ' on' : ''), role: 'radio', 'aria-checked': on ? 'true' : 'false',
+                onclick: () => { state.settings.pace = v; saveAll(); renderMenu(); }
+            }, label));
+        });
+        screen.appendChild(pace);
 
         const gridWrap = el('div', { class: 'level-grid-wrap' });
         const grid = el('div', { class: 'level-grid', role: 'grid', 'aria-label': 'Levels' });
@@ -769,8 +783,8 @@
             if (state.game) state.game.setSettings(state.settings); saveAll();
         }, 0, 1, 0.05));
 
-        body.appendChild(selectRow('Language', state.settings.language, [['en', 'English']], (v) => {
-            state.settings.language = v; saveAll();
+        body.appendChild(selectRow('Ball speed', state.settings.pace || 'normal', PACES, (v) => {
+            state.settings.pace = v; if (state.game) state.game.setSettings(state.settings); saveAll();
         }));
 
         body.appendChild(themeRow());

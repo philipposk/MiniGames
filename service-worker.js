@@ -1,6 +1,6 @@
 // MiniGames hub service worker — cache-first app shell with
 // stale-while-revalidate for shared modules.
-const CACHE = 'minigames-hub-v4';
+const CACHE = 'minigames-hub-v5';
 const SHELL = [
   './',
   './index.html',
@@ -12,13 +12,16 @@ const SHELL = [
   './shared/leaderboard-remote.js',
   './shared/native.js',
   './shared/theme.js',
-  './shared/theme.css'
+  './shared/theme.css',
+  './shared/i18n.js'
 ];
+// Warm the first two games after install so they open instantly.
+const WARM = ['./color-clash/', './color-clash/game.js', './color-clash/styles.css', './color-clash/i18n.js', './piano-tap/', './piano-tap/game.js', './piano-tap/styles.css', './piano-tap/i18n.js'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE)
-      .then((c) => c.addAll(SHELL).catch(() => {}))
+      .then((c) => c.addAll(SHELL).catch(() => {}).then(() => { c.addAll(WARM).catch(() => {}); }))
       .then(() => self.skipWaiting())
   );
 });

@@ -1,12 +1,14 @@
 /* Stick Runner service worker — cache-first app shell, versioned. */
-const CACHE = 'stick-runner-v3';
+const CACHE = 'stick-runner-v4';
 const ASSETS = [
   './',
   './index.html',
   './game.js',
   './styles.css',
   './manifest.webmanifest',
-  './icons/icon.svg'
+  './icons/icon.svg',
+  './i18n.js',
+  '../shared/i18n.js'
 ];
 
 self.addEventListener('install', (event) => {

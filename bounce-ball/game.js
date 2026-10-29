@@ -457,7 +457,8 @@ class BounceBall {
     }
 
     getLevelSpeed() {
-        return Math.min(this.levelConfig.ballSpeed || config.ball.baseSpeed, config.ball.maxSpeed);
+        const pace = { slow: 0.75, normal: 1, fast: 1.3, turbo: 1.6 }[this.settings.pace] || 1;
+        return Math.min(this.levelConfig.ballSpeed || config.ball.baseSpeed, config.ball.maxSpeed) * pace;
     }
 
     resetField() {

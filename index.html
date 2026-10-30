@@ -90,7 +90,9 @@
     "Reflex": {el:"Αντανακλαστικά",tr:"Refleks"},
     "Chill": {el:"Χαλαρό",tr:"Sakin"},
     "Endless": {el:"Ατελείωτο",tr:"Sonsuz"},
-    "Precision": {el:"Ακρίβεια",tr:"Hassasiyet"}
+    "Precision": {el:"Ακρίβεια",tr:"Hassasiyet"},
+    "Best": {el:"Καλύτερο",tr:"En iyi"},
+    "plays": {el:"παιχνίδια",tr:"oynama"}
   };</script>
   <script src="./shared/i18n.js"></script>
   <script src="./shared/identity.js" defer></script>
@@ -203,6 +205,7 @@
       display: inline-block; padding: 2px 7px; border: 1px solid currentColor;
       font-size: .82rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; opacity: .82;
     }
+    .stat { font-size: .98rem; font-weight: 700; opacity: .78; }
 
     .plate-bounce { --paint: var(--game-bounce); --plate-ink: var(--game-bounce-ink); --mark: var(--game-bounce-mark); }
     .plate-color { --paint: var(--game-color); --plate-ink: var(--game-color-ink); --mark: var(--game-color-mark); }
@@ -320,7 +323,6 @@
       .wall { grid-template-columns: repeat(5, 1fr); }
     }
 
-    /* Arcade layout: emphasizes daily play and continuation. */
     body[data-layout="arcade"] .section-continue { display: block; }
     body[data-layout="classic"] .section-continue { display: none; }
     body[data-layout="arcade"] .wall { grid-template-columns: 1fr; }
@@ -356,28 +358,8 @@
       <section class="section section-today" aria-labelledby="today-title">
         <h2 class="section-title" id="today-title">Daily games</h2>
         <ul class="feature" aria-label="Daily games">
-          <li>
-            <a class="hero hero-ballpark" href="https://ballpark.6x7.gr" data-warm>
-              <svg class="anim" viewBox="0 0 160 90" aria-hidden="true">
-                <line x1="12" y1="66" x2="148" y2="66" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".5"/>
-                <g opacity=".55" font-size="11" font-weight="800" fill="currentColor"><text x="8" y="84">0</text><text x="72" y="84">50</text><text x="136" y="84">100</text></g>
-                <line x1="12" y1="60" x2="12" y2="72" stroke="currentColor" stroke-width="3"/><line x1="80" y1="60" x2="80" y2="72" stroke="currentColor" stroke-width="3"/><line x1="148" y1="60" x2="148" y2="72" stroke="currentColor" stroke-width="3"/>
-                <g class="bp-ball"><circle cx="0" cy="0" r="9" fill="#ffd447"/><path d="M-6 -3q6 4 12 0M-6 3q6 -4 12 0" stroke="#c98a00" stroke-width="1.6" fill="none"/></g>
-                <g class="bp-tag"><rect x="-17" y="-34" width="34" height="18" rx="9" fill="#fff"/><text x="0" y="-21" text-anchor="middle" font-size="12" font-weight="900" fill="#0d3b2e">~42</text></g>
-              </svg>
-              <span class="copy"><span class="name">Ballpark</span><span class="how">Guess today's number.</span></span>
-            </a>
-          </li>
-          <li>
-            <a class="hero hero-dailies" href="https://dailies.6x7.gr" data-warm>
-              <svg class="anim" viewBox="0 0 160 90" aria-hidden="true">
-                <g class="dl-t dl-1"><rect x="14" y="22" width="38" height="42" rx="7"/><text x="33" y="51" text-anchor="middle">W</text></g>
-                <g class="dl-t dl-2"><rect x="61" y="22" width="38" height="42" rx="7"/><text x="80" y="51" text-anchor="middle">O</text></g>
-                <g class="dl-t dl-3"><rect x="108" y="22" width="38" height="42" rx="7"/><text x="127" y="51" text-anchor="middle">W</text></g>
-              </svg>
-              <span class="copy"><span class="name">Dailies</span><span class="how">Word, Closer, and Scale.</span></span>
-            </a>
-          </li>
+          <li><a class="hero hero-ballpark" href="https://ballpark.6x7.gr" data-warm><svg class="anim" viewBox="0 0 160 90" aria-hidden="true"><line x1="12" y1="66" x2="148" y2="66" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".5"/><g opacity=".55" font-size="11" font-weight="800" fill="currentColor"><text x="8" y="84">0</text><text x="72" y="84">50</text><text x="136" y="84">100</text></g><line x1="12" y1="60" x2="12" y2="72" stroke="currentColor" stroke-width="3"/><line x1="80" y1="60" x2="80" y2="72" stroke="currentColor" stroke-width="3"/><line x1="148" y1="60" x2="148" y2="72" stroke="currentColor" stroke-width="3"/><g class="bp-ball"><circle cx="0" cy="0" r="9" fill="#ffd447"/><path d="M-6 -3q6 4 12 0M-6 3q6 -4 12 0" stroke="#c98a00" stroke-width="1.6" fill="none"/></g><g class="bp-tag"><rect x="-17" y="-34" width="34" height="18" rx="9" fill="#fff"/><text x="0" y="-21" text-anchor="middle" font-size="12" font-weight="900" fill="#0d3b2e">~42</text></g></svg><span class="copy"><span class="name">Ballpark</span><span class="how">Guess today's number.</span></span></a></li>
+          <li><a class="hero hero-dailies" href="https://dailies.6x7.gr" data-warm><svg class="anim" viewBox="0 0 160 90" aria-hidden="true"><g class="dl-t dl-1"><rect x="14" y="22" width="38" height="42" rx="7"/><text x="33" y="51" text-anchor="middle">W</text></g><g class="dl-t dl-2"><rect x="61" y="22" width="38" height="42" rx="7"/><text x="80" y="51" text-anchor="middle">O</text></g><g class="dl-t dl-3"><rect x="108" y="22" width="38" height="42" rx="7"/><text x="127" y="51" text-anchor="middle">W</text></g></svg><span class="copy"><span class="name">Dailies</span><span class="how">Word, Closer, and Scale.</span></span></a></li>
         </ul>
       </section>
 
@@ -395,14 +377,14 @@
       <section class="section section-arcade" aria-labelledby="arcade-title">
         <h2 class="section-title" id="arcade-title">Mini games</h2>
         <ul class="wall" id="games">
-          <li><a class="plate plate-color" href="color-clash/" data-game="Color Clash"><svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="12" width="20" height="20" fill="currentColor"/><rect x="22" y="18" width="20" height="20" fill="currentColor" opacity="0.45"/></svg><span class="copy"><span class="name">Color Clash</span><span class="how">Match the color.</span><span class="meta"><span class="chip" data-i18n="Quick">Quick</span></span></span></a></li>
-          <li><a class="plate plate-piano" href="piano-tap/" data-game="Piano Tap"><svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="4" y="8" width="8" height="32" fill="currentColor" opacity="0.35"/><rect x="15" y="8" width="8" height="32" fill="currentColor"/><rect x="26" y="8" width="8" height="32" fill="currentColor" opacity="0.35"/><rect x="37" y="8" width="8" height="32" fill="currentColor" opacity="0.35"/></svg><span class="copy"><span class="name">Piano Tap</span><span class="how">Hit the black tiles.</span><span class="meta"><span class="chip" data-i18n="Reflex">Reflex</span></span></span></a></li>
-          <li><a class="plate plate-rock" href="rock-simulator/" data-game="Rock Simulator"><svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><path d="M10 30 L16 16 L28 11 L40 22 L36 37 L18 39 Z" fill="currentColor"/></svg><span class="copy"><span class="name">Rock Simulator</span><span class="how">Be a rock.</span><span class="meta"><span class="chip" data-i18n="Chill">Chill</span></span></span></a></li>
-          <li><a class="plate plate-stick" href="stick-runner/" data-game="Stick Runner"><svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="34" cy="10" r="4" fill="currentColor"/><path d="M34 14 L26 26 L34 26 L40 40 M26 26 L16 34 M8 40h32" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="copy"><span class="name">Stick Runner</span><span class="how">Jump and slide.</span><span class="meta"><span class="chip" data-i18n="Endless">Endless</span></span></span></a></li>
-          <li><a class="plate plate-bounce" href="bounce-ball/" data-game="Bounce Ball"><svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="18" cy="15" r="7" fill="currentColor"/><path d="M8 36h28" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg><span class="copy"><span class="name">Bounce Ball</span><span class="how">Break the bricks. Pick your speed.</span><span class="meta"><span class="chip" data-i18n="Quick">Quick</span></span></span></a></li>
-          <li><a class="plate plate-crossy" href="crossy-road/" data-game="Crossy Hop"><svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="18" y="18" width="12" height="12" rx="2" fill="currentColor"/><path d="M6 38h36M6 10h36" stroke="currentColor" stroke-width="3" stroke-dasharray="6 4"/></svg><span class="copy"><span class="name">Crossy Hop</span><span class="how">Cross the roads, rivers and rails.</span><span class="meta"><span class="chip" data-i18n="Endless">Endless</span></span></span></a></li>
-          <li><a class="plate plate-helix" href="helix-drop/" data-game="Helix Drop"><svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="21" y="4" width="6" height="40" fill="currentColor" opacity=".5"/><path d="M6 16h14M30 16h12M6 30h22M36 30h6" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="25" cy="10" r="4" fill="currentColor"/></svg><span class="copy"><span class="name">Helix Drop</span><span class="how">Turn the tower. Drop through the gaps.</span><span class="meta"><span class="chip" data-i18n="Reflex">Reflex</span></span></span></a></li>
-          <li><a class="plate plate-rising" href="the-rising/" data-game="The Rising"><svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="14" y="10" width="20" height="7" fill="currentColor"/><rect x="12" y="19" width="22" height="7" fill="currentColor"/><rect x="14" y="28" width="20" height="7" fill="currentColor"/><path d="M4 40q5-4 10 0t10 0t10 0t10 0" fill="none" stroke="currentColor" stroke-width="3"/></svg><span class="copy"><span class="name">The Rising</span><span class="how">Stack the blocks. Stay above the water.</span><span class="meta"><span class="chip" data-i18n="Precision">Precision</span></span></span></a></li>
+          <li><a class="plate plate-color" href="color-clash/" data-game="Color Clash"><svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="12" width="20" height="20" fill="currentColor"/><rect x="22" y="18" width="20" height="20" fill="currentColor" opacity="0.45"/></svg><span class="copy"><span class="name">Color Clash</span><span class="how">Match the color.</span><span class="meta"><span class="chip" data-i18n="Quick">Quick</span></span><span class="stat" data-stat="color-clash"></span></span></a></li>
+          <li><a class="plate plate-piano" href="piano-tap/" data-game="Piano Tap"><svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="4" y="8" width="8" height="32" fill="currentColor" opacity="0.35"/><rect x="15" y="8" width="8" height="32" fill="currentColor"/><rect x="26" y="8" width="8" height="32" fill="currentColor" opacity="0.35"/><rect x="37" y="8" width="8" height="32" fill="currentColor" opacity="0.35"/></svg><span class="copy"><span class="name">Piano Tap</span><span class="how">Hit the black tiles.</span><span class="meta"><span class="chip" data-i18n="Reflex">Reflex</span></span><span class="stat" data-stat="piano-tap"></span></span></a></li>
+          <li><a class="plate plate-rock" href="rock-simulator/" data-game="Rock Simulator"><svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><path d="M10 30 L16 16 L28 11 L40 22 L36 37 L18 39 Z" fill="currentColor"/></svg><span class="copy"><span class="name">Rock Simulator</span><span class="how">Be a rock.</span><span class="meta"><span class="chip" data-i18n="Chill">Chill</span></span><span class="stat" data-stat="rock-simulator"></span></span></a></li>
+          <li><a class="plate plate-stick" href="stick-runner/" data-game="Stick Runner"><svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="34" cy="10" r="4" fill="currentColor"/><path d="M34 14 L26 26 L34 26 L40 40 M26 26 L16 34 M8 40h32" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="copy"><span class="name">Stick Runner</span><span class="how">Jump and slide.</span><span class="meta"><span class="chip" data-i18n="Endless">Endless</span></span><span class="stat" data-stat="stick-runner"></span></span></a></li>
+          <li><a class="plate plate-bounce" href="bounce-ball/" data-game="Bounce Ball"><svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="18" cy="15" r="7" fill="currentColor"/><path d="M8 36h28" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg><span class="copy"><span class="name">Bounce Ball</span><span class="how">Break the bricks. Pick your speed.</span><span class="meta"><span class="chip" data-i18n="Quick">Quick</span></span><span class="stat" data-stat="bounce-ball"></span></span></a></li>
+          <li><a class="plate plate-crossy" href="crossy-road/" data-game="Crossy Hop"><svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="18" y="18" width="12" height="12" rx="2" fill="currentColor"/><path d="M6 38h36M6 10h36" stroke="currentColor" stroke-width="3" stroke-dasharray="6 4"/></svg><span class="copy"><span class="name">Crossy Hop</span><span class="how">Cross the roads, rivers and rails.</span><span class="meta"><span class="chip" data-i18n="Endless">Endless</span></span><span class="stat" data-stat="crossy-road"></span></span></a></li>
+          <li><a class="plate plate-helix" href="helix-drop/" data-game="Helix Drop"><svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="21" y="4" width="6" height="40" fill="currentColor" opacity=".5"/><path d="M6 16h14M30 16h12M6 30h22M36 30h6" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="25" cy="10" r="4" fill="currentColor"/></svg><span class="copy"><span class="name">Helix Drop</span><span class="how">Turn the tower. Drop through the gaps.</span><span class="meta"><span class="chip" data-i18n="Reflex">Reflex</span></span><span class="stat" data-stat="helix-drop"></span></span></a></li>
+          <li><a class="plate plate-rising" href="the-rising/" data-game="The Rising"><svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="14" y="10" width="20" height="7" fill="currentColor"/><rect x="12" y="19" width="22" height="7" fill="currentColor"/><rect x="14" y="28" width="20" height="7" fill="currentColor"/><path d="M4 40q5-4 10 0t10 0t10 0t10 0" fill="none" stroke="currentColor" stroke-width="3"/></svg><span class="copy"><span class="name">The Rising</span><span class="how">Stack the blocks. Stay above the water.</span><span class="meta"><span class="chip" data-i18n="Precision">Precision</span></span><span class="stat" data-stat="the-rising"></span></span></a></li>
         </ul>
       </section>
     </main>
@@ -417,26 +399,17 @@
   <dialog id="settings" class="settings" aria-labelledby="settings-title">
     <form class="settings-form" method="dialog">
       <h2 id="settings-title">Settings</h2>
-
       <fieldset class="field">
         <legend>Layout</legend>
         <div class="layout-options">
-          <label class="layout-option">
-            <input type="radio" name="layout" value="classic">
-            <span class="copy"><span class="name">Classic</span><span class="how">A simple game wall.</span></span>
-          </label>
-          <label class="layout-option">
-            <input type="radio" name="layout" value="arcade">
-            <span class="copy"><span class="name">Arcade</span><span class="how">Today, Continue, and your arcade.</span></span>
-          </label>
+          <label class="layout-option"><input type="radio" name="layout" value="classic"><span class="copy"><span class="name">Classic</span><span class="how">A simple game wall.</span></span></label>
+          <label class="layout-option"><input type="radio" name="layout" value="arcade"><span class="copy"><span class="name">Arcade</span><span class="how">Today, Continue, and your arcade.</span></span></label>
         </div>
       </fieldset>
-
       <div class="field">
         <label for="settings-name">Display name</label>
         <input id="settings-name" class="name-input" maxlength="24" autocomplete="off">
       </div>
-
       <div class="settings-actions">
         <button class="btn" value="cancel">Close</button>
         <button class="btn btn-primary" id="settings-save" type="button">Save</button>
@@ -448,17 +421,46 @@
     const plates = Array.from(document.querySelectorAll('.wall a'));
     const LAYOUT_KEY = 'minigames:v1:layout';
     const LAST_KEY = 'minigames:v1:lastPlayed';
+    const PROGRESS_KEY = 'minigames:v1:progress';
+
+    // Games with an existing local best-score key can be surfaced on the hub.
+    const BEST_KEYS = {
+      'stick-runner': { key: 'stick-runner:v2:best', unit: 'm' }
+    };
 
     function store(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {} }
     function load(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; } }
+    function readNumber(key) { try { const v = localStorage.getItem(key); return v ? +v || 0 : 0; } catch (e) { return 0; } }
+    function slugFromHref(href) {
+      const parts = new URL(href, location.href).pathname.split('/').filter(Boolean);
+      return parts.length ? parts[parts.length - 1] : '';
+    }
+    function t(s) { return window.MGI18n ? MGI18n.t(s) : s; }
+
+    function getProgress(slug) {
+      const all = load(PROGRESS_KEY, {});
+      return all[slug] || { plays: 0, lastPlayed: 0 };
+    }
+    function recordPlay(slug) {
+      const all = load(PROGRESS_KEY, {});
+      const p = all[slug] || { plays: 0, lastPlayed: 0 };
+      p.plays = (p.plays || 0) + 1;
+      p.lastPlayed = Date.now();
+      all[slug] = p;
+      store(PROGRESS_KEY, all);
+    }
+    function bestFor(slug) {
+      const cfg = BEST_KEYS[slug];
+      if (!cfg) return null;
+      const value = readNumber(cfg.key);
+      return value > 0 ? { value: value, unit: cfg.unit || '' } : null;
+    }
 
     // Layout preference
     function applyLayout(layout) {
       const value = layout === 'arcade' ? 'arcade' : 'classic';
       document.body.dataset.layout = value;
-      document.querySelectorAll('input[name="layout"]').forEach(input => {
-        input.checked = input.value === value;
-      });
+      document.querySelectorAll('input[name="layout"]').forEach(input => { input.checked = input.value === value; });
       renderContinue();
     }
     applyLayout(load(LAYOUT_KEY, 'classic'));
@@ -481,21 +483,39 @@
       if (from === 'umami') document.getElementById('from').hidden = false;
     })();
 
-    // Remember the last mini-game opened, locally only.
+    // Remember plays and the last mini-game opened, locally only.
     plates.forEach(function (a) {
+      const slug = slugFromHref(a.getAttribute('href'));
       a.addEventListener('click', function () {
-        store(LAST_KEY, { href: a.getAttribute('href'), name: a.dataset.game, ts: Date.now() });
+        recordPlay(slug);
+        store(LAST_KEY, { href: a.getAttribute('href'), name: a.dataset.game, slug: slug, ts: Date.now() });
       });
     });
 
     function relativeTime(ts) {
-      const t = window.MGI18n ? MGI18n.t.bind(MGI18n) : s => s;
       const mins = Math.max(1, Math.round((Date.now() - ts) / 60000));
       if (mins < 60) return t('Just now');
       const hours = Math.round(mins / 60);
       if (hours < 24) return hours + ' ' + t('hours ago');
-      const days = Math.round(hours / 24);
-      return days + ' ' + t('days ago');
+      return Math.round(hours / 24) + ' ' + t('days ago');
+    }
+
+    function statText(slug) {
+      const p = getProgress(slug);
+      const best = bestFor(slug);
+      const bits = [];
+      if (best) bits.push(t('Best') + ' ' + best.value + (best.unit ? ' ' + best.unit : ''));
+      if (p.plays > 0) bits.push(p.plays + ' ' + t('plays'));
+      return bits.join(' · ');
+    }
+
+    function renderProgress() {
+      plates.forEach(function (a) {
+        const slug = slugFromHref(a.getAttribute('href'));
+        const el = a.querySelector('[data-stat]');
+        if (el) el.textContent = statText(slug);
+      });
+      renderContinue();
     }
 
     function renderContinue() {
@@ -506,10 +526,13 @@
       section.hidden = false;
       card.href = last.href;
       document.getElementById('continue-name').textContent = last.name;
-      document.getElementById('continue-how').textContent = (window.MGI18n ? MGI18n.t('Last played') : 'Last played');
-      document.getElementById('continue-when').textContent = relativeTime(last.ts);
+      const bits = [t('Last played') + ' ' + relativeTime(last.ts)];
+      const best = bestFor(last.slug || slugFromHref(last.href));
+      if (best) bits.unshift(t('Best') + ' ' + best.value + (best.unit ? ' ' + best.unit : ''));
+      document.getElementById('continue-how').textContent = bits.join(' · ');
+      document.getElementById('continue-when').textContent = getProgress(last.slug || slugFromHref(last.href)).plays + ' ' + t('plays');
     }
-    renderContinue();
+    renderProgress();
 
     // Warm external daily services and prefetch mini-game assets.
     (function () {
@@ -533,7 +556,6 @@
       });
     })();
 
-    // Keyboard: 1-8 opens the corresponding mini-game.
     document.addEventListener('keydown', (e) => {
       if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
       const tag = (e.target && e.target.tagName) || '';
@@ -542,7 +564,6 @@
       if (n >= 1 && n <= plates.length) window.location.href = plates[n - 1].getAttribute('href');
     });
 
-    // Settings sheet
     const settings = document.getElementById('settings');
     const nameInput = document.getElementById('settings-name');
     document.getElementById('settings-open').addEventListener('click', () => {
@@ -566,21 +587,17 @@
       if (!chip) return;
       if (name) {
         chip.hidden = false;
-        chip.textContent = (window.MGI18n ? MGI18n.t('Hi') : 'Hi') + ', ' + name;
+        chip.textContent = t('Hi') + ', ' + name;
         chip.setAttribute('aria-label', 'Change your display name');
       } else {
         chip.hidden = true;
       }
     }
-    document.getElementById('hi').addEventListener('click', () => {
-      document.getElementById('settings-open').click();
-    });
+    document.getElementById('hi').addEventListener('click', () => { document.getElementById('settings-open').click(); });
     window.addEventListener('load', refreshGreeting);
 
     if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js').catch(() => {});
-      });
+      window.addEventListener('load', () => { navigator.serviceWorker.register('./service-worker.js').catch(() => {}); });
     }
   </script>
 </body>

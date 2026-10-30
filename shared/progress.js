@@ -64,5 +64,33 @@
 
   function getAll() { return read(); }
 
+  /* Hub integration: fill any [data-stat="game-slug"] badge with local progress. */
+  function renderHub() {
+    var badges = document.querySelectorAll('[data-stat]');
+    if (!badges.length) return;
+    Array.prototype.forEach.call(badges, function (el) {
+      var slug = el.getAttribute('data-stat');
+      if (!slug) return;
+      var item = get(slug);
+      var bits = [];
+      if (item.best !== null && item.best !== undefined) {
+        bits.push('Best ' + item.best + (item.unit ? ' ' + item.unit : ''));
+      }
+      if (item.plays > 0) bits.push(item.plays + ' plays');
+      el.textContent = bits.join(' · ');
+    });
+  }
+
+  function initHub() {
+    renderHub();
+    onChange(renderHub);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initHub);
+  } else {
+    initHub();
+  }
+
   window.MGProgress = { report: report, get: get, getAll: getAll, onChange: onChange };
 })();

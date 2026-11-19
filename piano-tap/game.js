@@ -1034,7 +1034,7 @@ class Game {
       score: this.score || 0,
       name,
       detail: songName + ' • ' + Math.round(acc) + '% accuracy',
-      url: 'https://philipposk.github.io/MiniGames/piano-tap/',
+      url: 'https://minigames.6x7.gr/piano-tap/',
       accent: '#5cf2c4', bg1: '#0c0f1f', bg2: '#2a1a55'
     });
   }

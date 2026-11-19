@@ -633,7 +633,7 @@
             score: r.score,
             name,
             detail: 'Level ' + (levelConfig.index || 1) + ' • ' + stars + '★',
-            url: 'https://philipposk.github.io/MiniGames/bounce-ball/',
+            url: 'https://minigames.6x7.gr/bounce-ball/',
             accent: '#ff5c8a', bg1: '#1a2455', bg2: '#3b1d6e'
         });
     }

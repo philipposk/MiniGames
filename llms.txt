@@ -1,0 +1,18 @@
+# Mini Games
+
+> Eight free browser games by 6x7. No ads, no account, no install. They work on phones and computers and save scores only in your own browser.
+
+- [Mini Games hub](https://minigames.6x7.gr/): all games, with your best scores and play counts
+- [Bounce Ball](https://minigames.6x7.gr/bounce-ball/): brick-breaker; break the bricks and pick your speed
+- [Color Clash](https://minigames.6x7.gr/color-clash/): match the color before time runs out
+- [Crossy Hop](https://minigames.6x7.gr/crossy-road/): endless hopper; cross roads, rivers and rails
+- [Helix Drop](https://minigames.6x7.gr/helix-drop/): turn the tower and drop through the gaps
+- [Piano Tap](https://minigames.6x7.gr/piano-tap/): hit the black tiles
+- [Rock Simulator](https://minigames.6x7.gr/rock-simulator/): idle game about being a rock (erosion, moss, deep time)
+- [Stick Runner](https://minigames.6x7.gr/stick-runner/): endless runner; jump and slide
+- [The Rising](https://minigames.6x7.gr/the-rising/): stack the blocks and stay above the water
+
+## More from 6x7
+
+- [6x7](https://6x7.gr/): the studio behind these games
+- [Portfolio](https://portfolio.6x7.gr/): every 6x7 app

@@ -32,7 +32,7 @@
     }
     ctx.font = '500 34px ui-sans-serif, system-ui, sans-serif';
     ctx.fillStyle = '#9aa3c7';
-    ctx.fillText('philipposk.github.io/MiniGames', 80, H - 80);
+    ctx.fillText('minigames.6x7.gr', 80, H - 80);
     return c;
   }
   function canvasToPngBlob(canvas) {
@@ -51,7 +51,7 @@
     const data = {
       title: opts.gameTitle || 'MiniGames',
       text: (opts.name || 'I') + ' scored ' + (opts.score || 0) + ' on ' + (opts.gameTitle || 'MiniGames') + '!',
-      url: opts.url || 'https://philipposk.github.io/MiniGames/',
+      url: opts.url || 'https://minigames.6x7.gr/',
       files: [file]
     };
     if (navigator.canShare && navigator.canShare({ files: [file] })) {

@@ -1,0 +1,11 @@
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "minigames.6x7.dk" }],
+      "headers": [
+        { "key": "Link", "value": "<https://minigames.6x7.gr/$1>; rel=\"canonical\"" }
+      ]
+    }
+  ]
+}

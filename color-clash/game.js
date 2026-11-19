@@ -545,7 +545,7 @@ class ColorClash {
                     score: self.score,
                     name,
                     detail: modeName + ' • Level ' + (self.level || 1),
-                    url: 'https://philipposk.github.io/MiniGames/color-clash/',
+                    url: 'https://minigames.6x7.gr/color-clash/',
                     accent: '#5cf2c4', bg1: '#2d1a55', bg2: '#6e1d2e'
                 });
             });

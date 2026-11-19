@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://philipposk.github.io/MiniGames/sitemap.xml
+Sitemap: https://minigames.6x7.gr/sitemap.xml
